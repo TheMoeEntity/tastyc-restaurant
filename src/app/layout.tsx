@@ -14,11 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title:
-    "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
-  description:
-    "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
- 
+  title: "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
+  description: "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
 };
 
 export default function RootLayout({
@@ -31,7 +28,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AppLayout>{children}</AppLayout>
+        {/* Pass showHeader=false if Hero has its own header */}
+        <AppLayout showHeader={false}>{children}</AppLayout>
       </body>
     </html>
   );

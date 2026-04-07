@@ -2,12 +2,23 @@ import React from "react";
 import ScrollTop from "../ui/ScrollTop";
 import Header from "./Header";
 import Footer from "./Footer";
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
+
+type AppLayoutProps = {
+  children: React.ReactNode;
+  showHeader?: boolean;
+  showFooter?: boolean;
+};
+
+const AppLayout = ({
+  children,
+  showHeader = true,
+  showFooter = true,
+}: AppLayoutProps) => {
   return (
     <main className="w-full">
-      <Header/>
+      {showHeader && <Header />}
       {children}
-      <Footer/>
+      {showFooter && <Footer />}
       <ScrollTop />
     </main>
   );
