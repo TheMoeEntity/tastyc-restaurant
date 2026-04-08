@@ -84,7 +84,7 @@ export default function Hero() {
         .content-dots     { animation: contentIn 0.6s ease-out 1.1s both; }
       `}</style>
 
-      <section className="relative w-full h-[85vh] md:h-[100vh] overflow-hidden">
+      <section className="relative w-full h-[85vh] md:h-screen overflow-hidden">
         {/* header on top */}
         <div className="absolute top-0 left-0 w-full z-20">
           <Header cartCount={cartCount} />
@@ -102,7 +102,7 @@ export default function Hero() {
               key={`${i}-${activeSlide === i}`}
               className={`absolute inset-0 ${i === activeSlide ? `anim-${s.animation}` : ""}`}
               style={{
-                backgroundImage: `url(${s.image})`,
+                backgroundImage: `linear-gradient(rgba(8, 31, 34, 0.25), rgba(8, 31, 34, 0.3)), url(${s.image})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}
@@ -163,7 +163,9 @@ export default function Hero() {
                   key={i}
                   onClick={() => setActiveSlide(i)}
                   className={`rounded-full transition-all duration-300 border-2 border-white w-3.5 h-3.5 md:w-4 md:h-4 ${
-                    i === activeSlide ? "border-yellow-500 scale-125" : "bg-transparent"
+                    i === activeSlide
+                      ? "border-yellow-500 scale-125"
+                      : "bg-transparent"
                   }`}
                 />
               ))}
@@ -173,10 +175,16 @@ export default function Hero() {
 
         {/* arrows bottom right (moved up on desktop) */}
         <div className="absolute bottom-5 right-5 md:bottom-16 md:right-8 flex gap-3 z-10">
-          <button onClick={goPrev} className="text-white hover:text-yellow-500 transition">
+          <button
+            onClick={goPrev}
+            className="text-white hover:text-yellow-500 transition"
+          >
             <ArrowRight className="rotate-180" size={26} />
           </button>
-          <button onClick={goNext} className="text-white hover:text-yellow-500 transition">
+          <button
+            onClick={goNext}
+            className="text-white hover:text-yellow-500 transition"
+          >
             <ArrowRight size={26} />
           </button>
         </div>
