@@ -29,7 +29,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {/* Pass showHeader=false if Hero has its own header */}
-        <AppLayout showHeader={false}>{children}</AppLayout>
+        <AppLayout >{children}</AppLayout>
       </body>
     </html>
   );

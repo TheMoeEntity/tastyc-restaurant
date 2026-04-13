@@ -1,89 +1,136 @@
-import React from 'react'
-import Link from 'next/link'
+"use client"
 
-function Features() {
-  const cards = [
+import { motion } from "framer-motion"
+import {
+  Utensils,
+  Leaf,
+  ChefHat,
+  Globe,
+} from "lucide-react"
+
+export default function FeaturesAdvisoryStyle() {
+  const features = [
     {
-      title: "Menu for every taste",
-      description: "Dolor sit amet, consectetur adipisicing elit et molestias possimus",
-      image: "/assets/FeaturesImg.png",
-      number: "01",
+      icon: Utensils,
+      title: "Menu for Every Taste",
+      description:
+        "Carefully curated dishes designed to satisfy diverse preferences and elevate dining experiences.",
     },
     {
-      title: "Always fresh Ingredients",
-      description: "Dolor sit amet, consectetur adipisicing elit et molestias possimus",
-      image: "/assets/FeatureImg2.png",
-      number: "02",
+      icon: Leaf,
+      title: "Always Fresh Ingredients",
+      description:
+        "We prioritize quality by sourcing fresh, organic, and locally produced ingredients for every meal.",
     },
     {
+      icon: ChefHat,
       title: "Experienced Chefs",
-      description: "Dolor sit amet, consectetur adipisicing elit et molestias possimus",
-      image: "/assets/FeaturesImg1.png",
-      number: "03",
+      description:
+        "Our chefs bring years of culinary expertise, ensuring consistency, creativity, and excellence.",
+    },
+    {
+      icon: Globe,
+      title: "Intercontinental Dishes",
+      description:
+        "We cook and serve a wide variety of meals from around the globe.",
     },
   ]
 
   return (
-    <section className="py-24 px-10 bg-white">
+    <section className="relative py-20 px-4 sm:px-6 lg:px-12 bg-white overflow-hidden">
+      <div className="max-w-7xl mx-auto relative">
 
-      {/* header - centered */}
-      <div className="flex flex-col items-center text-center mb-16">
-        <div className="bg-yellow-500 h-0.5 w-6 mb-3"></div>
-        <p className="font-bold text-xl text-yellow-500 uppercase tracking-widest mb-1">Features</p>
-        <h1 className="text-5xl font-black text-gray-900 leading-tight">Why Choose Us</h1>
-        <p className="text-gray-400 mt-4 text-base max-w-md">Porro eveniet, autem ipsam vitae consequatur!</p>
-      </div>
+        {/* Radiance Glow (behind content) */}
+        <div className="pointer-events-none absolute inset-0 flex justify-center items-center">
+          <div className="w-[500px] h-[500px] bg-yellow-400/20 blur-[120px] rounded-full translate-x-40"></div>
+        </div>
 
-      {/* cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
-        {cards.map((card, index) => (
-          <div
-            key={index}
-            className="group relative flex flex-col bg-gray-50 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2"
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+          className="text-center max-w-3xl mx-auto mb-16 relative z-10"
+        >
+          <h3 className="text-xl uppercase tracking-widest text-yellow-500 mb-3">
+            Features
+          </h3>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-6 text-black">
+            Why Choose Our Restaurant
+          </h2>
+          <p className="text-gray-600 text-base sm:text-lg leading-relaxed">
+            We combine quality ingredients, expert chefs, and diverse menus to
+            deliver a dining experience that stands out every time.
+          </p>
+        </motion.div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+
+          {/* Feature Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {features.map((feature, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="relative p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition bg-white/80 backdrop-blur"
+              >
+                {/* Glow on hover */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition bg-yellow-400/10 blur-xl"></div>
+
+                <feature.icon className="h-8 w-8 mb-4 text-yellow-500 relative z-10" />
+                <h4 className="font-semibold text-lg mb-2 text-gray-900 relative z-10">
+                  {feature.title}
+                </h4>
+                <p className="text-sm text-gray-600 relative z-10">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Visual Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.7 }}
+            viewport={{ once: true }}
+            className="relative"
           >
-            {/* 3D number badge */}
-            <span
-              className="absolute top-4 left-4 z-10 text-xs font-black text-yellow-700 bg-yellow-400 w-9 h-9 rounded-full flex items-center justify-center select-none"
-              style={{
-                boxShadow: '0 4px 0px #a16207, 0 6px 8px rgba(0,0,0,0.25)',
-                textShadow: '0 1px 0 #fef08a',
-              }}
-            >
-              {card.number}
-            </span>
-
-            {/* image area - no background color */}
-            <div className="flex justify-center items-center py-10 px-12">
+            <div className="rounded-3xl overflow-hidden shadow-xl relative z-10">
               <img
-                src={card.image}
-                alt={card.title}
-                className="w-32 h-32 object-contain group-hover:scale-110 transition-transform duration-500"
+                src="/assets/homeImg1.jpg"
+                alt="Restaurant feature"
+                className="h-[420px] w-full object-cover"
               />
             </div>
 
-            {/* content */}
-            <div className="flex flex-col flex-1 px-8 py-8">
-              <div className="w-8 h-0.5 bg-yellow-500 mb-4"></div>
-              <h3 className="text-2xl font-black text-gray-900 mb-3 leading-snug">{card.title}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed flex-1">{card.description}</p>
+            {/* Extra Glow near image */}
+            <div className="absolute -right-10 top-10 w-72 h-72 bg-yellow-400/20 blur-[100px] rounded-full"></div>
 
-              <Link
-                href="/about"
-                className="mt-8 flex items-center gap-2 text-yellow-500 font-bold text-sm group-hover:gap-4 transition-all duration-300 w-fit"
-              >
-                <span>Learn more</span>
-                <span>→</span>
-              </Link>
-            </div>
+            {/* Floating Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+              className="absolute -bottom-6 left-6 right-6 bg-white rounded-2xl shadow-lg p-6 text-center z-10"
+            >
+              <p className="font-semibold text-yellow-500 text-lg">
+                Fresh • Quality • Experience
+              </p>
+              <p className="text-sm text-gray-500">
+                Crafted to give you the best dining moments
+              </p>
+            </motion.div>
+          </motion.div>
 
-            {/* bottom accent bar */}
-            <div className="h-1 w-0 bg-yellow-500 group-hover:w-full transition-all duration-500"></div>
-          </div>
-        ))}
+        </div>
       </div>
-
     </section>
   )
 }
-
-export default Features

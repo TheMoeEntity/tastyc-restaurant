@@ -112,26 +112,26 @@ export default function Hero() {
         ))}
 
         {/* content */}
-        <div className="relative z-10 h-full flex items-center pt-20 md:pt-0">
+        <div className="relative z-10 h-full flex items-center pt-32 md:pt-40">
           <div
             key={`content-${activeSlide}`}
-            className="w-full max-w-4xl px-5 sm:px-8 md:px-16 lg:px-20 text-white"
+            className="w-full max-w-4xl px-5 sm:px-8 md:px-16 lg:px-20 lg:ml-[2%] xl:ml-[8%] text-white translate-x-2"
           >
             {/* yellow bar + subtitle */}
             <div className="content-bar flex items-center gap-3 mb-2">
-              <span className="w-8 sm:w-12 h-1 bg-yellow-500 inline-block flex-shrink-0"></span>
+              <span className="w-8 sm:w-12 h-1 bg-yellow-500 inline-block shrink-0"></span>
               <p className="text-sm sm:text-lg md:text-2xl lg:text-3xl py-2 md:py-4 tracking-wide leading-tight">
                 {slide.subtitle}
               </p>
             </div>
 
             {/* title line 1 */}
-            <h1 className="content-title1 text-[10vw] sm:text-6xl md:text-8xl lg:text-[100px] font-serif font-extrabold leading-[1.05] tracking-tight whitespace-nowrap">
+            <h1 className="content-title1 text-[10vw] sm:text-4xl md:text-5xl lg:text-[60px] font-serif font-extrabold leading-[1.05] tracking-tight whitespace-nowrap">
               {slide.mainTitle}
             </h1>
 
             {/* title line 2 */}
-            <h2 className="content-title2 mt-1 text-[10vw] sm:text-6xl md:text-8xl lg:text-[100px] font-serif font-extrabold leading-[1.05] tracking-tight whitespace-nowrap">
+            <h2 className="content-title2 mt-1 text-[8vw] sm:text-4xl md:text-5xl lg:text-[60px] font-serif font-extrabold leading-[1.05] tracking-tight whitespace-nowrap">
               {slide.secondaryTitle}
             </h2>
 
