@@ -1,6 +1,6 @@
 "use client";
 
-import Header from "@/components/layout/Header";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -85,10 +85,7 @@ export default function Hero() {
       `}</style>
 
       <section className="relative w-full h-[85vh] md:h-screen overflow-hidden">
-        {/* header on top */}
-        <div className="absolute top-0 left-0 w-full z-20">
-          <Header cartCount={cartCount} />
-        </div>
+
 
         {/* background slides */}
         {slides.map((s, i) => (

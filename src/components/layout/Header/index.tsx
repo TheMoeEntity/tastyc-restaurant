@@ -1,7 +1,9 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { useState, useEffect } from "react"
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ShoppingBag } from "lucide-react";
 
 const navItems = [
   {
@@ -24,32 +26,32 @@ const navItems = [
     href: "/order",
     dropdown: [
       { label: "Online Order", href: "/order" },
-      { label: "Track Order",  href: "/order/track" },
-      { label: "Offers",       href: "/order/offers" },
-      { label: "Cart",         href: "/cart" },
-      { label: "Checkout",     href: "/checkout" },
+      { label: "Track Order", href: "/order/track" },
+      { label: "Offers", href: "/order/offers" },
+      { label: "Cart", href: "/cart" },
+      { label: "Checkout", href: "/checkout" },
     ],
   },
   {
     name: "Pages",
     href: "/gallery",
     dropdown: [
-      { label: "Gallery",      href: "/gallery" },
-      { label: "Pricing",      href: "/pricing" },
+      { label: "Gallery", href: "/gallery" },
+      { label: "Pricing", href: "/pricing" },
       { label: "Testimonials", href: "/testimonials" },
-      { label: "404",          href: "/404" },
-      { label: "Coming Soon",  href: "/coming-soon" },
+      { label: "404", href: "/404" },
+      { label: "Coming Soon", href: "/coming-soon" },
     ],
   },
   {
     name: "Blog",
     href: "/blog",
     dropdown: [
-      { label: "Blog Grid",   href: "/blog" },
-      { label: "Blog List",   href: "/blog/list" },
+      { label: "Blog Grid", href: "/blog" },
+      { label: "Blog List", href: "/blog/list" },
       { label: "Single Post", href: "/blog/post" },
-      { label: "Categories",  href: "/blog/categories" },
-      { label: "Authors",     href: "/blog/authors" },
+      { label: "Categories", href: "/blog/categories" },
+      { label: "Authors", href: "/blog/authors" },
     ],
   },
   {
@@ -57,10 +59,10 @@ const navItems = [
     href: "/contact",
     dropdown: [
       { label: "Contact Us", href: "/contact" },
-      { label: "Support",    href: "/contact/support" },
-      { label: "Locations",  href: "/contact/locations" },
-      { label: "Email",      href: "/contact/email" },
-      { label: "Call",       href: "/contact/call" },
+      { label: "Support", href: "/contact/support" },
+      { label: "Locations", href: "/contact/locations" },
+      { label: "Email", href: "/contact/email" },
+      { label: "Call", href: "/contact/call" },
     ],
   },
   {
@@ -68,71 +70,94 @@ const navItems = [
     href: "/shop",
     dropdown: [
       { label: "All Products", href: "/shop" },
-      { label: "Cart",         href: "/cart" },
-      { label: "Checkout",     href: "/checkout" },
-      { label: "Wishlist",     href: "/shop/wishlist" },
-      { label: "Deals",        href: "/shop/deals" },
+      { label: "Cart", href: "/cart" },
+      { label: "Checkout", href: "/checkout" },
+      { label: "Wishlist", href: "/shop/wishlist" },
+      { label: "Deals", href: "/shop/deals" },
     ],
   },
-]
+];
 
 type HeaderProps = {
-  cartCount?: number
-}
+  cartCount?: number;
+};
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const [activeNav, setActiveNav] = useState<number | null>(null)
-  const [mobileExpanded, setMobileExpanded] = useState<number | null>(null)
-  const [cartItemCount, setCartItemCount] = useState(cartCount)
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState<number | null>(null);
+  const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
+  const [cartItemCount, setCartItemCount] = useState(cartCount);
+  const [isScrolled, setIsScrolled] = useState(false);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 70) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
   // Listen for cart updates from localStorage or custom events
   useEffect(() => {
     // Update cart count from localStorage
     const updateCartCount = () => {
-      const savedCart = localStorage.getItem("cart")
+      const savedCart = localStorage.getItem("cart");
       if (savedCart) {
         try {
-          const cart = JSON.parse(savedCart)
-          const totalItems = cart.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0)
-          setCartItemCount(totalItems)
+          const cart = JSON.parse(savedCart);
+          const totalItems = cart.reduce(
+            (sum: number, item: any) => sum + (item.quantity || 1),
+            0,
+          );
+          setCartItemCount(totalItems);
         } catch (e) {
-          console.error("Error parsing cart:", e)
+          console.error("Error parsing cart:", e);
         }
       } else {
-        setCartItemCount(0)
+        setCartItemCount(0);
       }
-    }
+    };
 
     // Initial load
-    updateCartCount()
+    updateCartCount();
 
     // Listen for storage events (when cart changes in another tab)
-    window.addEventListener("storage", updateCartCount)
+    window.addEventListener("storage", updateCartCount);
 
     // Listen for custom cart update event
-    window.addEventListener("cartUpdated", updateCartCount)
+    window.addEventListener("cartUpdated", updateCartCount);
 
     return () => {
-      window.removeEventListener("storage", updateCartCount)
-      window.removeEventListener("cartUpdated", updateCartCount)
-    }
-  }, [])
+      window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("cartUpdated", updateCartCount);
+    };
+  }, []);
 
   // Also update when prop changes
   useEffect(() => {
-    setCartItemCount(cartCount)
-  }, [cartCount])
+    setCartItemCount(cartCount);
+  }, [cartCount]);
 
   return (
-    <header className=" w-full flex justify-center mt-4">
-      <div className="w-[98%] max-w-screen-2xl bg-white border border-gray-200 rounded-xl shadow-sm">
-
-        <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-5">
-
+    <header
+      className={`fixed transition-all duration-900 ease ${isScrolled ? "-top-2" : "top-4"} left-0 z-50 w-full flex justify-center`}
+    >
+      <div
+        className={`w-[97%] max-w-screen-2xl bg-white border border-gray-200 rounded-xl shadow-sm ${isScrolled ? "py-3" : "py-0"}`}
+      >
+        <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-3">
           {/* logo */}
           <Link href="/" className="flex flex-col leading-tight">
-            <h1 className="text-3xl md:text-5xl font-bold text-black">Tastyc</h1>
+            <h1
+              className={`transition-all duration-200 ease ${isScrolled ? "text-xl md:text-2xl" : "text-2xl md:text-4xl"}  font-bold text-black`}
+            >
+              Tastyc
+            </h1>
             <div className="flex items-center gap-1.5 md:gap-2">
               <div className="flex flex-col gap-0.5">
                 <span className="w-4 md:w-6 h-0.5 bg-yellow-500"></span>
@@ -159,15 +184,19 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               >
                 <Link
                   href={item.href}
-                  className="relative flex items-center gap-1 text-xl text-gray-800 pb-2"
+                  className="relative text-sm uppercase font-extrabold flex items-center gap-1 text-gray-800 pb-2"
                 >
                   {item.name}
                   {item.dropdown && (
-                    <span className={`text-sm text-yellow-500 transition-opacity duration-150 ${activeNav === index ? "opacity-100" : "opacity-0"}`}>
+                    <span
+                      className={`text-sm text-yellow-500 transition-opacity duration-150 `}
+                    >
                       ▾
                     </span>
                   )}
-                  <span className={`absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-full transition-opacity duration-200 ${activeNav === index ? "opacity-100" : "opacity-0"}`} />
+                  <span
+                    className={`absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-full transition-opacity duration-200 ${activeNav === index ? "opacity-100" : "opacity-0"}`}
+                  />
                 </Link>
 
                 {/* invisible bridge so mouse can reach dropdown */}
@@ -196,7 +225,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
           {/* right side */}
           <div className="flex items-center gap-4 md:gap-6">
-
             <Link
               href="/reservation"
               className="hidden md:inline-flex items-center px-7 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
@@ -205,8 +233,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </Link>
 
             {/* cart - desktop */}
-            <Link href="/cart" className="relative text-2xl cursor-pointer hidden md:block group">
-              🛒
+            <Link
+              href="/cart"
+              className="relative text-2xl cursor-pointer hidden md:block group"
+            >
+              <ShoppingBag className="text-black" size={24} />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                   {cartItemCount > 99 ? "99+" : cartItemCount}
@@ -216,8 +247,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </Link>
 
             {/* cart - mobile */}
-            <Link href="/cart" className="relative text-2xl cursor-pointer md:hidden">
-              🛒
+            <Link
+              href="/cart"
+              className="relative text-2xl cursor-pointer md:hidden"
+            >
+              <ShoppingBag />
               {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                   {cartItemCount > 99 ? "99+" : cartItemCount}
@@ -244,66 +278,93 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         </div>
 
         {/* mobile menu */}
-        {mobileOpen && (
-          <div className="md:hidden px-4 py-4 space-y-1 border-t">
-            {navItems.map((item, index) => (
-              <div key={index} className="border-b border-gray-100 last:border-none">
-                <div className="flex items-center justify-between">
-                  <Link
-                    href={item.href}
-                    onClick={() => setMobileOpen(false)}
-                    className="py-2.5 text-sm text-gray-800"
+        <AnimatePresence>
+          {mobileOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="md:hidden overflow-hidden"
+            >
+              <div className="px-4 py-4 space-y-1 border-t">
+                {navItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="border-b border-gray-100 last:border-none"
                   >
-                    {item.name}
-                  </Link>
-                  {item.dropdown && (
-                    <button
-                      onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
-                      className="py-2.5 px-2 text-yellow-500 text-base"
-                    >
-                      {mobileExpanded === index ? "▴" : "▾"}
-                    </button>
-                  )}
-                </div>
-
-                {mobileExpanded === index && item.dropdown && (
-                  <div className="pb-3 flex flex-col gap-0.5 pl-2">
-                    {item.dropdown.map((drop, i) => (
+                    <div className="flex items-center justify-between">
                       <Link
-                        key={i}
-                        href={drop.href}
+                        href={item.href}
                         onClick={() => setMobileOpen(false)}
-                        className="py-2 px-2 text-xs text-gray-700 hover:bg-white hover:text-black rounded transition-all w-fit"
+                        className="py-2.5 text-sm text-gray-800"
                       >
-                        {drop.label}
+                        {item.name}
                       </Link>
-                    ))}
+                      {item.dropdown && (
+                        <button
+                          onClick={() =>
+                            setMobileExpanded(
+                              mobileExpanded === index ? null : index,
+                            )
+                          }
+                          className="py-2.5 px-2 text-yellow-500 text-base"
+                        >
+                          {mobileExpanded === index ? "▴" : "▾"}
+                        </button>
+                      )}
+                    </div>
+
+                    <AnimatePresence>
+                      {mobileExpanded === index && item.dropdown && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-3 flex flex-col gap-0.5 pl-2">
+                            {item.dropdown.map((drop, i) => (
+                              <Link
+                                key={i}
+                                href={drop.href}
+                                onClick={() => setMobileOpen(false)}
+                                className="py-2 px-2 text-xs text-gray-700 hover:bg-white hover:text-black rounded transition-all w-fit"
+                              >
+                                {drop.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                )}
+                ))}
+
+                <div className="pt-3 flex items-center justify-between">
+                  <Link
+                    href="/reservation"
+                    onClick={() => setMobileOpen(false)}
+                    className="inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
+                  >
+                    Reservation
+                  </Link>
+                  <Link
+                    href="/cart"
+                    className="relative text-2xl cursor-pointer"
+                  >
+                    <ShoppingBag />
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                        {cartItemCount > 99 ? "99+" : cartItemCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
               </div>
-            ))}
-
-            <div className="pt-3 flex items-center justify-between">
-              <Link
-                href="/reservation"
-                onClick={() => setMobileOpen(false)}
-                className="inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
-              >
-                Reservation
-              </Link>
-              <Link href="/cart" className="relative text-2xl cursor-pointer">
-                🛒
-                {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                    {cartItemCount > 99 ? "99+" : cartItemCount}
-                  </span>
-                )}
-              </Link>
-            </div>
-          </div>
-        )}
-
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </header>
-  )
+  );
 }
