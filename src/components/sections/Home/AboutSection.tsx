@@ -11,8 +11,8 @@ function AboutSection() {
         relative 
         mt-1 md:-mt-2 lg:-mt-4
         bg-white 
-        rounded-2xl 
-        shadow-xl 
+        rounded-t-2xl 
+  
         p-6 md:p-10 lg:p-14
       "
       >

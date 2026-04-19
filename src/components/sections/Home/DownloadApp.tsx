@@ -2,18 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import {
-  Smartphone,
-  ChevronRight,
-  Star,
-  Download,
-  Clock,
-  Shield,
-  Zap,
-  Coffee,
-  Gift,
-  Truck,
-} from "lucide-react";
+import { Smartphone, ChevronRight, Star, Download } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -30,7 +19,6 @@ const DownloadAppSection = () => {
 
   return (
     <section className="relative py-20 px-6 md:px-16 lg:px-20 overflow-hidden">
-
       {/* BACKGROUND IMAGE */}
       <div className="absolute inset-0">
         <Image
@@ -39,10 +27,12 @@ const DownloadAppSection = () => {
           fill
           className="object-cover"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#1E2225]/70 to-[#1E2225]/90"></div>
       </div>
 
       {/* BURGER IMAGE */}
-      <div className="
+      <div
+        className="
         absolute 
         -bottom-16 sm:-bottom-20 md:bottom-0 
         left-1/2 md:left-auto 
@@ -50,7 +40,8 @@ const DownloadAppSection = () => {
         md:right-10 
         z-10
         pointer-events-none
-      ">
+      "
+      >
         <Image
           src="/assets/burger.png"
           alt="burger"
@@ -62,7 +53,6 @@ const DownloadAppSection = () => {
 
       {/* CONTENT */}
       <div className="relative z-20 max-w-5xl mx-auto text-center">
-
         <motion.div
           variants={stagger}
           initial="hidden"
@@ -70,7 +60,6 @@ const DownloadAppSection = () => {
           viewport={{ once: true }}
           className="space-y-8"
         >
-
           {/* BADGE */}
           <motion.div variants={fadeUp}>
             <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur-sm px-5 py-2 rounded-full">
@@ -97,7 +86,8 @@ const DownloadAppSection = () => {
           >
             Download the Tastyc app and enjoy exclusive deals, faster checkout,
             and real-time order tracking. Get{" "}
-            <span className="text-yellow-500 font-bold">$5 off</span> your first order.
+            <span className="text-yellow-500 font-bold">$5 off</span> your first
+            order.
           </motion.p>
 
           {/* BUTTONS */}
@@ -120,9 +110,7 @@ const DownloadAppSection = () => {
                 />
                 <div className="text-left">
                   <p className="text-xs text-gray-500">GET IT ON</p>
-                  <p className="text-xl font-bold text-gray-900">
-                    Google Play
-                  </p>
+                  <p className="text-xl font-bold text-gray-900">Google Play</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-yellow-500" />
               </div>
@@ -143,9 +131,7 @@ const DownloadAppSection = () => {
                 />
                 <div className="text-left">
                   <p className="text-xs text-gray-400">DOWNLOAD ON</p>
-                  <p className="text-xl font-bold text-white">
-                    App Store
-                  </p>
+                  <p className="text-xl font-bold text-white">App Store</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-gray-600 group-hover:text-yellow-500" />
               </div>
@@ -159,11 +145,12 @@ const DownloadAppSection = () => {
           >
             <div className="flex items-center gap-2">
               {[1, 2, 3, 4, 5].map((s) => (
-                <Star key={s} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
+                <Star
+                  key={s}
+                  className="w-5 h-5 fill-yellow-500 text-yellow-500"
+                />
               ))}
-              <span className="text-gray-300 ml-2">
-                4.8 (50k+ reviews)
-              </span>
+              <span className="text-gray-300 ml-2">4.8 (50k+ reviews)</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -171,7 +158,6 @@ const DownloadAppSection = () => {
               <span className="text-white">100k+ Downloads</span>
             </div>
           </motion.div>
-
         </motion.div>
       </div>
     </section>
