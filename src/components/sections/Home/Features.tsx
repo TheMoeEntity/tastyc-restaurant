@@ -30,7 +30,7 @@ export default function FeaturesAdvisoryStyle() {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="text-center max-w-3xl mx-auto mb-20"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -57,7 +57,7 @@ export default function FeaturesAdvisoryStyle() {
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.2 }}
-              viewport={{ once: true }}
+              viewport={{ once: true, amount: 0.1 }}
               className="group bg-white border border-gray-100 rounded-2xl p-8 hover:-translate-y-2 transition duration-300"
             >
 

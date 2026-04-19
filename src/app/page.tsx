@@ -8,12 +8,12 @@ import Testimonials from "@/components/sections/Home/Testimonials";
 export default function Home() {
   return (
     <>
-    <Hero/>
-    <AboutSection/>
-    <Features/>
-    <Testimonials/>
-    <DownloadAppSection/>
-    <Newsletter/>
+      <Hero />
+      <AboutSection />
+      <Features />
+      <Testimonials />
+      <DownloadAppSection />
+      <Newsletter />
     </>
   );
 }

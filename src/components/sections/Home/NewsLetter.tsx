@@ -60,6 +60,9 @@ function NewsletterCard({ item }: any) {
   return (
     <motion.div
       variants={fadeUp}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.1 }}
       className="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden"
     >
       {/* IMAGE */}

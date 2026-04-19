@@ -57,7 +57,7 @@ const DownloadAppSection = () => {
           variants={stagger}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true }}
+          viewport={{ once: true, amount: 0.1 }}
           className="space-y-8"
         >
           {/* BADGE */}

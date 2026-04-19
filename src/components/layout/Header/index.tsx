@@ -4,83 +4,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
-
-const navItems = [
-  {
-    name: "Home",
-    href: "/",
-    dropdown: null,
-  },
-  {
-    name: "About",
-    href: "/about",
-    dropdown: null,
-  },
-  {
-    name: "Menu",
-    href: "/menu",
-    dropdown: null,
-  },
-  {
-    name: "Order",
-    href: "/order",
-    dropdown: [
-      { label: "Online Order", href: "/order" },
-      { label: "Track Order", href: "/order/track" },
-      { label: "Offers", href: "/order/offers" },
-      { label: "Cart", href: "/cart" },
-      { label: "Checkout", href: "/checkout" },
-    ],
-  },
-  {
-    name: "Pages",
-    href: "/gallery",
-    dropdown: [
-      { label: "Gallery", href: "/gallery" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "Testimonials", href: "/testimonials" },
-      { label: "404", href: "/404" },
-      { label: "Coming Soon", href: "/coming-soon" },
-    ],
-  },
-  {
-    name: "Blog",
-    href: "/blog",
-    dropdown: [
-      { label: "Blog Grid", href: "/blog" },
-      { label: "Blog List", href: "/blog/list" },
-      { label: "Single Post", href: "/blog/post" },
-      { label: "Categories", href: "/blog/categories" },
-      { label: "Authors", href: "/blog/authors" },
-    ],
-  },
-  {
-    name: "Contact",
-    href: "/contact",
-    dropdown: [
-      { label: "Contact Us", href: "/contact" },
-      { label: "Support", href: "/contact/support" },
-      { label: "Locations", href: "/contact/locations" },
-      { label: "Email", href: "/contact/email" },
-      { label: "Call", href: "/contact/call" },
-    ],
-  },
-  {
-    name: "Shop",
-    href: "/shop",
-    dropdown: [
-      { label: "All Products", href: "/shop" },
-      { label: "Cart", href: "/cart" },
-      { label: "Checkout", href: "/checkout" },
-      { label: "Wishlist", href: "/shop/wishlist" },
-      { label: "Deals", href: "/shop/deals" },
-    ],
-  },
-];
-
-type HeaderProps = {
-  cartCount?: number;
-};
+import { navItems } from "@/lib/constants";
+import { HeaderProps } from "@/types";
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -111,6 +36,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         try {
           const cart = JSON.parse(savedCart);
           const totalItems = cart.reduce(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (sum: number, item: any) => sum + (item.quantity || 1),
             0,
           );
