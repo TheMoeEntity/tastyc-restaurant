@@ -152,13 +152,13 @@ export default function Testimonials() {
         </MotionWrapper>
 
         {/* CONTROLS */}
-        <div className="flex items-center justify-between max-w-7xl mx-auto mt-10">
+        <div className="relative z-10 flex items-center justify-between max-w-7xl mx-auto mt-10">
           <div className="flex gap-2">
             {Array.from({ length: totalPages }).map((_, i) => (
               <button
                 key={i}
                 onClick={() => goTo(i * CARDS_PER_PAGE)}
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all duration-300 touch-manipulation ${
                   i === currentPage ? "w-6 bg-yellow-500" : "w-2 bg-gray-300"
                 }`}
               />
@@ -167,13 +167,13 @@ export default function Testimonials() {
           <div className="flex gap-3">
             <button
               onClick={prev}
-              className="w-10 h-10 rounded-full border border-yellow-500 text-yellow-500 flex items-center justify-center hover:bg-yellow-500 hover:text-white transition"
+              className="w-11 h-11 rounded-full border border-yellow-500 text-yellow-500 flex items-center justify-center hover:bg-yellow-500 hover:text-white transition touch-manipulation"
             >
               ←
             </button>
             <button
               onClick={next}
-              className="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center hover:bg-yellow-400 transition"
+              className="w-11 h-11 rounded-full bg-yellow-500 text-white flex items-center justify-center hover:bg-yellow-400 transition touch-manipulation"
             >
               →
             </button>

@@ -159,7 +159,7 @@ export default function Hero() {
                 <button
                   key={i}
                   onClick={() => setActiveSlide(i)}
-                  className={`rounded-full transition-all duration-300 border-2 border-white w-3.5 h-3.5 md:w-4 md:h-4 ${
+                  className={`rounded-full transition-all duration-300 border-2 border-white w-3.5 h-3.5 md:w-4 md:h-4 touch-manipulation ${
                     i === activeSlide
                       ? "border-yellow-500 scale-125"
                       : "bg-transparent"
@@ -174,13 +174,13 @@ export default function Hero() {
         <div className="absolute bottom-5 right-5 md:bottom-16 md:right-8 flex gap-3 z-10">
           <button
             onClick={goPrev}
-            className="text-white hover:text-yellow-500 transition"
+            className="text-white hover:text-yellow-500 transition touch-manipulation p-2"
           >
             <ArrowRight className="rotate-180" size={26} />
           </button>
           <button
             onClick={goNext}
-            className="text-white hover:text-yellow-500 transition"
+            className="text-white hover:text-yellow-500 transition touch-manipulation p-2"
           >
             <ArrowRight size={26} />
           </button>
