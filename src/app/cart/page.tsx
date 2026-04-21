@@ -131,7 +131,7 @@ export default function CartPage() {
               <ShoppingCart className="w-10 h-10 text-yellow-500" />
             </div>
             <h2 className="text-2xl font-bold font-serif text-gray-900 mb-3">Your cart is empty</h2>
-            <p className="text-gray-500 mb-8 max-w-md mx-auto">
+            <p className="text-gray-500 text-xl mb-8 max-w-md mx-auto">
               Looks like you haven't added anything yet. Head back to the menu and explore our dishes.
             </p>
             <Link
