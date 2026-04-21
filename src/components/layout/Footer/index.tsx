@@ -3,7 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MoveLeft, MoveRight } from "lucide-react";
-import { FaFacebookF, FaInstagram, FaXTwitter, FaYoutube } from "react-icons/fa6";
+import {
+  FaFacebookF,
+  FaInstagram,
+  FaXTwitter,
+  FaYoutube,
+} from "react-icons/fa6";
 
 export default function Footer() {
   const scrollToTop = () => {
@@ -35,10 +40,30 @@ export default function Footer() {
         </Link>
 
         <div className="flex items-center gap-6">
-          <a href="#" className="text-white hover:text-[#f2a830] transition-colors"><FaFacebookF size={18} /></a>
-          <a href="#" className="text-white hover:text-[#f2a830] transition-colors"><FaInstagram size={18} /></a>
-          <a href="#" className="text-white hover:text-[#f2a830] transition-colors"><FaXTwitter size={18} /></a>
-          <a href="#" className="text-white hover:text-[#f2a830] transition-colors"><FaYoutube size={18} /></a>
+          <a
+            href="#"
+            className="text-white hover:text-[#f2a830] transition-colors"
+          >
+            <FaFacebookF size={18} />
+          </a>
+          <a
+            href="#"
+            className="text-white hover:text-[#f2a830] transition-colors"
+          >
+            <FaInstagram size={18} />
+          </a>
+          <a
+            href="#"
+            className="text-white hover:text-[#f2a830] transition-colors"
+          >
+            <FaXTwitter size={18} />
+          </a>
+          <a
+            href="#"
+            className="text-white hover:text-[#f2a830] transition-colors"
+          >
+            <FaYoutube size={18} />
+          </a>
         </div>
       </div>
 
@@ -160,7 +185,7 @@ export default function Footer() {
           <span className="text-[#96825c]">bslthemes Team</span>
         </p>
         <button
-          onClick={scrollToTop}
+          onClick={() => scrollToTop()}
           className="mt-4 md:mt-0 text-[#f2a830] font-bold tracking-widest uppercase hover:text-yellow-400 transition-colors"
         >
           Back to top

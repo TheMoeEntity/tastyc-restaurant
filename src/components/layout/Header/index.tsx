@@ -187,8 +187,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
             {/* hamburger */}
             <button
-              className="md:hidden flex flex-col gap-1"
-              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden flex flex-col items-center justify-center gap-1 min-w-[44px] min-h-[44px] p-2"
+              onClick={() => {
+                setMobileOpen(!mobileOpen);
+              }}
             >
               {mobileOpen ? (
                 <span className="text-xl font-bold">✕</span>
