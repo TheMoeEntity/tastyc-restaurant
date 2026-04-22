@@ -28,6 +28,7 @@ interface CartItem extends MenuItem {
   quantity: number;
 }
 
+
 const menuItems: MenuItem[] = [
   {
     id: "app-1", name: "Crispy Calamari",
