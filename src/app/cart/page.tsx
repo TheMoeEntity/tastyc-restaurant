@@ -591,7 +591,7 @@ export default function CartPage() {
               <p className="text-sm text-green-600 mb-4">Discount applied: {orderPlaced.promoCode}</p>
             )}
             <div className="space-y-3">
-              <Link href="/orders" onClick={closeSuccessModal} className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-center">
+              <Link href="/order" onClick={closeSuccessModal} className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-center">
                 View My Orders
               </Link>
               <Link href="/menu" onClick={closeSuccessModal} className="block w-full py-3 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-yellow-600 font-semibold rounded-xl transition">
