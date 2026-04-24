@@ -1,4 +1,4 @@
-import { Deal, Product, WishlistItem } from "@/types";
+import { CartItem, Deal, Product, WishlistItem } from "@/types";
 
 // app/utils/shopUtils.ts
 export const WISHLIST_STORAGE_KEY = "restaurant_wishlist";
@@ -80,7 +80,7 @@ export const isInWishlist = (productId: string): boolean => {
 // Cart functions
 export const addToCart = (product: Product): void => {
   const existingCart = localStorage.getItem("cart");
-  let cart: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
+  const cart: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
   const existingItem = cart.find((item) => item.id === product.id);
 
   if (existingItem) {
@@ -173,33 +173,33 @@ export const applyDealCode = (
   };
 };
 
-const defaultDeals: Deal[] = [
-  {
-    id: "1",
-    title: "First Order Special",
-    description: "Get 10% off your first order",
-    discount: 10,
-    code: "FIRST10",
-    validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg1.jpg",
-  },
-  {
-    id: "2",
-    title: "Weekend Feast",
-    description: "20% off on orders above $50",
-    discount: 20,
-    code: "WEEKEND20",
-    validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg2.jpg",
-    minOrder: 50,
-  },
-  {
-    id: "3",
-    title: "African Specialties",
-    description: "15% off all African dishes",
-    discount: 15,
-    code: "AFRICAN15",
-    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg3.jpg",
-  },
-];
+// const defaultDeals: Deal[] = [
+//   {
+//     id: "1",
+//     title: "First Order Special",
+//     description: "Get 10% off your first order",
+//     discount: 10,
+//     code: "FIRST10",
+//     validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+//     image: "/assets/homeImg1.jpg",
+//   },
+//   {
+//     id: "2",
+//     title: "Weekend Feast",
+//     description: "20% off on orders above $50",
+//     discount: 20,
+//     code: "WEEKEND20",
+//     validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+//     image: "/assets/homeImg2.jpg",
+//     minOrder: 50,
+//   },
+//   {
+//     id: "3",
+//     title: "African Specialties",
+//     description: "15% off all African dishes",
+//     discount: 15,
+//     code: "AFRICAN15",
+//     validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+//     image: "/assets/homeImg3.jpg",
+//   },
+// ];
