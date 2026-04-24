@@ -1,4 +1,5 @@
-// app/shop/page.tsx
+// src/app/shop/page.tsx
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -10,257 +11,25 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
+import { allProducts, categories } from "@/lib/data/shopData";
+import { Product, Deal, WishlistItem } from "@/types/shop.types";
+import {
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
+  isInWishlist,
+  addToCart,
+  saveAppliedPromo,
+  getActiveDeals,
+  defaultDeals,
+} from "@/lib/utils/shopUtils";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  category: string;
-  subCategory?: string;
-  tags: string[];
-  spicy?: boolean;
-  popular?: boolean;
-  veg?: boolean;
-  glutenFree?: boolean;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  inStock: boolean;
-  isNew?: boolean;
-  discount?: number;
-}
-
-interface WishlistItem {
-  id: string;
-  productId: string;
-  name: string;
-  price: number;
-  image: string;
-  addedAt: string;
-}
-
-interface Deal {
-  id: string;
-  title: string;
-  description: string;
-  discount: number;
-  code: string;
-  validUntil: string;
-  image: string;
-  minOrder?: number;
-}
-
-// Sample products data
-const allProducts: Product[] = [
-  {
-    id: "shop-1", name: "Jollof Rice with Chicken", description: "West African spiced tomato rice with grilled chicken, plantains, and coleslaw",
-    price: 18.99, originalPrice: 22.99, category: "African", subCategory: "West African",
-    tags: ["west african", "rice", "popular"], popular: true, spicy: true,
-    image: "/assets/homeImg1.jpg", rating: 4.8, reviewCount: 234, inStock: true, discount: 15,
-  },
-  {
-    id: "shop-2", name: "Egusi Soup with Pounded Yam", description: "Rich melon seed soup with assorted meat, fish, and leafy vegetables",
-    price: 19.99, category: "African", subCategory: "West African",
-    tags: ["soup", "traditional", "nigeria"], spicy: true, popular: true,
-    image: "/assets/homeImg2.jpg", rating: 4.9, reviewCount: 189, inStock: true,
-  },
-  {
-    id: "shop-3", name: "Suya Platter", description: "Spicy grilled beef skewers with onions, tomatoes, and extra yaji spice",
-    price: 16.99, category: "African", subCategory: "Street Food",
-    tags: ["grilled", "spicy", "street food"], spicy: true, popular: true,
-    image: "/assets/homeImg3.jpg", rating: 4.7, reviewCount: 312, inStock: true,
-  },
-  {
-    id: "shop-4", name: "Grilled Ribeye Steak", description: "14oz prime ribeye grilled to perfection, served with garlic mash",
-    price: 34.99, category: "Global", subCategory: "Steakhouse",
-    tags: ["steak", "premium"], popular: true,
-    image: "/assets/homeImg1.jpg", rating: 4.9, reviewCount: 156, inStock: true,
-  },
-  {
-    id: "shop-5", name: "Miso Glazed Salmon", description: "Norwegian salmon with sweet miso glaze, jasmine rice, and bok choy",
-    price: 27.99, originalPrice: 32.99, category: "Global", subCategory: "Seafood",
-    tags: ["seafood", "japanese", "healthy"], discount: 15,
-    image: "/assets/homeImg2.jpg", rating: 4.6, reviewCount: 98, inStock: true,
-  },
-  {
-    id: "shop-6", name: "Chicken Alfredo Pasta", description: "Fettuccine in creamy parmesan sauce with grilled chicken",
-    price: 19.99, category: "Global", subCategory: "Italian",
-    tags: ["pasta", "italian", "creamy"], popular: true,
-    image: "/assets/homeImg3.jpg", rating: 4.5, reviewCount: 267, inStock: true,
-  },
-  {
-    id: "shop-7", name: "Vegetable Pad Thai", description: "Rice noodles stir-fried with tofu, bean sprouts, peanuts, and tamarind sauce",
-    price: 16.99, category: "Global", subCategory: "Asian",
-    tags: ["thai", "noodles", "vegetarian"], veg: true,
-    image: "/assets/homeImg1.jpg", rating: 4.4, reviewCount: 145, inStock: true,
-  },
-  {
-    id: "shop-8", name: "Molten Chocolate Cake", description: "Warm chocolate cake with liquid center, served with vanilla ice cream",
-    price: 9.99, category: "Desserts", subCategory: "Cakes",
-    tags: ["chocolate", "warm", "ice cream"], popular: true,
-    image: "/assets/homeImg2.jpg", rating: 4.9, reviewCount: 423, inStock: true,
-  },
-  {
-    id: "shop-9", name: "Puff-Puff", description: "Nigerian fried dough balls dusted with powdered sugar and cinnamon",
-    price: 6.99, category: "Desserts", subCategory: "African",
-    tags: ["african", "fried", "sweet"], popular: true,
-    image: "/assets/homeImg3.jpg", rating: 4.8, reviewCount: 289, inStock: true,
-  },
-  {
-    id: "shop-10", name: "Chapman Cocktail", description: "Nigerian classic cocktail with grenadine, sprite, and fresh fruits",
-    price: 7.99, category: "Drinks", subCategory: "Cocktails",
-    tags: ["cocktail", "african", "fruity"], popular: true,
-    image: "/assets/homeImg1.jpg", rating: 4.6, reviewCount: 178, inStock: true,
-  },
-  {
-    id: "shop-11", name: "Zobo Drink", description: "Traditional Nigerian hibiscus tea with ginger and pineapple",
-    price: 4.99, category: "Drinks", subCategory: "Non-Alcoholic",
-    tags: ["african", "hibiscus", "traditional"],
-    image: "/assets/homeImg2.jpg", rating: 4.5, reviewCount: 234, inStock: true,
-  },
-  {
-    id: "shop-12", name: "Bruschetta Classica", description: "Toasted artisan bread topped with fresh tomatoes, garlic, and basil",
-    price: 9.99, category: "Appetizers", subCategory: "Vegetarian",
-    tags: ["vegetarian", "italian"], veg: true,
-    image: "/assets/homeImg3.jpg", rating: 4.3, reviewCount: 167, inStock: true,
-  },
-];
-
-const categories = ["All", "African", "Global", "Desserts", "Drinks", "Appetizers"];
-
-const defaultDeals: Deal[] = [
-  {
-    id: "1",
-    title: "First Order Special",
-    description: "Get 10% off your first order",
-    discount: 10,
-    code: "FIRST10",
-    validUntil: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg1.jpg",
-  },
-  {
-    id: "2",
-    title: "Weekend Feast",
-    description: "20% off on orders above $50",
-    discount: 20,
-    code: "WEEKEND20",
-    validUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg2.jpg",
-    minOrder: 50,
-  },
-  {
-    id: "3",
-    title: "African Specialties",
-    description: "15% off all African dishes",
-    discount: 15,
-    code: "AFRICAN15",
-    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    image: "/assets/homeImg3.jpg",
-  },
-];
-
-// Storage keys
+// Storage keys (keep in component for component-specific state)
 const WISHLIST_STORAGE_KEY = "restaurant_wishlist";
 const ACTIVE_PROMO_KEY = "active_promo_code";
 
-// Wishlist functions
-const getWishlist = (): WishlistItem[] => {
-  if (typeof window === "undefined") return [];
-  const wishlist = localStorage.getItem(WISHLIST_STORAGE_KEY);
-  return wishlist ? JSON.parse(wishlist) : [];
-};
-
-const addToWishlist = (product: Product) => {
-  const wishlist = getWishlist();
-  if (!wishlist.some(item => item.productId === product.id)) {
-    const newItem: WishlistItem = {
-      id: Date.now().toString(),
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-      addedAt: new Date().toISOString(),
-    };
-    wishlist.unshift(newItem);
-    localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(wishlist));
-    window.dispatchEvent(new Event("wishlistUpdated"));
-  }
-};
-
-const removeFromWishlist = (productId: string) => {
-  const wishlist = getWishlist();
-  const updated = wishlist.filter(item => item.productId !== productId);
-  localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updated));
-  window.dispatchEvent(new Event("wishlistUpdated"));
-};
-
-const isInWishlist = (productId: string): boolean => {
-  const wishlist = getWishlist();
-  return wishlist.some(item => item.productId === productId);
-};
-
-// Cart functions
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-  description?: string;
-  category?: string;
-}
-
-const addToCart = (product: Product) => {
-  const existingCart = localStorage.getItem("cart");
-  let cart: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
-  const existingItem = cart.find(item => item.id === product.id);
-  
-  if (existingItem) {
-    existingItem.quantity += 1;
-  } else {
-    cart.push({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      quantity: 1,
-      image: product.image,
-      description: product.description,
-      category: product.category,
-    });
-  }
-  
-  localStorage.setItem("cart", JSON.stringify(cart));
-  window.dispatchEvent(new Event("cartUpdated"));
-};
-
-// Promo functions (shared with cart page)
-export const saveAppliedPromo = (code: string, discount: number, minOrder?: number) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem(ACTIVE_PROMO_KEY, JSON.stringify({ code, discount, minOrder, appliedAt: new Date().toISOString() }));
-    window.dispatchEvent(new Event("promoApplied"));
-  }
-};
-
-export const getAppliedPromo = (): { code: string; discount: number; minOrder?: number } | null => {
-  if (typeof window === "undefined") return null;
-  const promo = localStorage.getItem(ACTIVE_PROMO_KEY);
-  return promo ? JSON.parse(promo) : null;
-};
-
-export const clearAppliedPromo = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(ACTIVE_PROMO_KEY);
-    window.dispatchEvent(new Event("promoCleared"));
-  }
-};
-
-// Get active deals
-const getActiveDeals = (): Deal[] => {
-  const now = new Date();
-  return defaultDeals.filter(deal => new Date(deal.validUntil) > now);
-};
+// Deal interface (using imported type)
+type DealType = Deal;
 
 function ProductCard({ product, viewMode }: { product: Product; viewMode: "grid" | "list" }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -457,7 +226,6 @@ function DealsSection({ deals, onApplyDeal }: { deals: Deal[]; onApplyDeal: (cod
   const copyCode = async (code: string, discount: number, minOrder?: number) => {
     let success = false;
     
-    // Method 1: Try modern clipboard API
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(code);
@@ -467,7 +235,6 @@ function DealsSection({ deals, onApplyDeal }: { deals: Deal[]; onApplyDeal: (cod
       console.log('Clipboard API failed, trying fallback...');
     }
     
-    // Method 2: Fallback using textarea (works on most mobile browsers)
     if (!success) {
       try {
         const textArea = document.createElement('textarea');
@@ -503,7 +270,6 @@ function DealsSection({ deals, onApplyDeal }: { deals: Deal[]; onApplyDeal: (cod
 
   return (
     <>
-      {/* Toast Notification */}
       {showToast && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-bounce transition-all duration-300"
           style={{ backgroundColor: showToast.type === "success" ? "#22c55e" : "#ef4444", color: "white" }}>

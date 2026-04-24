@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
-import { saveOrder, type CartItem as CartItemType, type Order } from "@/app/utils/orderUtils";
+import { saveOrder, type CartItem as CartItemType, type Order } from "@/lib/utils/orderUtils";
 
 // Storage key for promo
 const ACTIVE_PROMO_KEY = "active_promo_code";

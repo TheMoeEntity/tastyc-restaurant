@@ -26,28 +26,18 @@ export const navItems = [
       { label: "Checkout", href: "/checkout" },
     ],
   },
-  {
-    name: "Pages",
-    href: "/gallery",
-    dropdown: [
-      { label: "Gallery", href: "/gallery" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "Testimonials", href: "/testimonials" },
-      { label: "404", href: "/404" },
-      { label: "Coming Soon", href: "/coming-soon" },
-    ],
-  },
-  {
-    name: "Blog",
-    href: "/blog",
-    dropdown: [
-      { label: "Blog Grid", href: "/blog" },
-      { label: "Blog List", href: "/blog/list" },
-      { label: "Single Post", href: "/blog/post" },
-      { label: "Categories", href: "/blog/categories" },
-      { label: "Authors", href: "/blog/authors" },
-    ],
-  },
+  
+ {
+  name: "Blog",
+  href: "/blog",
+  dropdown: [
+    { label: "Latest Posts", href: "/blog" },
+    { label: "Recipes", href: "/blog/recipes" },
+    { label: "Chef's Corner", href: "/blog/chef-corner" },
+    { label: "Events", href: "/blog/events" },
+    { label: "Popular", href: "/blog/popular" },
+  ],
+},
   {
     name: "Contact",
     href: "/contact",
@@ -59,17 +49,17 @@ export const navItems = [
       { label: "Call", href: "/contact/call" },
     ],
   },
-  {
-    name: "Shop",
-    href: "/shop",
-    dropdown: [
-      { label: "All Products", href: "/shop" },
-      { label: "Cart", href: "/cart" },
-      { label: "Checkout", href: "/checkout" },
-      { label: "Wishlist", href: "/shop/wishlist" },
-      { label: "Deals", href: "/shop/deals" },
-    ],
-  },
+ {
+  name: "Shop",
+  href: "/shop",
+  dropdown: [
+    { label: "All Products", href: "/shop" },
+    { label: "Categories", href: "/shop/categories" },
+    { label: "Deals & Offers", href: "/shop/deals" },
+    { label: "Wishlist", href: "/shop/wishlist" },
+    { label: "Cart", href: "/cart" },
+  ],
+}
 ];
 export const links: Link[] = [
   {

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
-import { getOrders, cancelOrder, type Order } from "@/app/utils/orderUtils";
+import { getOrders, cancelOrder, type Order } from "@/lib/utils/orderUtils";
 
 const statusConfig = {
   pending: { label: "Pending", icon: Clock, color: "text-yellow-600", bg: "bg-yellow-50", border: "border-yellow-200", step: 0 },
