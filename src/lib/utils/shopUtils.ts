@@ -1,45 +1,6 @@
+import { Deal, Product, WishlistItem } from "@/types";
+
 // app/utils/shopUtils.ts
-export interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  category: string;
-  subCategory?: string;
-  tags: string[];
-  spicy?: boolean;
-  popular?: boolean;
-  veg?: boolean;
-  glutenFree?: boolean;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  inStock: boolean;
-  isNew?: boolean;
-  discount?: number;
-}
-
-export interface WishlistItem {
-  id: string;
-  productId: string;
-  name: string;
-  price: number;
-  image: string;
-  addedAt: string;
-}
-
-export interface Deal {
-  id: string;
-  title: string;
-  description: string;
-  discount: number;
-  code: string;
-  validUntil: string;
-  image: string;
-  minOrder?: number;
-}
-
 export const WISHLIST_STORAGE_KEY = "restaurant_wishlist";
 export const DEALS_STORAGE_KEY = "restaurant_deals";
 
@@ -52,7 +13,7 @@ export const getWishlist = (): WishlistItem[] => {
 
 export const addToWishlist = (product: Product): void => {
   const wishlist = getWishlist();
-  if (!wishlist.some(item => item.productId === product.id)) {
+  if (!wishlist.some((item) => item.productId === product.id)) {
     const newItem: WishlistItem = {
       id: Date.now().toString(),
       productId: product.id,
@@ -71,7 +32,7 @@ export const addToWishlist = (product: Product): void => {
 
 export const removeFromWishlist = (productId: string): void => {
   const wishlist = getWishlist();
-  const updated = wishlist.filter(item => item.productId !== productId);
+  const updated = wishlist.filter((item) => item.productId !== productId);
   localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(updated));
   if (typeof window !== "undefined") {
     window.dispatchEvent(new Event("wishlistUpdated"));
@@ -80,7 +41,7 @@ export const removeFromWishlist = (productId: string): void => {
 
 export const isInWishlist = (productId: string): boolean => {
   const wishlist = getWishlist();
-  return wishlist.some(item => item.productId === productId);
+  return wishlist.some((item) => item.productId === productId);
 };
 
 // Deals functions
@@ -88,23 +49,34 @@ export const getActiveDeals = (): Deal[] => {
   const deals = localStorage.getItem(DEALS_STORAGE_KEY);
   const allDeals: Deal[] = deals ? JSON.parse(deals) : defaultDeals;
   const now = new Date();
-  return allDeals.filter(deal => new Date(deal.validUntil) > now);
+  return allDeals.filter((deal) => new Date(deal.validUntil) > now);
 };
 
-export const applyDealCode = (code: string, subtotal: number): { valid: boolean; discount: number; message: string } => {
+export const applyDealCode = (
+  code: string,
+  subtotal: number,
+): { valid: boolean; discount: number; message: string } => {
   const deals = getActiveDeals();
-  const deal = deals.find(d => d.code.toUpperCase() === code.toUpperCase());
-  
+  const deal = deals.find((d) => d.code.toUpperCase() === code.toUpperCase());
+
   if (!deal) {
     return { valid: false, discount: 0, message: "Invalid promo code" };
   }
-  
+
   if (deal.minOrder && subtotal < deal.minOrder) {
-    return { valid: false, discount: 0, message: `Minimum order of $${deal.minOrder} required` };
+    return {
+      valid: false,
+      discount: 0,
+      message: `Minimum order of $${deal.minOrder} required`,
+    };
   }
-  
+
   const discount = (subtotal * deal.discount) / 100;
-  return { valid: true, discount, message: `${deal.discount}% discount applied!` };
+  return {
+    valid: true,
+    discount,
+    message: `${deal.discount}% discount applied!`,
+  };
 };
 
 const defaultDeals: Deal[] = [

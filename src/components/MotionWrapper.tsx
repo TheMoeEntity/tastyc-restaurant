@@ -1,17 +1,7 @@
 "use client";
 
+import { MotionWrapperProps } from "@/types";
 import { useEffect, useRef } from "react";
-
-type AnimationVariant = "fade-up" | "fade-down" | "fade-left" | "fade-right" | "fade-in";
-
-interface MotionWrapperProps {
-  children: React.ReactNode;
-  variant?: AnimationVariant;
-  delay?: number;
-  duration?: number;
-  threshold?: number;
-  className?: string;
-}
 
 // inject styles once into <head> instead of inside every component
 function injectStyles() {
@@ -65,7 +55,7 @@ export default function MotionWrapper({
           }
         });
       },
-      { threshold }
+      { threshold },
     );
 
     observer.observe(el);
@@ -76,7 +66,9 @@ export default function MotionWrapper({
     <div
       ref={ref}
       className={`mw-${variant} ${className}`}
-      style={{ transition: `opacity ${duration}ms ease-out, transform ${duration}ms ease-out` }}
+      style={{
+        transition: `opacity ${duration}ms ease-out, transform ${duration}ms ease-out`,
+      }}
     >
       {children}
     </div>
