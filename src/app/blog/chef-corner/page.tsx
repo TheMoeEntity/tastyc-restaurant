@@ -149,10 +149,7 @@ export default function BlogChefCornerPage() {
                 ⭐ Featured Story
               </span>
             </div>
-            <Link
-              href={`/blog/post/${featuredStory.slug}`}
-              className="group block"
-            >
+            <Link href={`/blog/${featuredStory.slug}`} className="group block">
               <div className="relative h-64 rounded-xl overflow-hidden">
                 <Image
                   src={featuredStory.featuredImage}

@@ -240,7 +240,7 @@ export default function BlogRecipesPage() {
                           </div>
                         </div>
                         <Link
-                          href={`/blog/post/${post.slug}`}
+                          href={`/blog/${post.slug}`}
                           className="block mb-3"
                         >
                           <h3 className="text-xl font-bold font-serif text-gray-900 group-hover:text-yellow-600 transition-colors line-clamp-2">

@@ -266,7 +266,7 @@ export default function BlogLatestPage() {
                         </div>
 
                         <h3 className="text-xl font-bold font-serif text-gray-900 group-hover:text-yellow-600 transition-colors line-clamp-2 mb-3">
-                          {post.title}
+                          <Link href={`/blog/${post.slug}`}>{post.title}</Link>
                         </h3>
 
                         <p className="text-gray-500 text-sm line-clamp-3 mb-4 flex-1">

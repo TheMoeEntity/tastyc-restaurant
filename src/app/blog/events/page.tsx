@@ -119,14 +119,11 @@ export default function BlogEventsPage() {
         <section className="py-8 px-6 md:px-16 lg:px-20 bg-gray-50">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-yellow-500 text-sm font-semibold">
-                📅 Upcoming Event
+              <span className="text-yellow-500 flex items-center gap-2 text-sm font-semibold">
+                <Calendar className="w-4 h-4" /> Upcoming Event
               </span>
             </div>
-            <Link
-              href={`/blog/post/${upcomingEvent.slug}`}
-              className="group block"
-            >
+            <Link href={`/blog/${upcomingEvent.slug}`} className="group block">
               <div className="relative h-64 rounded-xl overflow-hidden">
                 <Image
                   src={upcomingEvent.featuredImage}

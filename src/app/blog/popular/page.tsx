@@ -176,10 +176,7 @@ export default function BlogPopularPage() {
                   variant="fade-up"
                   delay={idx * 100}
                 >
-                  <Link
-                    href={`/blog/post/${post.slug}`}
-                    className="group block"
-                  >
+                  <Link href={`/blog/${post.slug}`} className="group block">
                     <div className="relative h-64 rounded-xl overflow-hidden">
                       <div className="absolute top-3 left-3 z-10">
                         <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
