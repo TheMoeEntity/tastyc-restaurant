@@ -1,13 +1,12 @@
 // app/cart/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingCart,
   Trash2,
   Plus,
   Minus,
-  ChevronRight,
   ArrowLeft,
   Tag,
   Flame,

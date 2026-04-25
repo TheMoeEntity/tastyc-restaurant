@@ -23,7 +23,6 @@ import MotionWrapper from "@/components/MotionWrapper";
 import { blogPosts } from "@/lib/data/blogData";
 import { BlogPost } from "@/types/blog.types";
 import {
-  formatDate,
   getReadTimeDisplay,
   getRelativeTime,
   paginatePosts,

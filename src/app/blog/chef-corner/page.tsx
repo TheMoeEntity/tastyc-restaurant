@@ -9,10 +9,8 @@ import {
   Calendar,
   Clock,
   Search,
-  User,
   MessageCircle,
   ChevronRight,
-  Mail,
   CheckCircle,
   ArrowLeft,
   ArrowRight,
@@ -25,31 +23,15 @@ import MotionWrapper from "@/components/MotionWrapper";
 import { blogPosts } from "@/lib/data/blogData";
 import { BlogPost, BlogAuthor } from "@/types/blog.types";
 import {
-  formatDate,
   getReadTimeDisplay,
   getRelativeTime,
   paginatePosts,
   getTotalPages,
+  CHEF_CORNER_SLUG,
+  POSTS_PER_PAGE,
+  getChefAuthors,
 } from "@/lib/utils/blogUtils";
 import Image from "next/image";
-
-const POSTS_PER_PAGE = 6;
-const CHEF_CORNER_SLUG = "chef-corner";
-
-const getChefAuthors = (posts: BlogPost[]): BlogAuthor[] => {
-  const chefPosts = posts.filter(
-    (post) => post.categorySlug === CHEF_CORNER_SLUG,
-  );
-  const uniqueAuthors = new Map();
-
-  chefPosts.forEach((post) => {
-    if (!uniqueAuthors.has(post.author.id)) {
-      uniqueAuthors.set(post.author.id, post.author);
-    }
-  });
-
-  return Array.from(uniqueAuthors.values());
-};
 
 export default function BlogChefCornerPage() {
   const [searchQuery, setSearchQuery] = useState("");

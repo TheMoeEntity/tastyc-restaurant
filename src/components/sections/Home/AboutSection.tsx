@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 function AboutSection() {
   return (
@@ -73,9 +74,12 @@ function AboutSection() {
 
             {/* BUTTON */}
             <div className="mt-4">
-              <button className="bg-yellow-500 px-6 py-3 text-black font-semibold rounded-md hover:bg-yellow-600 transition">
+              <Link
+                href="/about"
+                className="bg-yellow-500 px-6 py-3 text-black font-semibold rounded-md hover:bg-yellow-600 transition"
+              >
                 Read More
-              </button>
+              </Link>
             </div>
           </div>
         </div>

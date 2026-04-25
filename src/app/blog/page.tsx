@@ -22,7 +22,6 @@ import MotionWrapper from "@/components/MotionWrapper";
 import { blogPosts, blogCategories } from "@/lib/data/blogData";
 import { BlogPost, BlogCategory } from "@/types/blog.types";
 import {
-  formatDate,
   getReadTimeDisplay,
   getRelativeTime,
   filterPosts,
@@ -31,6 +30,7 @@ import {
   getFeaturedPosts,
 } from "@/lib/utils/blogUtils";
 import Image from "next/image";
+import { Helper } from "@/lib/Helper";
 
 const POSTS_PER_PAGE = 6;
 
@@ -70,20 +70,6 @@ export default function BlogLatestPage() {
       setNewsletterEmail("");
       setTimeout(() => setIsNewsletterSubmitted(false), 3000);
     }, 1000);
-  };
-
-  // Get category link based on category slug
-  const getCategoryLink = (categorySlug: string): string => {
-    switch (categorySlug) {
-      case "recipes":
-        return "/blog/recipes";
-      case "chef-corner":
-        return "/blog/chef-corner";
-      case "events":
-        return "/blog/events";
-      default:
-        return `/blog/category/${categorySlug}`;
-    }
   };
 
   return (
@@ -254,7 +240,7 @@ export default function BlogLatestPage() {
                         <div className="flex items-center justify-between mb-3">
                           {/* Category Badge - Links to category page */}
                           <Link
-                            href={getCategoryLink(post.categorySlug)}
+                            href={Helper.getCategoryLink(post.categorySlug)}
                             className="text-xs font-semibold text-yellow-600 uppercase tracking-wider hover:text-yellow-700 transition"
                           >
                             {post.category}

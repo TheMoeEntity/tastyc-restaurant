@@ -30,6 +30,7 @@ import {
   getRelativeTime,
   paginatePosts,
   getTotalPages,
+  getDateFilter,
 } from "@/lib/utils/blogUtils";
 import Image from "next/image";
 
@@ -48,29 +49,12 @@ export default function BlogPopularPage() {
   const [newsletterEmail, setNewsletterEmail] = useState<string>("");
   const [isNewsletterLoading, setIsNewsletterLoading] =
     useState<boolean>(false);
-
-  // Get date for time filtering
-  const getDateFilter = (): Date | null => {
-    const now = new Date();
-    if (timeRange === "week") {
-      const weekAgo = new Date();
-      weekAgo.setDate(now.getDate() - 7);
-      return weekAgo;
-    }
-    if (timeRange === "month") {
-      const monthAgo = new Date();
-      monthAgo.setMonth(now.getMonth() - 1);
-      return monthAgo;
-    }
-    return null;
-  };
-
   // Filter and sort posts
   useEffect(() => {
     let filtered = [...blogPosts];
 
     // Apply time filter
-    const dateFilter = getDateFilter();
+    const dateFilter = getDateFilter(timeRange);
     if (dateFilter) {
       filtered = filtered.filter(
         (post) => new Date(post.publishedAt) >= dateFilter!,
