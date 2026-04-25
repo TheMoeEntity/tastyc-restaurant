@@ -21,6 +21,7 @@ import MotionWrapper from "@/components/MotionWrapper";
 import { SectionHeader } from "@/components/sections/Contact/SectionHeader";
 import { ContactInfoCard } from "@/components/sections/Contact/ContactInfoCard";
 import { FAQItem } from "@/components/sections/Contact/FAQItem";
+import { contactInfo, faqs, socialLinks } from "@/lib/constants";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -62,74 +63,6 @@ export default function ContactPage() {
       setTimeout(() => setIsSubmitted(false), 5000);
     }, 1500);
   };
-
-  const contactInfo = [
-    {
-      icon: MapPin,
-      title: "Visit Us",
-      details: ["123 Foodie Street, Lekki Phase 1", "Lagos, Nigeria"],
-      delay: 0,
-    },
-    {
-      icon: Phone,
-      title: "Call Us",
-      details: ["+234 801 234 5678", "+234 802 345 6789"],
-      delay: 100,
-    },
-    {
-      icon: Mail,
-      title: "Email Us",
-      details: ["hello@tastyc.com", "reservations@tastyc.com"],
-      delay: 200,
-    },
-    {
-      icon: Clock,
-      title: "Opening Hours",
-      details: ["Mon-Fri: 10am - 10pm", "Sat: 9am - 11pm", "Sun: 11am - 9pm"],
-      delay: 300,
-    },
-  ];
-
-  const faqs = [
-    {
-      question: "Do I need a reservation?",
-      answer:
-        "While walk-ins are always welcome, we highly recommend making a reservation — especially on weekends and public holidays. You can book a table through our reservation page or by calling us directly.",
-    },
-    {
-      question: "Do you offer catering services?",
-      answer:
-        "Yes! Tastyc provides catering for private events, corporate gatherings, and parties. Contact our events team at events@tastyc.com for a custom quote.",
-    },
-    {
-      question: "Is there parking available?",
-      answer:
-        "Yes, we have a dedicated parking lot for our guests with 24/7 security. Valet parking is also available on weekends.",
-    },
-    {
-      question: "Do you accommodate dietary restrictions?",
-      answer:
-        "Absolutely. We offer vegetarian, vegan, and gluten-free options. Please inform your server or mention it when booking your reservation.",
-    },
-    {
-      question: "Can I host a private event at Tastyc?",
-      answer:
-        "We have a private dining room that seats up to 30 guests, and the entire restaurant can be booked for larger events. Contact us for more details.",
-    },
-    {
-      question: "Do you offer takeout and delivery?",
-      answer:
-        "Yes! You can order takeout directly from our website or through our delivery partners. We also offer contactless pickup.",
-    },
-  ];
-
-  const socialLinks = [
-    { icon: FaInstagram, href: "https://instagram.com", label: "Instagram" },
-    { icon: FaFacebookF, href: "https://facebook.com", label: "Facebook" },
-    { icon: FaXTwitter, href: "https://twitter.com", label: "Twitter" },
-    { icon: FaYoutube, href: "https://youtube.com", label: "YouTube" },
-  ];
-
   return (
     <main className="bg-white overflow-hidden">
       {/* HERO SECTION */}

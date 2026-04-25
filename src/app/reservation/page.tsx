@@ -2,79 +2,32 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Clock, 
-  Calendar, 
-  Users, 
-  Phone, 
-  Mail, 
-  MessageCircle, 
+import {
+  Clock,
+  Calendar,
+  Users,
+  Phone,
+  Mail,
+  MessageCircle,
   CheckCircle,
   MapPin,
   Coffee,
   Utensils,
   Sparkles,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
+import { fadeUp, stagger } from "@/lib/data/aboutData";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-};
+// const fadeUp = {
+//   hidden: { opacity: 0, y: 40 },
+//   show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+// };
 
-const stagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1 } },
-};
-
-function SectionHeader({
-  label,
-  title,
-  subtitle,
-  light = false,
-}: {
-  label: string;
-  title: React.ReactNode;
-  subtitle?: string;
-  light?: boolean;
-}) {
-  return (
-    <motion.div
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true }}
-      className="text-center max-w-3xl mx-auto mb-16"
-    >
-      <div className="flex items-center justify-center gap-3 mb-3">
-        <div className="h-0.5 w-6 bg-yellow-500" />
-        <p className="text-base font-bold uppercase tracking-widest text-yellow-500">
-          {label}
-        </p>
-        <div className="h-0.5 w-6 bg-yellow-500" />
-      </div>
-
-      <h2
-        className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${
-          light ? "text-white" : "text-gray-900"
-        }`}
-      >
-        {title}
-      </h2>
-
-      {subtitle && (
-        <p
-          className={`text-base sm:text-lg ${
-            light ? "text-gray-300" : "text-gray-500"
-          }`}
-        >
-          {subtitle}
-        </p>
-      )}
-    </motion.div>
-  );
-}
+// const stagger = {
+//   hidden: {},
+//   show: { transition: { staggerChildren: 0.1 } },
+// };
 
 export default function ReservationPage() {
   const [submitted, setSubmitted] = useState(false);
@@ -85,34 +38,39 @@ export default function ReservationPage() {
     guests: "2",
     date: "",
     time: "",
-    requests: ""
+    requests: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
+  ) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Save reservation to localStorage
-    const reservations = JSON.parse(localStorage.getItem("reservations") || "[]");
+    const reservations = JSON.parse(
+      localStorage.getItem("reservations") || "[]",
+    );
     reservations.push({
       ...formData,
       id: Date.now(),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     localStorage.setItem("reservations", JSON.stringify(reservations));
     setSubmitted(true);
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = new Date().toISOString().split("T")[0];
 
   return (
     <main className="bg-white overflow-hidden">
-
       {/* HERO SECTION */}
       <section className="relative py-32 px-6 md:px-16 lg:px-20 overflow-hidden">
         <div
@@ -124,7 +82,7 @@ export default function ReservationPage() {
             backgroundPosition: "center",
           }}
         />
-        
+
         {/* Animated elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
@@ -139,9 +97,11 @@ export default function ReservationPage() {
           >
             <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
               <Sparkles className="w-5 h-5 text-yellow-500" />
-              <span className="text-yellow-500 text-sm font-bold uppercase tracking-wider">Limited Spots Available</span>
+              <span className="text-yellow-500 text-sm font-bold uppercase tracking-wider">
+                Limited Spots Available
+              </span>
             </div>
-            
+
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold font-serif text-white mb-6 leading-tight">
               Reserve Your{" "}
               <span className="text-yellow-500 relative inline-block">
@@ -149,10 +109,10 @@ export default function ReservationPage() {
                 <div className="absolute bottom-2 left-0 right-0 h-3 bg-yellow-500/30 -z-10" />
               </span>
             </h1>
-            
+
             <p className="text-gray-200 text-lg sm:text-xl max-w-2xl mx-auto">
-              Every great meal begins with a seat at the table. 
-              Let us prepare something unforgettable for you and your guests.
+              Every great meal begins with a seat at the table. Let us prepare
+              something unforgettable for you and your guests.
             </p>
           </motion.div>
         </div>
@@ -161,7 +121,7 @@ export default function ReservationPage() {
       {/* QUICK INFO BANNER */}
       <section className="relative -mt-10 px-6 md:px-16 lg:px-20 z-20">
         <div className="max-w-6xl mx-auto">
-          <motion.div 
+          <motion.div
             variants={stagger}
             initial="hidden"
             whileInView="show"
@@ -169,17 +129,40 @@ export default function ReservationPage() {
             className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-white rounded-2xl shadow-xl p-6 border border-gray-100"
           >
             {[
-              { icon: Clock, label: "Opening Hours", value: "10 AM - 10 PM", color: "text-yellow-500" },
-              { icon: MapPin, label: "Location", value: "123 Food Street, NY", color: "text-orange-500" },
-              { icon: Users, label: "Private Events", value: "Available", color: "text-red-500" }
+              {
+                icon: Clock,
+                label: "Opening Hours",
+                value: "10 AM - 10 PM",
+                color: "text-yellow-500",
+              },
+              {
+                icon: MapPin,
+                label: "Location",
+                value: "123 Food Street, NY",
+                color: "text-orange-500",
+              },
+              {
+                icon: Users,
+                label: "Private Events",
+                value: "Available",
+                color: "text-red-500",
+              },
             ].map((item, idx) => (
-              <motion.div key={idx} variants={fadeUp} className="flex items-center gap-4 p-3">
+              <motion.div
+                key={idx}
+                variants={fadeUp}
+                className="flex items-center gap-4 p-3"
+              >
                 <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center">
                   <item.icon className={`w-5 h-5 ${item.color}`} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-semibold uppercase tracking-wider">{item.label}</p>
-                  <p className="text-gray-900 font-bold text-base">{item.value}</p>
+                  <p className="text-sm text-gray-500 font-semibold uppercase tracking-wider">
+                    {item.label}
+                  </p>
+                  <p className="text-gray-900 font-bold text-base">
+                    {item.value}
+                  </p>
                 </div>
               </motion.div>
             ))}
@@ -197,7 +180,6 @@ export default function ReservationPage() {
 
         <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            
             {/* Left Side - Information */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -215,9 +197,12 @@ export default function ReservationPage() {
                     "✓ Best table guaranteed for your party",
                     "✓ Special occasion arrangements available",
                     "✓ Priority seating for large groups",
-                    "✓ Flexible cancellation policy"
+                    "✓ Flexible cancellation policy",
                   ].map((item, idx) => (
-                    <p key={idx} className="text-gray-600 flex items-start gap-2 text-base">
+                    <p
+                      key={idx}
+                      className="text-gray-600 flex items-start gap-2 text-base"
+                    >
                       <CheckCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                       {item}
                     </p>
@@ -249,7 +234,8 @@ export default function ReservationPage() {
               <div className="bg-yellow-500 rounded-2xl p-6 text-white">
                 <h4 className="font-bold text-lg mb-2">Need Help?</h4>
                 <p className="text-white/90 text-base mb-4">
-                  Call us directly for immediate assistance with your reservation
+                  Call us directly for immediate assistance with your
+                  reservation
                 </p>
                 <div className="flex items-center gap-3">
                   <Phone className="w-5 h-5" />
@@ -281,13 +267,22 @@ export default function ReservationPage() {
                       Reservation Confirmed! 🎉
                     </h3>
                     <p className="text-gray-600 text-base mb-4">
-                      Thank you for choosing Tastyc! We've sent a confirmation to your email.
+                      Thank you for choosing Tastyc! We&#39;ve sent a
+                      confirmation to your email.
                     </p>
                     <div className="bg-white rounded-lg p-4 mb-6 text-left">
-                      <p className="text-sm text-gray-500">Reservation Details:</p>
-                      <p className="text-gray-900 font-semibold text-base">{formData.name}</p>
-                      <p className="text-sm text-gray-600">{formData.date} at {formData.time}</p>
-                      <p className="text-sm text-gray-600">{formData.guests} guests</p>
+                      <p className="text-sm text-gray-500">
+                        Reservation Details:
+                      </p>
+                      <p className="text-gray-900 font-semibold text-base">
+                        {formData.name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {formData.date} at {formData.time}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {formData.guests} guests
+                      </p>
                     </div>
                     <button
                       onClick={() => {
@@ -299,7 +294,7 @@ export default function ReservationPage() {
                           guests: "2",
                           date: "",
                           time: "",
-                          requests: ""
+                          requests: "",
                         });
                       }}
                       className="text-yellow-600 hover:text-yellow-700 font-semibold text-base"
@@ -320,7 +315,8 @@ export default function ReservationPage() {
                       Book Your Table
                     </h3>
                     <p className="text-gray-500 text-base mb-6">
-                      Fill in your details and we'll reserve your perfect spot
+                      Fill in your details and we&#39;ll reserve your perfect
+                      spot
                     </p>
 
                     <div className="space-y-4">
@@ -380,8 +376,10 @@ export default function ReservationPage() {
                             className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition text-base"
                             required
                           >
-                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                              <option key={n} value={n}>{n} {n === 1 ? "Guest" : "Guests"}</option>
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                              <option key={n} value={n}>
+                                {n} {n === 1 ? "Guest" : "Guests"}
+                              </option>
                             ))}
                           </select>
                         </div>
@@ -438,8 +436,8 @@ export default function ReservationPage() {
                       </button>
 
                       <p className="text-sm text-gray-400 text-center">
-                        By confirming, you agree to our reservation policy. 
-                        You'll receive a confirmation email shortly.
+                        By confirming, you agree to our reservation policy.
+                        You&#39;ll receive a confirmation email shortly.
                       </p>
                     </div>
                   </motion.form>
@@ -471,16 +469,19 @@ export default function ReservationPage() {
           >
             <div className="inline-flex items-center gap-2 bg-yellow-500/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
               <Utensils className="w-5 h-5 text-yellow-500" />
-              <span className="text-yellow-500 text-sm font-bold uppercase tracking-wider">Private Events</span>
+              <span className="text-yellow-500 text-sm font-bold uppercase tracking-wider">
+                Private Events
+              </span>
             </div>
 
             <h3 className="text-3xl sm:text-4xl font-bold font-serif text-white mb-4">
               Host Your Special Event With Us
             </h3>
-            
+
             <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-8">
-              Whether it's a birthday, anniversary, or corporate gathering, 
-              our team will create an unforgettable experience for you and your guests.
+              Whether it&#39;s a birthday, anniversary, or corporate gathering,
+              our team will create an unforgettable experience for you and your
+              guests.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
