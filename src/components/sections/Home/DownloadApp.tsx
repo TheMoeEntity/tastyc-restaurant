@@ -8,14 +8,14 @@ const DownloadAppSection = () => {
   return (
     <section className="relative py-20 px-6 md:px-16 lg:px-20 overflow-hidden -mt-16">
       {/* BACKGROUND IMAGE */}
-      <div className="absolute inset-0">
+      <div className="absolute reltive inset-0">
         <Image
           src="/assets/homeImg3.jpg"
           alt="background"
           fill
           className="object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#1E2225]/70 to-[#1E2225]/90"></div>
+        <div className="absolute inset-0 bg-linear-to-b from-[#1E2225]/70 to-[#1E2225]/90"></div>
       </div>
 
       {/* BURGER IMAGE */}
@@ -67,7 +67,7 @@ const DownloadAppSection = () => {
               target="_blank"
               className="group bg-white rounded-xl p-3 px-6 hover:scale-105 transition w-full sm:w-auto"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex relative items-center gap-3">
                 <Image
                   src="/assets/playstoreIcon.webp"
                   alt="play store"
@@ -86,7 +86,7 @@ const DownloadAppSection = () => {
               target="_blank"
               className="group bg-black border border-gray-700 rounded-xl p-3 px-6 hover:scale-105 transition w-full sm:w-auto"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex relative items-center gap-3">
                 <Image
                   src="/assets/appleIcon.png"
                   alt="app store"

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/blog/recipes/page.tsx
 
 "use client";
@@ -28,6 +29,7 @@ import {
   paginatePosts,
   getTotalPages,
 } from "@/lib/utils/blogUtils";
+import Image from "next/image";
 
 const POSTS_PER_PAGE = 6;
 const RECIPES_SLUG = "recipes";
@@ -38,12 +40,14 @@ export default function BlogRecipesPage() {
   const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
   const [displayedPosts, setDisplayedPosts] = useState<BlogPost[]>([]);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [isNewsletterSubmitted, setIsNewsletterSubmitted] = useState<boolean>(false);
+  const [isNewsletterSubmitted, setIsNewsletterSubmitted] =
+    useState<boolean>(false);
   const [newsletterEmail, setNewsletterEmail] = useState<string>("");
-  const [isNewsletterLoading, setIsNewsletterLoading] = useState<boolean>(false);
+  const [isNewsletterLoading, setIsNewsletterLoading] =
+    useState<boolean>(false);
 
   const allRecipePosts: BlogPost[] = blogPosts.filter(
-    (post: BlogPost) => post.categorySlug === RECIPES_SLUG
+    (post: BlogPost) => post.categorySlug === RECIPES_SLUG,
   );
 
   const popularRecipes: BlogPost[] = [...allRecipePosts]
@@ -57,7 +61,9 @@ export default function BlogRecipesPage() {
         (post: BlogPost) =>
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          post.tags.some((tag: string) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
     setFilteredPosts(filtered);
@@ -70,7 +76,9 @@ export default function BlogRecipesPage() {
     setTotalPages(getTotalPages(filteredPosts.length, POSTS_PER_PAGE));
   }, [filteredPosts, currentPage]);
 
-  const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
+  const handleNewsletterSubmit = (
+    e: React.FormEvent<HTMLFormElement>,
+  ): void => {
     e.preventDefault();
     if (!newsletterEmail) return;
     setIsNewsletterLoading(true);
@@ -84,14 +92,15 @@ export default function BlogRecipesPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-
       {/* HERO SECTION */}
       <section className="relative py-20 md:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-0.5 w-6 bg-yellow-500" />
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Our Kitchen</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                Our Kitchen
+              </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
             <div className="flex justify-center mb-4">
@@ -103,7 +112,8 @@ export default function BlogRecipesPage() {
               <span className="text-yellow-500">Recipes</span> from Our Kitchen
             </h1>
             <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-              Discover delicious recipes from our chefs, from West African classics to global favorites.
+              Discover delicious recipes from our chefs, from West African
+              classics to global favorites.
             </p>
           </MotionWrapper>
         </div>
@@ -113,14 +123,21 @@ export default function BlogRecipesPage() {
       {popularRecipes.length > 0 && (
         <section className="py-8 px-6 md:px-16 lg:px-20 bg-gray-50">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">🔥 Most Popular</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              🔥 Most Popular
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {popularRecipes.map((post: BlogPost) => (
-                <Link key={post.id} href={`/blog/post/${post.slug}`} className="group">
+                <Link
+                  key={post.id}
+                  href={`/blog/post/${post.slug}`}
+                  className="group"
+                >
                   <div className="relative h-40 rounded-lg overflow-hidden">
-                    <img
+                    <Image
                       src={post.featuredImage}
                       alt={post.title}
+                      fill
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
@@ -151,11 +168,16 @@ export default function BlogRecipesPage() {
                 type="text"
                 placeholder="Search recipes..."
                 value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchQuery(e.target.value)
+                }
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition"
               />
             </div>
-            <Link href="/blog" className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1">
+            <Link
+              href="/blog"
+              className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to all posts
             </Link>
@@ -171,7 +193,9 @@ export default function BlogRecipesPage() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">No recipes found</h3>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">
+                No recipes found
+              </h3>
               <p className="text-gray-400">Try a different search term.</p>
               <button
                 onClick={() => setSearchQuery("")}
@@ -184,10 +208,18 @@ export default function BlogRecipesPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displayedPosts.map((post: BlogPost, idx: number) => (
-                  <MotionWrapper key={post.id} variant="fade-up" delay={idx * 100}>
+                  <MotionWrapper
+                    key={post.id}
+                    variant="fade-up"
+                    delay={idx * 100}
+                  >
                     <article className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col">
-                      <Link href={`/blog/post/${post.slug}`} className="relative h-56 overflow-hidden block">
-                        <img
+                      <Link
+                        href={`/blog/post/${post.slug}`}
+                        className="relative h-56 overflow-hidden block"
+                      >
+                        <Image
+                          fill
                           src={post.featuredImage}
                           alt={post.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
@@ -207,7 +239,10 @@ export default function BlogRecipesPage() {
                             <span>{getRelativeTime(post.publishedAt)}</span>
                           </div>
                         </div>
-                        <Link href={`/blog/post/${post.slug}`} className="block mb-3">
+                        <Link
+                          href={`/blog/post/${post.slug}`}
+                          className="block mb-3"
+                        >
                           <h3 className="text-xl font-bold font-serif text-gray-900 group-hover:text-yellow-600 transition-colors line-clamp-2">
                             {post.title}
                           </h3>
@@ -244,7 +279,9 @@ export default function BlogRecipesPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-12">
                   <button
-                    onClick={() => setCurrentPage((prev: number) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev: number) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -264,7 +301,11 @@ export default function BlogRecipesPage() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setCurrentPage((prev: number) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev: number) =>
+                        Math.min(prev + 1, totalPages),
+                      )
+                    }
                     disabled={currentPage === totalPages}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -282,7 +323,8 @@ export default function BlogRecipesPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg1.jpg)",
+            backgroundImage:
+              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg1.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -304,12 +346,17 @@ export default function BlogRecipesPage() {
                 <p className="text-white">Thanks for subscribing!</p>
               </div>
             ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              >
                 <input
                   type="email"
                   placeholder="Your email address"
                   value={newsletterEmail}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewsletterEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setNewsletterEmail(e.target.value)
+                  }
                   required
                   className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 outline-none transition"
                 />
@@ -322,7 +369,9 @@ export default function BlogRecipesPage() {
                 </button>
               </form>
             )}
-            <p className="text-gray-400 text-xs mt-4">No spam. Unsubscribe anytime.</p>
+            <p className="text-gray-400 text-xs mt-4">
+              No spam. Unsubscribe anytime.
+            </p>
           </MotionWrapper>
         </div>
       </section>

@@ -62,12 +62,12 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
       window.removeEventListener("storage", updateCartCount);
       window.removeEventListener("cartUpdated", updateCartCount);
     };
-  }, []);
+  }, [cartCount]);
 
   // Also update when prop changes
-  useEffect(() => {
-    setCartItemCount(cartCount);
-  }, [cartCount]);
+  // useEffect(() => {
+  //   setCartItemCount(cartCount);
+  // }, [cartCount]);
 
   return (
     <header

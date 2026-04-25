@@ -27,6 +27,7 @@ import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
 import { saveOrder } from "@/lib/utils/orderUtils";
 import { CartItem as CartItemType, Order } from "@/types";
+import Image from "next/image";
 
 // Storage key for promo
 const ACTIVE_PROMO_KEY = "active_promo_code";
@@ -89,6 +90,7 @@ export default function CartPage() {
     // Load saved promo from shop page
     const savedPromo = getAppliedPromo();
     if (savedPromo) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActivePromo(savedPromo);
       setPromoCode(savedPromo.code);
       setPromoApplied(true);
@@ -412,9 +414,10 @@ export default function CartPage() {
                   >
                     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex gap-4 items-start">
                       <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
-                        <img
+                        <Image
                           src={item.image || "/assets/homeImg1.jpg"}
                           alt={item.name}
+                          fill
                           className="w-full h-full object-cover"
                         />
                         {item.popular && (

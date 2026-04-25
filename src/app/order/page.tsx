@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/orders/page.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   ShoppingBag,
   Clock,
@@ -18,11 +19,12 @@ import {
   Filter,
   User,
   ArrowLeft,
-  Star,
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
-import { getOrders, cancelOrder, type Order } from "@/lib/utils/orderUtils";
+import { getOrders, cancelOrder } from "@/lib/utils/orderUtils";
+import Image from "next/image";
+import { Order } from "@/types";
 
 const statusConfig = {
   pending: {
@@ -215,7 +217,8 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
                 key={idx}
                 className="w-8 h-8 rounded-full border-2 border-white bg-gray-100 overflow-hidden"
               >
-                <img
+                <Image
+                  fill
                   src={item.image || "/assets/homeImg1.jpg"}
                   alt={item.name}
                   className="w-full h-full object-cover"
@@ -350,9 +353,10 @@ function OrderDetailModal({
                   className="flex gap-3 py-2 border-b border-gray-100 last:border-0"
                 >
                   <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                    <img
+                    <Image
                       src={item.image || "/assets/homeImg1.jpg"}
                       alt={item.name}
+                      fill
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -421,7 +425,7 @@ function OrderDetailModal({
                     Special Instructions:
                   </span>
                   <span className="text-gray-600 flex-1 italic break-all">
-                    "{order.specialInstructions}"
+                    &#39;{order.specialInstructions}&#39;
                   </span>
                 </p>
               )}

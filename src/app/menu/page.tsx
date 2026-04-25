@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
 import { MenuItem } from "@/types";
+import Image from "next/image";
 
 interface CartItem extends MenuItem {
   quantity: number;
@@ -406,11 +407,14 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
       <div className="group relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full">
         <div className="relative h-48 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
+          {item.image && (
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+          )}
           {item.popular && (
             <div className="absolute top-3 left-3 z-20 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
               <Star className="w-3 h-3 fill-black" /> Popular

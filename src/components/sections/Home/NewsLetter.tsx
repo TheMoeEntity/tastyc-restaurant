@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Mail } from "lucide-react";
+import Image from "next/image";
 
 const newsletters = [
   {
@@ -12,38 +14,31 @@ const newsletters = [
     date: "Jan 12, 2025",
     preview:
       "Mornings are chaotic — but that doesn't mean breakfast has to be boring or skipped entirely.",
-    body:
-      "Chef Emmanuel shares his go-to morning meals built for speed, simplicity and taste. Overnight oats, avocado toast, smoothies and more.",
+    body: "Chef Emmanuel shares his go-to morning meals built for speed, simplicity and taste. Overnight oats, avocado toast, smoothies and more.",
   },
   {
     image: "/assets/homeImg2.jpg",
     category: "Dinner",
     title: "The Perfect Dinner Party: What Our Chefs Actually Cook at Home",
     date: "Feb 3, 2025",
-    preview:
-      "Chefs keep it simple at home — and that's exactly why it works.",
-    body:
-      "Simple jollof rice, pepper soup and no-fuss desserts are the backbone of chef-hosted dinners.",
+    preview: "Chefs keep it simple at home — and that's exactly why it works.",
+    body: "Simple jollof rice, pepper soup and no-fuss desserts are the backbone of chef-hosted dinners.",
   },
   {
     image: "/assets/homeImg3.jpg",
     category: "Desserts",
     title: "Sweet Secrets: The Desserts We Almost Kept to Ourselves",
     date: "Mar 19, 2025",
-    preview:
-      "Three desserts our pastry team almost never shared.",
-    body:
-      "Molten chocolate cake, mango panna cotta and chin chin bread pudding — perfected over years.",
+    preview: "Three desserts our pastry team almost never shared.",
+    body: "Molten chocolate cake, mango panna cotta and chin chin bread pudding — perfected over years.",
   },
   {
     image: "/assets/aboutImg.webp",
     category: "Drinks",
     title: "Beyond Cocktails: Drinks That Surprise Every Guest",
     date: "Apr 7, 2025",
-    preview:
-      "Great drinks don’t need alcohol — just balance and creativity.",
-    body:
-      "Hibiscus cooler, tamarind lemonade and palm wine spritz redefine modern beverage craft.",
+    preview: "Great drinks don’t need alcohol — just balance and creativity.",
+    body: "Hibiscus cooler, tamarind lemonade and palm wine spritz redefine modern beverage craft.",
   },
 ];
 
@@ -67,9 +62,10 @@ function NewsletterCard({ item }: any) {
     >
       {/* IMAGE */}
       <div className="h-44 overflow-hidden relative">
-        <img
+        <Image
           src={item.image}
           alt={item.title}
+          fill
           className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
         />
 
@@ -80,10 +76,7 @@ function NewsletterCard({ item }: any) {
 
       {/* CONTENT */}
       <div className="p-5 flex flex-col gap-2">
-
-        <p className="text-[10px] sm:text-xs text-gray-400">
-          {item.date}
-        </p>
+        <p className="text-[10px] sm:text-xs text-gray-400">{item.date}</p>
 
         <h3 className="text-lg font-bold text-gray-900 font-serif leading-snug">
           {item.title}
@@ -147,7 +140,6 @@ function SubscribeForm() {
 
   return (
     <div className="mt-16 rounded-2xl overflow-hidden relative">
-
       {/* BACKGROUND */}
       <div
         className="absolute inset-0 bg-black/80"
@@ -160,7 +152,6 @@ function SubscribeForm() {
 
       {/* CONTENT */}
       <div className="relative z-10 text-center px-6 py-14">
-
         <div className="flex justify-center items-center gap-2 mb-3">
           <div className="h-0.5 w-6 bg-yellow-500" />
           <p className="text-xs uppercase tracking-widest text-yellow-400 font-bold">
@@ -195,7 +186,7 @@ function SubscribeForm() {
         ) : (
           <div className="text-yellow-400 mt-6 text-sm flex flex-col items-center gap-2">
             <Mail />
-            You're subscribed!
+            You&#39;re subscribed!
           </div>
         )}
       </div>
@@ -207,10 +198,8 @@ function SubscribeForm() {
 export default function Newsletter() {
   return (
     <section className="py-20 px-6 md:px-16 lg:px-20 bg-white">
-
       {/* HEADER */}
       <div className="text-center max-w-2xl mx-auto mb-12">
-
         <div className="flex justify-center items-center gap-2 mb-3">
           <div className="h-0.5 w-6 bg-yellow-500" />
           <p className="text-xs sm:text-sm uppercase tracking-widest text-yellow-500 font-bold">

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // src/app/shop/page.tsx
 
 "use client";
@@ -42,6 +43,7 @@ import {
   getActiveDeals,
   defaultDeals,
 } from "@/lib/utils/shopUtils";
+import Image from "next/image";
 
 // Storage keys (keep in component for component-specific state)
 const WISHLIST_STORAGE_KEY = "restaurant_wishlist";
@@ -92,9 +94,10 @@ function ProductCard({
       >
         <div className="flex flex-col sm:flex-row">
           <div className="relative w-full sm:w-48 h-48 sm:h-auto">
-            <img
+            <Image
               src={product.image}
               alt={product.name}
+              fill
               className="w-full h-full object-cover"
             />
             {product.discount && (
@@ -187,9 +190,10 @@ function ProductCard({
     <MotionWrapper variant="fade-up">
       <div className="group bg-white rounded-xl shadow-md hover:shadow-xl border border-gray-200 overflow-hidden transition-all duration-300">
         <div className="relative h-56 overflow-hidden">
-          <img
+          <Image
             src={product.image}
             alt={product.name}
+            fill
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
           />
           {product.discount && (
@@ -282,9 +286,10 @@ function ProductCard({
             <div className="p-6">
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="md:w-1/2">
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.name}
+                    fill
                     className="w-full h-80 object-cover rounded-xl"
                   />
                 </div>
@@ -446,7 +451,7 @@ function DealsSection({
         </div>
       )}
 
-      <section className="py-16 bg-gradient-to-r from-yellow-50 to-orange-50">
+      <section className="py-16 bg-linear-to-r from-yellow-50 to-orange-50">
         <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-20">
           <MotionWrapper variant="fade-up" className="text-center mb-12">
             <div className="flex items-center justify-center gap-3 mb-3">
@@ -469,12 +474,13 @@ function DealsSection({
               <MotionWrapper key={deal.id} variant="fade-up" className="group">
                 <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
                   <div className="relative h-40 overflow-hidden">
-                    <img
+                    <Image
+                      fill
                       src={deal.image}
                       alt={deal.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                     <div className="absolute bottom-3 left-3">
                       <div className="bg-red-500 text-white text-2xl font-bold px-3 py-1 rounded-lg">
                         {deal.discount}%
@@ -587,9 +593,10 @@ function WishlistSidebar({
                     key={item.id}
                     className="flex gap-3 p-3 bg-gray-50 rounded-xl"
                   >
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.name}
+                      fill
                       className="w-16 h-16 rounded-lg object-cover"
                     />
                     <div className="flex-1">
@@ -644,6 +651,7 @@ export default function ShopPage() {
       const cart = localStorage.getItem("cart");
       const items = cart ? JSON.parse(cart) : [];
       setCartCount(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         items.reduce((sum: number, item: any) => sum + item.quantity, 0),
       );
     };

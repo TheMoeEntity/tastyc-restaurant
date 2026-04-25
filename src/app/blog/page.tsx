@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // src/app/blog/page.tsx
 
 "use client";
@@ -29,6 +30,7 @@ import {
   getTotalPages,
   getFeaturedPosts,
 } from "@/lib/utils/blogUtils";
+import Image from "next/image";
 
 const POSTS_PER_PAGE = 6;
 
@@ -47,6 +49,7 @@ export default function BlogLatestPage() {
 
   useEffect(() => {
     const filtered = filterPosts(blogPosts, searchQuery, selectedCategory);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFilteredPosts(filtered);
     setCurrentPage(1);
   }, [searchQuery, selectedCategory]);
@@ -85,7 +88,6 @@ export default function BlogLatestPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-
       {/* HERO SECTION */}
       <section className="relative py-20 md:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="pointer-events-none absolute inset-0 flex justify-center items-center opacity-40">
@@ -95,7 +97,9 @@ export default function BlogLatestPage() {
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-0.5 w-6 bg-yellow-500" />
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Latest Updates</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                Latest Updates
+              </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif text-gray-900 leading-tight mb-6">
@@ -114,13 +118,18 @@ export default function BlogLatestPage() {
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {featuredPosts.map((post, idx) => (
-                <MotionWrapper key={post.id} variant="fade-up" delay={idx * 150}>
+                <MotionWrapper
+                  key={post.id}
+                  variant="fade-up"
+                  delay={idx * 150}
+                >
                   <div className="group block">
                     <div className="relative h-64 md:h-80 rounded-2xl overflow-hidden">
-                      <img
+                      <Image
                         src={post.featuredImage}
                         alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                        fill
+                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                       <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -198,9 +207,12 @@ export default function BlogLatestPage() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">No posts found</h3>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">
+                No posts found
+              </h3>
               <p className="text-gray-400">
-                Try adjusting your search or filter to find what you're looking for.
+                Try adjusting your search or filter to find what you&#39;re
+                looking for.
               </p>
               <button
                 onClick={() => {
@@ -216,14 +228,19 @@ export default function BlogLatestPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displayedPosts.map((post, idx) => (
-                  <MotionWrapper key={post.id} variant="fade-up" delay={idx * 100}>
+                  <MotionWrapper
+                    key={post.id}
+                    variant="fade-up"
+                    delay={idx * 100}
+                  >
                     <article className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col">
                       {/* Image */}
                       <div className="relative h-56 overflow-hidden block">
-                        <img
+                        <Image
                           src={post.featuredImage}
                           alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                          fill
+                          className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                         {post.featured && (
                           <div className="absolute top-4 left-4 bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full">
@@ -293,7 +310,9 @@ export default function BlogLatestPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-12">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -313,7 +332,9 @@ export default function BlogLatestPage() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -331,7 +352,8 @@ export default function BlogLatestPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg3.jpg)",
+            backgroundImage:
+              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg3.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -345,16 +367,22 @@ export default function BlogLatestPage() {
               Subscribe to Our Newsletter
             </h2>
             <p className="text-gray-300 text-base md:text-lg mb-6">
-              Get the latest recipes, chef tips, and exclusive offers delivered to your inbox.
+              Get the latest recipes, chef tips, and exclusive offers delivered
+              to your inbox.
             </p>
 
             {isNewsletterSubmitted ? (
               <div className="bg-green-500/20 backdrop-blur-sm rounded-xl p-4 max-w-md mx-auto">
                 <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                <p className="text-white">Thanks for subscribing! Check your email for confirmation.</p>
+                <p className="text-white">
+                  Thanks for subscribing! Check your email for confirmation.
+                </p>
               </div>
             ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              >
                 <input
                   type="email"
                   placeholder="Your email address"

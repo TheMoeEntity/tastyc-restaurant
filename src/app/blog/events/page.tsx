@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/blog/events/page.tsx
 
 "use client";
@@ -29,6 +30,7 @@ import {
   paginatePosts,
   getTotalPages,
 } from "@/lib/utils/blogUtils";
+import Image from "next/image";
 
 const POSTS_PER_PAGE = 6;
 const EVENTS_SLUG = "events";
@@ -44,7 +46,7 @@ export default function BlogEventsPage() {
   const [isNewsletterLoading, setIsNewsletterLoading] = useState(false);
 
   const allEventPosts: BlogPost[] = blogPosts.filter(
-    (post) => post.categorySlug === EVENTS_SLUG
+    (post) => post.categorySlug === EVENTS_SLUG,
   );
 
   const upcomingEvent = allEventPosts[0];
@@ -56,7 +58,9 @@ export default function BlogEventsPage() {
         (post) =>
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          post.tags.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
     setFilteredPosts(filtered);
@@ -83,14 +87,15 @@ export default function BlogEventsPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-
       {/* HERO SECTION */}
       <section className="relative py-20 md:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-0.5 w-6 bg-yellow-500" />
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Stay Updated</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                Stay Updated
+              </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
             <div className="flex justify-center mb-4">
@@ -102,7 +107,8 @@ export default function BlogEventsPage() {
               <span className="text-yellow-500">Events</span> & News
             </h1>
             <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-              Stay updated with the latest events, promotions, and news from Tastyc.
+              Stay updated with the latest events, promotions, and news from
+              Tastyc.
             </p>
           </MotionWrapper>
         </div>
@@ -113,13 +119,19 @@ export default function BlogEventsPage() {
         <section className="py-8 px-6 md:px-16 lg:px-20 bg-gray-50">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-yellow-500 text-sm font-semibold">📅 Upcoming Event</span>
+              <span className="text-yellow-500 text-sm font-semibold">
+                📅 Upcoming Event
+              </span>
             </div>
-            <Link href={`/blog/post/${upcomingEvent.slug}`} className="group block">
+            <Link
+              href={`/blog/post/${upcomingEvent.slug}`}
+              className="group block"
+            >
               <div className="relative h-64 rounded-xl overflow-hidden">
-                <img
+                <Image
                   src={upcomingEvent.featuredImage}
                   alt={upcomingEvent.title}
+                  fill
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
@@ -161,7 +173,10 @@ export default function BlogEventsPage() {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition"
               />
             </div>
-            <Link href="/blog" className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1">
+            <Link
+              href="/blog"
+              className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to all posts
             </Link>
@@ -177,8 +192,12 @@ export default function BlogEventsPage() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">No events found</h3>
-              <p className="text-gray-400">Check back later for upcoming events.</p>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">
+                No events found
+              </h3>
+              <p className="text-gray-400">
+                Check back later for upcoming events.
+              </p>
               <button
                 onClick={() => setSearchQuery("")}
                 className="mt-4 text-yellow-600 hover:text-yellow-700 font-semibold"
@@ -190,12 +209,20 @@ export default function BlogEventsPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displayedPosts.map((post, idx) => (
-                  <MotionWrapper key={post.id} variant="fade-up" delay={idx * 100}>
+                  <MotionWrapper
+                    key={post.id}
+                    variant="fade-up"
+                    delay={idx * 100}
+                  >
                     <article className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col">
-                      <Link href={`/blog/post/${post.slug}`} className="relative h-56 overflow-hidden block">
-                        <img
+                      <Link
+                        href={`/blog/post/${post.slug}`}
+                        className="relative h-56 overflow-hidden block"
+                      >
+                        <Image
                           src={post.featuredImage}
                           alt={post.title}
+                          fill
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                         <div className="absolute top-4 right-4 bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">
@@ -212,7 +239,10 @@ export default function BlogEventsPage() {
                             <span>{getRelativeTime(post.publishedAt)}</span>
                           </div>
                         </div>
-                        <Link href={`/blog/post/${post.slug}`} className="block mb-3">
+                        <Link
+                          href={`/blog/post/${post.slug}`}
+                          className="block mb-3"
+                        >
                           <h3 className="text-xl font-bold font-serif text-gray-900 group-hover:text-yellow-600 transition-colors line-clamp-2">
                             {post.title}
                           </h3>
@@ -249,7 +279,9 @@ export default function BlogEventsPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-12">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -269,7 +301,9 @@ export default function BlogEventsPage() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -287,7 +321,8 @@ export default function BlogEventsPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg3.jpg)",
+            backgroundImage:
+              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg3.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -301,7 +336,8 @@ export default function BlogEventsPage() {
               Get Event Updates
             </h2>
             <p className="text-gray-300 text-base md:text-lg mb-6">
-              Subscribe to get notified about upcoming events and special promotions.
+              Subscribe to get notified about upcoming events and special
+              promotions.
             </p>
             {isNewsletterSubmitted ? (
               <div className="bg-green-500/20 backdrop-blur-sm rounded-xl p-4 max-w-md mx-auto">
@@ -309,7 +345,10 @@ export default function BlogEventsPage() {
                 <p className="text-white">Thanks for subscribing!</p>
               </div>
             ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              >
                 <input
                   type="email"
                   placeholder="Your email address"
@@ -327,7 +366,9 @@ export default function BlogEventsPage() {
                 </button>
               </form>
             )}
-            <p className="text-gray-400 text-xs mt-4">No spam. Unsubscribe anytime.</p>
+            <p className="text-gray-400 text-xs mt-4">
+              No spam. Unsubscribe anytime.
+            </p>
           </MotionWrapper>
         </div>
       </section>

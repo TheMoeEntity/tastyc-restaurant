@@ -19,7 +19,12 @@ import {
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
 
-function SectionHeader({ label, title, subtitle, light = false }: {
+function SectionHeader({
+  label,
+  title,
+  subtitle,
+  light = false,
+}: {
   label: string;
   title: React.ReactNode;
   subtitle?: string;
@@ -30,14 +35,20 @@ function SectionHeader({ label, title, subtitle, light = false }: {
       <div className="text-center max-w-3xl mx-auto mb-12 md:mb-16">
         <div className="flex items-center justify-center gap-3 mb-3">
           <div className="h-0.5 w-6 bg-yellow-500" />
-          <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">{label}</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+            {label}
+          </p>
           <div className="h-0.5 w-6 bg-yellow-500" />
         </div>
-        <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}>
+        <h2
+          className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}
+        >
           {title}
         </h2>
         {subtitle && (
-          <p className={`text-base md:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-600"}`}>
+          <p
+            className={`text-base md:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-600"}`}
+          >
             {subtitle}
           </p>
         )}
@@ -46,7 +57,12 @@ function SectionHeader({ label, title, subtitle, light = false }: {
   );
 }
 
-function ContactInfoCard({ icon: Icon, title, details, delay = 0 }: {
+function ContactInfoCard({
+  icon: Icon,
+  title,
+  details,
+  delay = 0,
+}: {
   icon: React.ElementType;
   title: string;
   details: string[];
@@ -54,20 +70,98 @@ function ContactInfoCard({ icon: Icon, title, details, delay = 0 }: {
 }) {
   return (
     <MotionWrapper variant="fade-up" delay={delay} duration={500}>
-      <div className="group bg-white rounded-3xl p-6 md:p-8 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500">
+      <div className="group bg-white rounded-3xl p-6 md:p-8 border border-gray-100 h-full shadow-sm hover:shadow-xl transition-all duration-500">
         <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center mb-5 group-hover:bg-yellow-500/20 transition">
           <Icon className="w-7 h-7 text-yellow-500" />
         </div>
-        <h3 className="text-xl md:text-2xl font-bold font-serif text-gray-900 mb-4">{title}</h3>
+        <h3 className="text-xl md:text-2xl font-bold font-serif text-gray-900 mb-4">
+          {title}
+        </h3>
         <div className="space-y-2">
           {details.map((detail, i) => (
-            <p key={i} className="text-gray-600 text-base md:text-lg leading-relaxed">
+            <p
+              key={i}
+              className="text-gray-600 text-base md:text-lg leading-relaxed"
+            >
               {detail}
             </p>
           ))}
         </div>
       </div>
     </MotionWrapper>
+  );
+}
+
+function FAQItem({
+  question,
+  answer,
+  isOpen,
+  onToggle,
+}: {
+  question: string;
+  answer: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div
+      className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all duration-300 ${
+        isOpen
+          ? "border-yellow-400/60 shadow-yellow-100/60 shadow-md"
+          : "border-gray-100 hover:shadow-md hover:border-gray-200"
+      }`}
+    >
+      {/* Header / trigger */}
+      <button
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between gap-4 px-6 py-5 text-left group"
+      >
+        <h3 className="text-lg md:text-xl font-bold font-serif text-gray-900">
+          {question}
+        </h3>
+        <span
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
+            isOpen
+              ? "bg-yellow-500 rotate-180"
+              : "bg-yellow-500/10 group-hover:bg-yellow-500/20"
+          }`}
+        >
+          <svg
+            className={`w-4 h-4 transition-colors duration-300 ${
+              isOpen ? "text-white" : "text-yellow-500"
+            }`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        </span>
+      </button>
+
+      {/* Animated body */}
+      <div
+        style={{
+          maxHeight: isOpen ? 500 : 0,
+          opacity: isOpen ? 1 : 0,
+          transition:
+            "max-height 0.38s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease",
+          overflow: "hidden",
+        }}
+      >
+        <div className="px-6 pb-5 pt-1 border-t border-gray-100">
+          <p className="text-gray-600 text-base md:text-lg leading-relaxed pt-3">
+            {answer}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -81,8 +175,13 @@ export default function ContactPage() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
@@ -92,7 +191,7 @@ export default function ContactPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
@@ -137,27 +236,33 @@ export default function ContactPage() {
   const faqs = [
     {
       question: "Do I need a reservation?",
-      answer: "While walk-ins are always welcome, we highly recommend making a reservation — especially on weekends and public holidays. You can book a table through our reservation page or by calling us directly.",
+      answer:
+        "While walk-ins are always welcome, we highly recommend making a reservation — especially on weekends and public holidays. You can book a table through our reservation page or by calling us directly.",
     },
     {
       question: "Do you offer catering services?",
-      answer: "Yes! Tastyc provides catering for private events, corporate gatherings, and parties. Contact our events team at events@tastyc.com for a custom quote.",
+      answer:
+        "Yes! Tastyc provides catering for private events, corporate gatherings, and parties. Contact our events team at events@tastyc.com for a custom quote.",
     },
     {
       question: "Is there parking available?",
-      answer: "Yes, we have a dedicated parking lot for our guests with 24/7 security. Valet parking is also available on weekends.",
+      answer:
+        "Yes, we have a dedicated parking lot for our guests with 24/7 security. Valet parking is also available on weekends.",
     },
     {
       question: "Do you accommodate dietary restrictions?",
-      answer: "Absolutely. We offer vegetarian, vegan, and gluten-free options. Please inform your server or mention it when booking your reservation.",
+      answer:
+        "Absolutely. We offer vegetarian, vegan, and gluten-free options. Please inform your server or mention it when booking your reservation.",
     },
     {
       question: "Can I host a private event at Tastyc?",
-      answer: "We have a private dining room that seats up to 30 guests, and the entire restaurant can be booked for larger events. Contact us for more details.",
+      answer:
+        "We have a private dining room that seats up to 30 guests, and the entire restaurant can be booked for larger events. Contact us for more details.",
     },
     {
       question: "Do you offer takeout and delivery?",
-      answer: "Yes! You can order takeout directly from our website or through our delivery partners. We also offer contactless pickup.",
+      answer:
+        "Yes! You can order takeout directly from our website or through our delivery partners. We also offer contactless pickup.",
     },
   ];
 
@@ -170,7 +275,6 @@ export default function ContactPage() {
 
   return (
     <main className="bg-white overflow-hidden">
-
       {/* HERO SECTION */}
       <section className="relative py-16 md:py-20 lg:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="pointer-events-none absolute inset-0 flex justify-center items-center opacity-40">
@@ -181,17 +285,20 @@ export default function ContactPage() {
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-0.5 w-6 bg-yellow-500" />
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Get in Touch</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                Get in Touch
+              </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif text-gray-900 leading-tight mb-6">
-              Let's Talk <br />
+              Let&#39;s Talk <br />
               <span className="text-yellow-500">Over Good Food</span>
             </h1>
 
             <p className="text-gray-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-              Whether you have a question, want to make a reservation, or just want to say hello — we'd love to hear from you.
+              Whether you have a question, want to make a reservation, or just
+              want to say hello — we&#39;d love to hear from you.
             </p>
           </MotionWrapper>
         </div>
@@ -226,23 +333,30 @@ export default function ContactPage() {
                     Send Us a Message
                   </h2>
                   <p className="text-gray-600 text-base">
-                    Fill out the form below and we'll get back to you within 24 hours.
+                    Fill out the form below and we&#39;ll get back to you within
+                    24 hours.
                   </p>
                 </div>
 
                 {isSubmitted ? (
                   <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Message Sent!
+                    </h3>
                     <p className="text-gray-600">
-                      Thank you for reaching out. We'll respond to your message as soon as possible.
+                      Thank you for reaching out. We*&#39;ll respond to your
+                      message as soon as possible.
                     </p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Your Name *
                         </label>
                         <input
@@ -257,7 +371,10 @@ export default function ContactPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Email Address *
                         </label>
                         <input
@@ -275,7 +392,10 @@ export default function ContactPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="phone"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Phone Number
                         </label>
                         <input
@@ -289,7 +409,10 @@ export default function ContactPage() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="subject"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Subject *
                         </label>
                         <select
@@ -301,7 +424,9 @@ export default function ContactPage() {
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 outline-none transition text-base bg-white"
                         >
                           <option value="">Select a subject</option>
-                          <option value="Reservation">Reservation Inquiry</option>
+                          <option value="Reservation">
+                            Reservation Inquiry
+                          </option>
                           <option value="Catering">Catering Request</option>
                           <option value="Feedback">Feedback</option>
                           <option value="Complaint">Complaint</option>
@@ -312,7 +437,10 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label
+                        htmlFor="message"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
                         Message *
                       </label>
                       <textarea
@@ -352,7 +480,7 @@ export default function ContactPage() {
             <MotionWrapper variant="fade-up" delay={200} duration={600}>
               <div className="relative rounded-3xl overflow-hidden h-full">
                 {/* Background Image */}
-                <div 
+                <div
                   className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                   style={{
                     backgroundImage: "url('/assets/homeImg3.jpg')",
@@ -360,7 +488,7 @@ export default function ContactPage() {
                 />
                 {/* Dark Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900/85 to-gray-800/90" />
-                
+
                 {/* Content */}
                 <div className="relative z-10 p-8 flex flex-col items-center text-center h-full">
                   <div className="w-16 h-16 rounded-2xl bg-yellow-500/20 flex items-center justify-center mb-5">
@@ -376,9 +504,11 @@ export default function ContactPage() {
                   </p>
                   <div className="w-12 h-0.5 bg-yellow-500/50 mx-auto my-4" />
                   <p className="text-gray-300 text-base">
-                    <strong className="text-yellow-400">Call us:</strong> +234 801 234 5678
+                    <strong className="text-yellow-400">Call us:</strong> +234
+                    801 234 5678
                     <br />
-                    <strong className="text-yellow-400">Email:</strong> hello@tastyc.com
+                    <strong className="text-yellow-400">Email:</strong>{" "}
+                    hello@tastyc.com
                   </p>
                   <Link
                     href="https://maps.google.com/?q=123+Foodie+Street+Lekki+Lagos+Nigeria"
@@ -404,31 +534,22 @@ export default function ContactPage() {
             subtitle="Everything you need to know before visiting Tastyc."
           />
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {faqs.map((faq, index) => (
-              <MotionWrapper key={index} variant="fade-up" delay={index * 100} duration={500}>
-                <details className="group bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all">
-                  <summary className="flex items-center justify-between cursor-pointer list-none">
-                    <h3 className="text-lg md:text-xl font-bold font-serif text-gray-900 pr-4">
-                      {faq.question}
-                    </h3>
-                    <div className="w-6 h-6 rounded-full bg-yellow-500/10 flex items-center justify-center group-open:bg-yellow-500 transition">
-                      <svg
-                        className="w-4 h-4 text-yellow-500 transition-transform group-open:rotate-180"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </summary>
-                  <div className="mt-4 pt-4 border-t border-gray-100">
-                    <p className="text-gray-600 text-base md:text-lg leading-relaxed">
-                      {faq.answer}
-                    </p>
-                  </div>
-                </details>
+              <MotionWrapper
+                key={index}
+                variant="fade-up"
+                delay={index * 80}
+                duration={500}
+              >
+                <FAQItem
+                  question={faq.question}
+                  answer={faq.answer}
+                  isOpen={openFaqIndex === index}
+                  onToggle={() =>
+                    setOpenFaqIndex(openFaqIndex === index ? null : index)
+                  }
+                />
               </MotionWrapper>
             ))}
           </div>
@@ -440,7 +561,8 @@ export default function ContactPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg2.jpg)",
+            backgroundImage:
+              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg2.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -452,13 +574,16 @@ export default function ContactPage() {
               <div className="text-center lg:text-left">
                 <div className="inline-flex items-center gap-3 mb-4">
                   <div className="h-0.5 w-6 bg-yellow-500" />
-                  <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Follow Us</p>
+                  <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                    Follow Us
+                  </p>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-bold font-serif text-white mb-4">
                   Join Our <span className="text-yellow-500">Community</span>
                 </h2>
                 <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
-                  Follow us on social media for daily updates, behind-the-scenes content, and special offers.
+                  Follow us on social media for daily updates, behind-the-scenes
+                  content, and special offers.
                 </p>
                 <div className="flex gap-4 justify-center lg:justify-start">
                   {socialLinks.map((social, index) => (
@@ -487,7 +612,8 @@ export default function ContactPage() {
                     Get 10% Off Your First Order
                   </h3>
                   <p className="text-gray-300 text-sm md:text-base mb-6">
-                    Subscribe to our newsletter and receive exclusive offers, new menu alerts, and more.
+                    Subscribe to our newsletter and receive exclusive offers,
+                    new menu alerts, and more.
                   </p>
                   <form className="flex flex-col sm:flex-row gap-3">
                     <input

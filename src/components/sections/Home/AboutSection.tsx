@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import Image from "next/image";
 
 function AboutSection() {
   return (
@@ -37,11 +37,12 @@ function AboutSection() {
 
         <div className="flex flex-col lg:flex-row items-center gap-10">
           {/* IMAGE */}
-          <div className="w-full lg:w-1/2 order-2 lg:order-1">
-            <img
+          <div className="w-full min-h-[450px] relative lg:w-1/2 order-2 lg:order-1">
+            <Image
               src="/assets/aboutImg.webp"
               alt="aboutImg"
-              className="w-full h-auto rounded-lg object-cover"
+              fill
+              className="w-full h-full rounded-lg object-cover"
             />
           </div>
 

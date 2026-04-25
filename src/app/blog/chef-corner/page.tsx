@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 // app/blog/chef-corner/page.tsx
 
 "use client";
@@ -30,20 +31,23 @@ import {
   paginatePosts,
   getTotalPages,
 } from "@/lib/utils/blogUtils";
+import Image from "next/image";
 
 const POSTS_PER_PAGE = 6;
 const CHEF_CORNER_SLUG = "chef-corner";
 
 const getChefAuthors = (posts: BlogPost[]): BlogAuthor[] => {
-  const chefPosts = posts.filter((post) => post.categorySlug === CHEF_CORNER_SLUG);
+  const chefPosts = posts.filter(
+    (post) => post.categorySlug === CHEF_CORNER_SLUG,
+  );
   const uniqueAuthors = new Map();
-  
+
   chefPosts.forEach((post) => {
     if (!uniqueAuthors.has(post.author.id)) {
       uniqueAuthors.set(post.author.id, post.author);
     }
   });
-  
+
   return Array.from(uniqueAuthors.values());
 };
 
@@ -59,28 +63,32 @@ export default function BlogChefCornerPage() {
   const [isNewsletterLoading, setIsNewsletterLoading] = useState(false);
 
   const allChefPosts: BlogPost[] = blogPosts.filter(
-    (post) => post.categorySlug === CHEF_CORNER_SLUG
+    (post) => post.categorySlug === CHEF_CORNER_SLUG,
   );
 
-  const featuredStory: BlogPost | undefined = allChefPosts.find((post) => post.featured);
+  const featuredStory: BlogPost | undefined = allChefPosts.find(
+    (post) => post.featured,
+  );
   const chefs: BlogAuthor[] = getChefAuthors(blogPosts);
 
   useEffect(() => {
     let filtered = allChefPosts;
-    
+
     if (searchQuery) {
       filtered = allChefPosts.filter(
         (post) =>
           post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+          post.tags.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase()),
+          ),
       );
     }
-    
+
     if (selectedChef !== "all") {
       filtered = filtered.filter((post) => post.author.id === selectedChef);
     }
-    
+
     setFilteredPosts(filtered);
     setCurrentPage(1);
   }, [searchQuery, selectedChef]);
@@ -105,14 +113,15 @@ export default function BlogChefCornerPage() {
 
   return (
     <main className="bg-gray-50 min-h-screen">
-
       {/* HERO SECTION */}
       <section className="relative py-20 md:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
               <div className="h-0.5 w-6 bg-yellow-500" />
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">Meet Our Team</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
+                Meet Our Team
+              </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
             <div className="flex justify-center mb-4">
@@ -121,10 +130,11 @@ export default function BlogChefCornerPage() {
               </div>
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif text-gray-900 leading-tight mb-4">
-              Chef's <span className="text-yellow-500">Corner</span>
+              Chef&apos;s <span className="text-yellow-500">Corner</span>
             </h1>
             <p className="text-gray-500 text-lg max-w-2xl mx-auto">
-              Get to know the talented chefs behind your favorite dishes. Stories, tips, and behind-the-scenes moments.
+              Get to know the talented chefs behind your favorite dishes.
+              Stories, tips, and behind-the-scenes moments.
             </p>
           </MotionWrapper>
         </div>
@@ -135,14 +145,20 @@ export default function BlogChefCornerPage() {
         <section className="py-8 px-6 md:px-16 lg:px-20 bg-gray-50">
           <div className="max-w-7xl mx-auto">
             <div className="flex items-center gap-2 mb-4">
-              <span className="text-yellow-500 text-sm font-semibold">⭐ Featured Story</span>
+              <span className="text-yellow-500 text-sm font-semibold">
+                ⭐ Featured Story
+              </span>
             </div>
-            <Link href={`/blog/post/${featuredStory.slug}`} className="group block">
+            <Link
+              href={`/blog/post/${featuredStory.slug}`}
+              className="group block"
+            >
               <div className="relative h-64 rounded-xl overflow-hidden">
-                <img
+                <Image
                   src={featuredStory.featuredImage}
                   alt={featuredStory.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
@@ -150,7 +166,9 @@ export default function BlogChefCornerPage() {
                     <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center">
                       <ChefHat className="w-4 h-4 text-black" />
                     </div>
-                    <span className="text-yellow-400 text-sm font-semibold">{featuredStory.author.name}</span>
+                    <span className="text-yellow-400 text-sm font-semibold">
+                      {featuredStory.author.name}
+                    </span>
                   </div>
                   <h2 className="text-xl font-bold text-white mb-1 line-clamp-2">
                     {featuredStory.title}
@@ -176,7 +194,9 @@ export default function BlogChefCornerPage() {
       {chefs.length > 0 && (
         <section className="py-8 px-6 md:px-16 lg:px-20 bg-white">
           <div className="max-w-7xl mx-auto">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">👨‍🍳 Meet Our Chefs</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              👨‍🍳 Meet Our Chefs
+            </h2>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setSelectedChef("all")}
@@ -191,7 +211,9 @@ export default function BlogChefCornerPage() {
               {chefs.map((chef) => (
                 <button
                   key={chef.id}
-                  onClick={() => setSelectedChef(selectedChef === chef.id ? "all" : chef.id)}
+                  onClick={() =>
+                    setSelectedChef(selectedChef === chef.id ? "all" : chef.id)
+                  }
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
                     selectedChef === chef.id
                       ? "bg-yellow-500 text-black shadow-md"
@@ -220,7 +242,10 @@ export default function BlogChefCornerPage() {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition"
               />
             </div>
-            <Link href="/blog" className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1">
+            <Link
+              href="/blog"
+              className="text-sm text-gray-500 hover:text-yellow-600 transition flex items-center gap-1"
+            >
               <ArrowLeft className="w-4 h-4" />
               Back to all posts
             </Link>
@@ -236,7 +261,9 @@ export default function BlogChefCornerPage() {
               <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ChefHat className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">No stories found</h3>
+              <h3 className="text-xl font-bold text-gray-700 mb-2">
+                No stories found
+              </h3>
               <p className="text-gray-400">Try a different search or filter.</p>
               <button
                 onClick={() => {
@@ -252,17 +279,27 @@ export default function BlogChefCornerPage() {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {displayedPosts.map((post, idx) => (
-                  <MotionWrapper key={post.id} variant="fade-up" delay={idx * 100}>
+                  <MotionWrapper
+                    key={post.id}
+                    variant="fade-up"
+                    delay={idx * 100}
+                  >
                     <article className="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500 h-full flex flex-col">
-                      <Link href={`/blog/post/${post.slug}`} className="relative h-56 overflow-hidden block">
-                        <img
+                      <Link
+                        href={`/blog/post/${post.slug}`}
+                        className="relative h-56 overflow-hidden block"
+                      >
+                        <Image
                           src={post.featuredImage}
                           alt={post.title}
+                          fill
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                         <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
                           <ChefHat className="w-3 h-3 text-yellow-500" />
-                          <span className="text-white text-xs">{post.author.name}</span>
+                          <span className="text-white text-xs">
+                            {post.author.name}
+                          </span>
                         </div>
                       </Link>
                       <div className="p-6 flex-1 flex flex-col">
@@ -282,7 +319,10 @@ export default function BlogChefCornerPage() {
                             <span>{getReadTimeDisplay(post.readTime)}</span>
                           </div>
                         </div>
-                        <Link href={`/blog/post/${post.slug}`} className="block mb-3">
+                        <Link
+                          href={`/blog/post/${post.slug}`}
+                          className="block mb-3"
+                        >
                           <h3 className="text-xl font-bold font-serif text-gray-900 group-hover:text-yellow-600 transition-colors line-clamp-2">
                             {post.title}
                           </h3>
@@ -319,7 +359,9 @@ export default function BlogChefCornerPage() {
               {totalPages > 1 && (
                 <div className="flex justify-center items-center gap-2 mt-12">
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
                     disabled={currentPage === 1}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -339,7 +381,9 @@ export default function BlogChefCornerPage() {
                     </button>
                   ))}
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
                     disabled={currentPage === totalPages}
                     className="w-10 h-10 rounded-lg border border-gray-200 flex items-center justify-center hover:border-yellow-400 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
@@ -357,7 +401,8 @@ export default function BlogChefCornerPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg2.jpg)",
+            backgroundImage:
+              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg2.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -379,7 +424,10 @@ export default function BlogChefCornerPage() {
                 <p className="text-white">Thanks for subscribing!</p>
               </div>
             ) : (
-              <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+              <form
+                onSubmit={handleNewsletterSubmit}
+                className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto"
+              >
                 <input
                   type="email"
                   placeholder="Your email address"
@@ -397,7 +445,9 @@ export default function BlogChefCornerPage() {
                 </button>
               </form>
             )}
-            <p className="text-gray-400 text-xs mt-4">No spam. Unsubscribe anytime.</p>
+            <p className="text-gray-400 text-xs mt-4">
+              No spam. Unsubscribe anytime.
+            </p>
           </MotionWrapper>
         </div>
       </section>
