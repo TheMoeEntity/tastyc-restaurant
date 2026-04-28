@@ -17,6 +17,10 @@ import {
   Check,
   AlertCircle,
   Percent,
+  Star,
+  Flame,
+  Leaf,
+  Eye,
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
@@ -39,7 +43,7 @@ function ProductCard({
   const { addToWishlist, removeFromWishlist, isInWishlist } = useShopStore();
 
   const isWishlisted = isInWishlist(product.id);
-  const inCart = cartItems.some((i) => i.id === product.id);
+  // const inCart = cartItems.some((i) => i.id === product.id);
 
   const handleWishlist = () => {
     if (isWishlisted) {
