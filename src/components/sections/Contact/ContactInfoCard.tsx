@@ -1,3 +1,4 @@
+import React from "react";
 import MotionWrapper from "@/components/MotionWrapper";
 
 export function ContactInfoCard({
@@ -22,10 +23,7 @@ export function ContactInfoCard({
         </h3>
         <div className="space-y-2">
           {details.map((detail, i) => (
-            <p
-              key={i}
-              className="text-gray-600 text-base md:text-lg leading-relaxed"
-            >
+            <p key={i} className="text-gray-600 text-base md:text-lg leading-relaxed">
               {detail}
             </p>
           ))}

@@ -2,26 +2,20 @@
 
 import React, { useState } from "react";
 import {
-  MapPin,
-  Phone,
   Mail,
-  Clock,
   Send,
   CheckCircle,
   Navigation,
 } from "lucide-react";
-import {
-  FaFacebookF,
-  FaInstagram,
-  FaXTwitter,
-  FaYoutube,
-} from "react-icons/fa6";
 import Link from "next/link";
+import Image from "next/image";
 import MotionWrapper from "@/components/MotionWrapper";
 import { SectionHeader } from "@/components/sections/Contact/SectionHeader";
 import { ContactInfoCard } from "@/components/sections/Contact/ContactInfoCard";
 import { FAQItem } from "@/components/sections/Contact/FAQItem";
-import { contactInfo, faqs, socialLinks } from "@/lib/constants";
+import { contactInfo, faqs, socialLinks } from "@/lib/utils/contactUtils";
+import homeImg3 from "@/../public/assets/homeImg3.jpg";
+import homeImg2 from "@/../public/assets/homeImg2.jpg";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -36,41 +30,30 @@ export default function ContactPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        subject: "",
-        message: "",
-      });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
       setTimeout(() => setIsSubmitted(false), 5000);
     }, 1500);
   };
+
   return (
     <main className="bg-white overflow-hidden">
-      {/* HERO SECTION */}
+
+      {/* HERO */}
       <section className="relative py-16 md:py-20 lg:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="pointer-events-none absolute inset-0 flex justify-center items-center opacity-40">
           <div className="w-80 h-80 md:w-96 md:h-96 bg-yellow-400/10 blur-[120px] rounded-full" />
         </div>
-
         <div className="max-w-4xl mx-auto relative z-10 text-center">
           <MotionWrapper variant="fade-up" duration={700}>
             <div className="flex items-center justify-center gap-3 mb-4">
@@ -80,15 +63,13 @@ export default function ContactPage() {
               </p>
               <div className="h-0.5 w-6 bg-yellow-500" />
             </div>
-
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-serif text-gray-900 leading-tight mb-6">
-              Let&#39;s Talk <br />
+              Let&apos;s Talk <br />
               <span className="text-yellow-500">Over Good Food</span>
             </h1>
-
             <p className="text-gray-600 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
               Whether you have a question, want to make a reservation, or just
-              want to say hello — we&#39;d love to hear from you.
+              want to say hello — we&apos;d love to hear from you.
             </p>
           </MotionWrapper>
         </div>
@@ -115,6 +96,7 @@ export default function ContactPage() {
       <section className="py-16 md:py-24 px-6 md:px-16 lg:px-20 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
+
             {/* Contact Form */}
             <MotionWrapper variant="fade-up" delay={0} duration={600}>
               <div>
@@ -123,30 +105,23 @@ export default function ContactPage() {
                     Send Us a Message
                   </h2>
                   <p className="text-gray-600 text-base">
-                    Fill out the form below and we&#39;ll get back to you within
-                    24 hours.
+                    Fill out the form below and we&apos;ll get back to you within 24 hours.
                   </p>
                 </div>
 
                 {isSubmitted ? (
                   <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      Message Sent!
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
                     <p className="text-gray-600">
-                      Thank you for reaching out. We*&#39;ll respond to your
-                      message as soon as possible.
+                      Thank you for reaching out. We&apos;ll respond as soon as possible.
                     </p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label
-                          htmlFor="name"
-                          className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
                           Your Name *
                         </label>
                         <input
@@ -161,10 +136,7 @@ export default function ContactPage() {
                         />
                       </div>
                       <div>
-                        <label
-                          htmlFor="email"
-                          className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
                           Email Address *
                         </label>
                         <input
@@ -182,10 +154,7 @@ export default function ContactPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label
-                          htmlFor="phone"
-                          className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
                           Phone Number
                         </label>
                         <input
@@ -199,10 +168,7 @@ export default function ContactPage() {
                         />
                       </div>
                       <div>
-                        <label
-                          htmlFor="subject"
-                          className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
                           Subject *
                         </label>
                         <select
@@ -214,9 +180,7 @@ export default function ContactPage() {
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 outline-none transition text-base bg-white"
                         >
                           <option value="">Select a subject</option>
-                          <option value="Reservation">
-                            Reservation Inquiry
-                          </option>
+                          <option value="Reservation">Reservation Inquiry</option>
                           <option value="Catering">Catering Request</option>
                           <option value="Feedback">Feedback</option>
                           <option value="Complaint">Complaint</option>
@@ -227,10 +191,7 @@ export default function ContactPage() {
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="message"
-                        className="block text-sm font-semibold text-gray-700 mb-2"
-                      >
+                      <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
                         Message *
                       </label>
                       <textarea
@@ -266,21 +227,18 @@ export default function ContactPage() {
               </div>
             </MotionWrapper>
 
-            {/* Location Card with Image Background */}
+            {/* Location Card — next/image instead of background-image string */}
             <MotionWrapper variant="fade-up" delay={200} duration={600}>
-              <div className="relative rounded-3xl overflow-hidden h-full">
-                {/* Background Image */}
-                <div
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                  style={{
-                    backgroundImage: "url('/assets/homeImg3.jpg')",
-                  }}
+              <div className="relative rounded-3xl overflow-hidden h-full min-h-[480px]">
+                <Image
+                  src={homeImg3}
+                  alt="Our restaurant location"
+                  fill
+                  className="object-cover"
+                  priority
                 />
-                {/* Dark Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900/85 to-gray-800/90" />
-
-                {/* Content */}
-                <div className="relative z-10 p-8 flex flex-col items-center text-center h-full">
+                <div className="relative z-10 p-8 flex flex-col items-center text-center h-full justify-center">
                   <div className="w-16 h-16 rounded-2xl bg-yellow-500/20 flex items-center justify-center mb-5">
                     <Navigation className="w-8 h-8 text-yellow-400" />
                   </div>
@@ -294,11 +252,9 @@ export default function ContactPage() {
                   </p>
                   <div className="w-12 h-0.5 bg-yellow-500/50 mx-auto my-4" />
                   <p className="text-gray-300 text-base">
-                    <strong className="text-yellow-400">Call us:</strong> +234
-                    801 234 5678
+                    <strong className="text-yellow-400">Call us:</strong> +234 801 234 5678
                     <br />
-                    <strong className="text-yellow-400">Email:</strong>{" "}
-                    hello@tastyc.com
+                    <strong className="text-yellow-400">Email:</strong> hello@tastyc.com
                   </p>
                   <Link
                     href="https://maps.google.com/?q=123+Foodie+Street+Lekki+Lagos+Nigeria"
@@ -315,7 +271,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* FAQ SECTION */}
+      {/* FAQ */}
       <section className="py-16 md:py-24 px-6 md:px-16 lg:px-20 bg-gray-50">
         <div className="max-w-4xl mx-auto">
           <SectionHeader
@@ -323,22 +279,14 @@ export default function ContactPage() {
             title="Frequently Asked Questions"
             subtitle="Everything you need to know before visiting Tastyc."
           />
-
           <div className="space-y-3">
             {faqs.map((faq, index) => (
-              <MotionWrapper
-                key={index}
-                variant="fade-up"
-                delay={index * 80}
-                duration={500}
-              >
+              <MotionWrapper key={index} variant="fade-up" delay={index * 80} duration={500}>
                 <FAQItem
                   question={faq.question}
                   answer={faq.answer}
                   isOpen={openFaqIndex === index}
-                  onToggle={() =>
-                    setOpenFaqIndex(openFaqIndex === index ? null : index)
-                  }
+                  onToggle={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
                 />
               </MotionWrapper>
             ))}
@@ -346,19 +294,21 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* SOCIAL + NEWSLETTER SECTION */}
+      {/* SOCIAL + NEWSLETTER */}
       <section className="relative py-16 md:py-24 px-6 md:px-16 lg:px-20 overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(8,31,34,0.88), rgba(8,31,34,0.92)), url(/assets/homeImg2.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
-        />
+        <div className="absolute inset-0">
+          <Image
+            src={homeImg2}
+            alt="Newsletter background"
+            fill
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[rgba(8,31,34,0.88)] to-[rgba(8,31,34,0.92)]" />
+        </div>
+
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+
             {/* Social Media */}
             <MotionWrapper variant="fade-up" delay={0} duration={600}>
               <div className="text-center lg:text-left">
@@ -372,8 +322,7 @@ export default function ContactPage() {
                   Join Our <span className="text-yellow-500">Community</span>
                 </h2>
                 <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
-                  Follow us on social media for daily updates, behind-the-scenes
-                  content, and special offers.
+                  Follow us on social media for daily updates, behind-the-scenes content, and special offers.
                 </p>
                 <div className="flex gap-4 justify-center lg:justify-start">
                   {socialLinks.map((social, index) => (
@@ -402,8 +351,7 @@ export default function ContactPage() {
                     Get 10% Off Your First Order
                   </h3>
                   <p className="text-gray-300 text-sm md:text-base mb-6">
-                    Subscribe to our newsletter and receive exclusive offers,
-                    new menu alerts, and more.
+                    Subscribe to our newsletter and receive exclusive offers, new menu alerts, and more.
                   </p>
                   <form className="flex flex-col sm:flex-row gap-3">
                     <input
@@ -415,9 +363,7 @@ export default function ContactPage() {
                       Subscribe
                     </button>
                   </form>
-                  <p className="text-gray-400 text-xs mt-4">
-                    No spam. Unsubscribe anytime.
-                  </p>
+                  <p className="text-gray-400 text-xs mt-4">No spam. Unsubscribe anytime.</p>
                 </div>
               </div>
             </MotionWrapper>

@@ -1,74 +1,35 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-// app/orders/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ShoppingBag,
   Receipt,
   ChevronRight,
   Search,
   Filter,
-  User,
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
-import { getOrders, cancelOrder } from "@/lib/utils/orderUtils";
-import { Order } from "@/types";
+import { Order, OrderStatus, OrderType } from "@/types";
 import { OrderCard, OrderDetailModal } from "@/components/sections/Order";
+import { useOrderStore } from "@/store/useOrderStore";
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterType, setFilterType] = useState<string>("all");
+  const { orders, cancelOrder } = useOrderStore();
+  const [filterStatus, setFilterStatus] = useState<OrderStatus | "all">("all");
+  const [filterType, setFilterType] = useState<OrderType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showFilters, setShowFilters] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadOrders = () => {
-    setIsLoading(true);
-    const loadedOrders = getOrders();
-    setOrders(loadedOrders);
-    setIsLoading(false);
-  };
-
-  useEffect(() => {
-    loadOrders();
-
-    const handleOrderPlaced = () => {
-      loadOrders();
-    };
-
-    const handleOrdersUpdated = () => {
-      loadOrders();
-    };
-
-    window.addEventListener("orderPlaced", handleOrderPlaced);
-    window.addEventListener("ordersUpdated", handleOrdersUpdated);
-
-    return () => {
-      window.removeEventListener("orderPlaced", handleOrderPlaced);
-      window.removeEventListener("ordersUpdated", handleOrdersUpdated);
-    };
-  }, []);
-
-  const handleCancelOrder = (orderId: string) => {
-    cancelOrder(orderId);
-    loadOrders();
-  };
 
   const filteredOrders = orders.filter((order) => {
-    const matchesStatus =
-      filterStatus === "all" || order.status === filterStatus;
+    const matchesStatus = filterStatus === "all" || order.status === filterStatus;
     const matchesType = filterType === "all" || order.orderType === filterType;
     const matchesSearch =
       order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.items.some((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
+      order.items.some((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesStatus && matchesType && matchesSearch;
   });
 
@@ -80,14 +41,25 @@ export default function OrdersPage() {
     cancelled: orders.filter((o) => o.status === "cancelled").length,
   };
 
+  // group filtered orders by date
+  const groupedByDate = filteredOrders.reduce(
+    (acc, order) => {
+      if (!acc[order.date]) acc[order.date] = [];
+      acc[order.date].push(order);
+      return acc;
+    },
+    {} as Record<string, Order[]>
+  );
+
   return (
     <main className="bg-gray-50 min-h-screen pb-16">
+
+      {/* HERO */}
       <section className="relative min-h-[30vh] sm:min-h-[35vh] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.70), rgba(0,0,0,0.80)), url(/assets/homeImg1.jpg)",
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.70), rgba(0,0,0,0.80)), url(/assets/homeImg1.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -112,53 +84,27 @@ export default function OrdersPage() {
         </div>
       </section>
 
+      {/* STATS */}
       <section className="px-4 sm:px-6 md:px-16 lg:px-20 -mt-8 sm:-mt-10 relative z-20">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4">
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
-              <p className="text-lg sm:text-2xl font-black text-yellow-500">
-                {stats.total}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">
-                Total
-              </p>
-            </div>
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
-              <p className="text-lg sm:text-2xl font-black text-yellow-500">
-                {stats.pending}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">
-                Pending
-              </p>
-            </div>
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
-              <p className="text-lg sm:text-2xl font-black text-orange-500">
-                {stats.preparing}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">
-                Preparing
-              </p>
-            </div>
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
-              <p className="text-lg sm:text-2xl font-black text-emerald-500">
-                {stats.delivered}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">
-                Delivered
-              </p>
-            </div>
-            <div className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
-              <p className="text-lg sm:text-2xl font-black text-red-500">
-                {stats.cancelled}
-              </p>
-              <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">
-                Cancelled
-              </p>
-            </div>
+            {[
+              { label: "Total", value: stats.total, color: "text-yellow-500" },
+              { label: "Pending", value: stats.pending, color: "text-yellow-500" },
+              { label: "Preparing", value: stats.preparing, color: "text-orange-500" },
+              { label: "Delivered", value: stats.delivered, color: "text-emerald-500" },
+              { label: "Cancelled", value: stats.cancelled, color: "text-red-500" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="bg-white rounded-lg sm:rounded-xl shadow-lg p-2 sm:p-4 text-center">
+                <p className={`text-lg sm:text-2xl font-black ${color}`}>{value}</p>
+                <p className="text-[10px] sm:text-xs text-gray-500 uppercase tracking-wide">{label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
+      {/* SEARCH + FILTERS */}
       <section className="py-6 sm:py-12 px-4 sm:px-6 md:px-16 lg:px-20">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col gap-4 mb-6 sm:mb-8">
@@ -175,7 +121,7 @@ export default function OrdersPage() {
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <select
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={(e) => setFilterStatus(e.target.value as OrderStatus | "all")}
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-yellow-400 text-xs sm:text-sm"
               >
                 <option value="all">All Status</option>
@@ -188,7 +134,7 @@ export default function OrdersPage() {
               </select>
               <select
                 value={filterType}
-                onChange={(e) => setFilterType(e.target.value)}
+                onChange={(e) => setFilterType(e.target.value as OrderType | "all")}
                 className="flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-yellow-400 text-xs sm:text-sm"
               >
                 <option value="all">All Types</option>
@@ -208,27 +154,17 @@ export default function OrdersPage() {
         </div>
       </section>
 
+      {/* ORDERS LIST */}
       <section className="pb-12 sm:pb-20 px-4 sm:px-6 md:px-16 lg:px-20">
         <div className="max-w-7xl mx-auto">
-          {isLoading ? (
-            <div className="flex justify-center py-12">
-              <div className="w-8 h-8 border-3 border-yellow-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : filteredOrders.length === 0 ? (
-            <MotionWrapper
-              variant="fade-up"
-              className="text-center py-12 sm:py-16"
-            >
+          {filteredOrders.length === 0 ? (
+            <MotionWrapper variant="fade-up" className="text-center py-12 sm:py-16">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag className="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">
-                No orders found
-              </h3>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">No orders found</h3>
               <p className="text-sm sm:text-base text-gray-400 mb-6">
-                {orders.length === 0
-                  ? "You haven't placed any orders yet."
-                  : "Try adjusting your filters."}
+                {orders.length === 0 ? "You haven't placed any orders yet." : "Try adjusting your filters."}
               </p>
               <Link
                 href="/menu"
@@ -240,17 +176,7 @@ export default function OrdersPage() {
             </MotionWrapper>
           ) : (
             <div className="space-y-8">
-              {Object.entries(
-                filteredOrders.reduce(
-                  (acc, order) => {
-                    const date = order.date;
-                    if (!acc[date]) acc[date] = [];
-                    acc[date].push(order);
-                    return acc;
-                  },
-                  {} as Record<string, Order[]>,
-                ),
-              ).map(([date, dateOrders]) => (
+              {Object.entries(groupedByDate).map(([date, dateOrders]) => (
                 <div key={date}>
                   <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-gray-200">
                     {new Date(date).toLocaleDateString("en-US", {
@@ -276,13 +202,13 @@ export default function OrdersPage() {
         </div>
       </section>
 
-      {!isLoading && orders.length === 0 && (
+      {/* EMPTY STATE CTA */}
+      {orders.length === 0 && (
         <section className="relative py-12 sm:py-20 px-4 sm:px-6 md:px-16 lg:px-20 overflow-hidden">
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage:
-                "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.88)), url(/assets/homeImg3.jpg)",
+              backgroundImage: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.88)), url(/assets/homeImg3.jpg)",
               backgroundSize: "cover",
               backgroundPosition: "center",
             }}
@@ -296,8 +222,7 @@ export default function OrdersPage() {
                 Place Your First Order
               </h2>
               <p className="text-gray-300 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
-                Explore our diverse menu featuring African specialties and
-                global favorites.
+                Explore our diverse menu featuring African specialties and global favorites.
               </p>
               <Link
                 href="/menu"
@@ -313,7 +238,7 @@ export default function OrdersPage() {
       <OrderDetailModal
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
-        onCancelOrder={handleCancelOrder}
+        onCancelOrder={cancelOrder}
       />
 
       {orders.length > 0 && (

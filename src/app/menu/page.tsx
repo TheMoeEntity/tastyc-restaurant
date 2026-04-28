@@ -1,17 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
-  Coffee,
-  UtensilsCrossed,
-  Cake,
-  Wine,
   ChefHat,
   Search,
   Star,
   Flame,
   Leaf,
-  Globe,
   Filter,
   ChevronRight,
   ShoppingCart,
@@ -21,32 +16,9 @@ import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
 import { MenuItem } from "@/types";
 import Image from "next/image";
-import { CartItem } from "@/types/menu.types";
 import { categories, featuredItems, menuItems } from "@/lib/utils/menuUtils";
-
-const addToCart = (item: MenuItem) => {
-  const existingCart = localStorage.getItem("cart");
-  const cart: CartItem[] = existingCart ? JSON.parse(existingCart) : [];
-  const existingItemIndex = cart.findIndex(
-    (cartItem) => cartItem.id === item.id,
-  );
-  if (existingItemIndex !== -1) {
-    cart[existingItemIndex].quantity += 1;
-  } else {
-    cart.push({ ...item, quantity: 1 });
-  }
-  localStorage.setItem("cart", JSON.stringify(cart));
-  window.dispatchEvent(new Event("cartUpdated"));
-};
-
-const removeFromCart = (itemId: string) => {
-  const existingCart = localStorage.getItem("cart");
-  if (!existingCart) return;
-  const cart: CartItem[] = JSON.parse(existingCart);
-  const updated = cart.filter((c) => c.id !== itemId);
-  localStorage.setItem("cart", JSON.stringify(updated));
-  window.dispatchEvent(new Event("cartUpdated"));
-};
+import { useCartStore } from "@/store/useCartStore";
+import { useMenuStore } from "@/store/useMenuStore";
 
 function SectionHeader({
   label,
@@ -60,10 +32,7 @@ function SectionHeader({
   light?: boolean;
 }) {
   return (
-    <MotionWrapper
-      variant="fade-up"
-      className="text-center max-w-3xl mx-auto mb-12"
-    >
+    <MotionWrapper variant="fade-up" className="text-center max-w-3xl mx-auto mb-12">
       <div className="flex items-center justify-center gap-3 mb-3">
         <div className="h-0.5 w-6 bg-yellow-500" />
         <p className="text-sm font-bold uppercase tracking-widest text-yellow-500">
@@ -71,15 +40,11 @@ function SectionHeader({
         </p>
         <div className="h-0.5 w-6 bg-yellow-500" />
       </div>
-      <h2
-        className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}
-      >
+      <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}>
         {title}
       </h2>
       {subtitle && (
-        <p
-          className={`text-base sm:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-500"}`}
-        >
+        <p className={`text-base sm:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-500"}`}>
           {subtitle}
         </p>
       )}
@@ -89,33 +54,18 @@ function SectionHeader({
 
 function MenuCard({ item, index }: { item: MenuItem; index: number }) {
   const [isAdded, setIsAdded] = useState(false);
-  const [inCart, setInCart] = useState(false);
+  const { addMenuItem, removeItem, items } = useCartStore();
 
-  useEffect(() => {
-    const checkCart = () => {
-      const existing = localStorage.getItem("cart");
-      if (!existing) {
-        setInCart(false);
-        return;
-      }
-      const cart: CartItem[] = JSON.parse(existing);
-      setInCart(cart.some((c) => c.id === item.id));
-    };
-    checkCart();
-    window.addEventListener("cartUpdated", checkCart);
-    return () => window.removeEventListener("cartUpdated", checkCart);
-  }, [item.id]);
+  const inCart = items.some((i) => i.id === item.id);
 
   const handleAddToCart = () => {
-    addToCart(item);
+    addMenuItem(item);
     setIsAdded(true);
-    setInCart(true);
     setTimeout(() => setIsAdded(false), 1000);
   };
 
   const handleRemoveFromCart = () => {
-    removeFromCart(item.id);
-    setInCart(false);
+    removeItem(item.id);
   };
 
   return (
@@ -128,7 +78,7 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
               src={item.image}
               alt={item.name}
               fill
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+              className="object-cover group-hover:scale-110 transition-transform duration-700"
             />
           )}
           {item.popular && (
@@ -153,19 +103,14 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
             <h3 className="font-bold text-lg text-gray-900 group-hover:text-yellow-600 transition-colors">
               {item.name}
             </h3>
-            <span className="font-black text-yellow-600 text-lg">
-              ${item.price}
-            </span>
+            <span className="font-black text-yellow-600 text-lg">${item.price}</span>
           </div>
           <p className="text-gray-500 text-sm leading-relaxed mb-3 line-clamp-2">
             {item.description}
           </p>
           <div className="flex flex-wrap gap-2 mb-4">
             {item.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full"
-              >
+              <span key={tag} className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                 {tag}
               </span>
             ))}
@@ -200,19 +145,15 @@ function MenuCard({ item, index }: { item: MenuItem; index: number }) {
 }
 
 export default function MenuPage() {
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const { activeCategory, searchQuery, setActiveCategory, setSearchQuery } = useMenuStore();
 
   const filteredItems = menuItems.filter((item) => {
-    const matchesCategory =
-      activeCategory === "all" || item.category === activeCategory;
+    const matchesCategory = activeCategory === "all" || item.category === activeCategory;
     const matchesSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.tags.some((tag) =>
-        tag.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
+      item.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 
@@ -222,18 +163,18 @@ export default function MenuPage() {
       acc[item.category].push(item);
       return acc;
     },
-    {} as Record<string, MenuItem[]>,
+    {} as Record<string, MenuItem[]>
   );
 
   return (
     <main className="bg-gray-50 overflow-hidden">
+
       {/* HERO */}
       <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)), url(/assets/homeImg1.jpg)",
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.75)), url(/assets/homeImg1.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center 30%",
           }}
@@ -252,8 +193,8 @@ export default function MenuPage() {
               Our <span className="text-yellow-500">Menu</span>
             </h1>
             <p className="text-gray-200 text-lg sm:text-xl max-w-2xl mx-auto">
-              A culinary journey across continents — from West African classics
-              to global favorites, crafted with passion and served with love.
+              A culinary journey across continents — from West African classics to global
+              favorites, crafted with passion and served with love.
             </p>
           </MotionWrapper>
         </div>
@@ -317,16 +258,14 @@ export default function MenuPage() {
           {showFilters && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <div className="flex flex-wrap gap-3">
-                {["Spicy", "Vegetarian", "Popular", "Gluten-Free"].map(
-                  (filter) => (
-                    <button
-                      key={filter}
-                      className="px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full hover:border-yellow-400 transition"
-                    >
-                      {filter}
-                    </button>
-                  ),
-                )}
+                {["Spicy", "Vegetarian", "Popular", "Gluten-Free"].map((filter) => (
+                  <button
+                    key={filter}
+                    className="px-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full hover:border-yellow-400 transition"
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -356,9 +295,7 @@ export default function MenuPage() {
 
           {filteredItems.length === 0 && (
             <div className="text-center py-20">
-              <p className="text-gray-400 text-lg">
-                No dishes found matching your criteria.
-              </p>
+              <p className="text-gray-400 text-lg">No dishes found matching your criteria.</p>
               <button
                 onClick={() => {
                   setActiveCategory("all");
@@ -378,8 +315,7 @@ export default function MenuPage() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.88)), url(/assets/homeImg3.jpg)",
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.88)), url(/assets/homeImg3.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -393,8 +329,8 @@ export default function MenuPage() {
               Dine In, Take Out, or Delivery
             </h2>
             <p className="text-gray-300 text-base sm:text-lg max-w-2xl mx-auto mb-8">
-              Whether you&apos;re craving our famous Jollof, a perfectly grilled
-              steak, or a quiet dinner for two — we&apos;re here to serve you.
+              Whether you&apos;re craving our famous Jollof, a perfectly grilled steak, or a
+              quiet dinner for two — we&apos;re here to serve you.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <Link
@@ -418,12 +354,8 @@ export default function MenuPage() {
                 { value: "100%", label: "Fresh Ingredients" },
               ].map((stat, idx) => (
                 <div key={idx}>
-                  <p className="text-2xl font-black text-yellow-500">
-                    {stat.value}
-                  </p>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">
-                    {stat.label}
-                  </p>
+                  <p className="text-2xl font-black text-yellow-500">{stat.value}</p>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">{stat.label}</p>
                 </div>
               ))}
             </div>

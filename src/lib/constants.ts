@@ -1,4 +1,4 @@
-import { Link } from "@/types";
+import { NavLink } from "@/types";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import {
   FaFacebookF,
@@ -6,6 +6,7 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
+
 export const navItems = [
   {
     name: "Home",
@@ -33,7 +34,6 @@ export const navItems = [
       { label: "Checkout", href: "/checkout" },
     ],
   },
-
   {
     name: "Blog",
     href: "/blog",
@@ -52,8 +52,8 @@ export const navItems = [
       { label: "Contact Us", href: "/contact" },
       { label: "Support", href: "/contact/support" },
       { label: "Locations", href: "/contact/locations" },
-      { label: "Email", href: "/contact/email" },
-      { label: "Call", href: "/contact/call" },
+      { label: "Email", href: "/contact" },
+      { label: "Call", href: "/contact" },
     ],
   },
   {
@@ -68,32 +68,15 @@ export const navItems = [
     ],
   },
 ];
-export const links: Link[] = [
-  {
-    name: "Home",
-    href: "/",
-  },
-  {
-    name: "Buy",
-    href: "/buy",
-  },
-  {
-    name: "Sell",
-    href: "/sell",
-  },
-  {
-    name: "Services",
-    href: "/services",
-  },
-  {
-    name: "About Us",
-    href: "/about",
-  },
-  // {
-  //     name:"Contact Us",
-  //     href:"#contact"
-  // }
+
+export const links: NavLink[] = [
+  { name: "Home", href: "/" },
+  { name: "Buy", href: "/buy" },
+  { name: "Sell", href: "/sell" },
+  { name: "Services", href: "/services" },
+  { name: "About Us", href: "/about" },
 ];
+
 export const testimonials = [
   {
     quote: "I'm delighted!",
@@ -144,6 +127,7 @@ export const testimonials = [
     image: "/assets/homeImg3.jpg",
   },
 ];
+
 export const features = [
   {
     img: "/assets/featuresImg.png",
@@ -161,6 +145,7 @@ export const features = [
     desc: "Explore a variety of international dishes prepared with authentic techniques.",
   },
 ];
+
 export const contactInfo = [
   {
     icon: MapPin,

@@ -1,7 +1,6 @@
-// app/cart/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   ShoppingCart,
   Trash2,
@@ -24,51 +23,20 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import MotionWrapper from "@/components/MotionWrapper";
-import { saveOrder } from "@/lib/utils/orderUtils";
-import { CartItem as CartItemType, Order } from "@/types";
+import { Order, OrderType } from "@/types";
 import Image from "next/image";
-
-// Storage key for promo
-const ACTIVE_PROMO_KEY = "active_promo_code";
-
-// Helper functions for promo
-const getAppliedPromo = (): {
-  code: string;
-  discount: number;
-  minOrder?: number;
-} | null => {
-  if (typeof window === "undefined") return null;
-  const promo = localStorage.getItem(ACTIVE_PROMO_KEY);
-  return promo ? JSON.parse(promo) : null;
-};
-
-const clearAppliedPromo = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(ACTIVE_PROMO_KEY);
-    window.dispatchEvent(new Event("promoCleared"));
-  }
-};
-
-interface CartItem extends CartItemType {
-  description: string;
-  category: string;
-  tags: string[];
-}
+import { useCartStore } from "@/store/useCartStore";
+import { useOrderStore } from "@/store/useOrderStore";
+import { useShopStore } from "@/store/useShopStore";
 
 export default function CartPage() {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
-  const [promoError, setPromoError] = useState("");
-  const [activePromo, setActivePromo] = useState<{
-    code: string;
-    discount: number;
-    minOrder?: number;
-  } | null>(null);
-  const [orderType, setOrderType] = useState<
-    "dine-in" | "takeout" | "delivery"
-  >("dine-in");
+  const { items, removeItem, increaseQty, decreaseQty, clearCart, getTotalItems, getSubtotal } = useCartStore();
+  const { placeOrder } = useOrderStore();
+  const { activePromo, applyPromo, clearPromo } = useShopStore();
 
+  const [promoCode, setPromoCode] = useState(activePromo?.code ?? "");
+  const [promoError, setPromoError] = useState("");
+  const [orderType, setOrderType] = useState<OrderType>("dine-in");
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -79,234 +47,92 @@ export default function CartPage() {
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState<Order | null>(null);
 
-  useEffect(() => {
-    const loadCart = () => {
-      const stored = localStorage.getItem("cart");
-      setCart(stored ? JSON.parse(stored) : []);
-    };
-    loadCart();
-
-    // Load saved promo from shop page
-    const savedPromo = getAppliedPromo();
-    if (savedPromo) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActivePromo(savedPromo);
-      setPromoCode(savedPromo.code);
-      setPromoApplied(true);
-      setPromoError("");
-    }
-
-    const handleCartUpdate = () => {
-      const stored = localStorage.getItem("cart");
-      setCart(stored ? JSON.parse(stored) : []);
-    };
-
-    window.addEventListener("cartUpdated", handleCartUpdate);
-    return () => window.removeEventListener("cartUpdated", handleCartUpdate);
-  }, []);
-
-  const saveCart = (updated: CartItem[]) => {
-    localStorage.setItem("cart", JSON.stringify(updated));
-    window.dispatchEvent(new Event("cartUpdated"));
-    setCart(updated);
-  };
-
-  const increaseQty = (id: string) => {
-    saveCart(
-      cart.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
-      ),
-    );
-  };
-
-  const decreaseQty = (id: string) => {
-    const item = cart.find((i) => i.id === id);
-    if (!item) return;
-    if (item.quantity === 1) {
-      removeItem(id);
-    } else {
-      saveCart(
-        cart.map((i) => (i.id === id ? { ...i, quantity: i.quantity - 1 } : i)),
-      );
-    }
-  };
-
-  const removeItem = (id: string) => {
-    saveCart(cart.filter((i) => i.id !== id));
-  };
-
-  const clearCart = () => {
-    localStorage.removeItem("cart");
-    window.dispatchEvent(new Event("cartUpdated"));
-    setCart([]);
-  };
-
-  const applyPromo = () => {
-    const code = promoCode.trim().toUpperCase();
-    const subtotalValue = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
-    );
-
-    // Check against available deals
-    if (code === "FIRST10") {
-      setPromoApplied(true);
-      setPromoError("");
-      setActivePromo({ code: "FIRST10", discount: 10 });
-      localStorage.setItem(
-        ACTIVE_PROMO_KEY,
-        JSON.stringify({ code: "FIRST10", discount: 10 }),
-      );
-    } else if (code === "WEEKEND20") {
-      if (subtotalValue >= 50) {
-        setPromoApplied(true);
-        setPromoError("");
-        setActivePromo({ code: "WEEKEND20", discount: 20, minOrder: 50 });
-        localStorage.setItem(
-          ACTIVE_PROMO_KEY,
-          JSON.stringify({ code: "WEEKEND20", discount: 20, minOrder: 50 }),
-        );
-      } else {
-        setPromoError(
-          `Minimum order of $50 required for WEEKEND20. Current subtotal: $${subtotalValue.toFixed(2)}`,
-        );
-        setPromoApplied(false);
-        setActivePromo(null);
-      }
-    } else if (code === "AFRICAN15") {
-      setPromoApplied(true);
-      setPromoError("");
-      setActivePromo({ code: "AFRICAN15", discount: 15 });
-      localStorage.setItem(
-        ACTIVE_PROMO_KEY,
-        JSON.stringify({ code: "AFRICAN15", discount: 15 }),
-      );
-    } else if (code === "TASTYC10") {
-      setPromoApplied(true);
-      setPromoError("");
-      setActivePromo({ code: "TASTYC10", discount: 10 });
-      localStorage.setItem(
-        ACTIVE_PROMO_KEY,
-        JSON.stringify({ code: "TASTYC10", discount: 10 }),
-      );
-    } else {
-      setPromoError(
-        "Invalid promo code. Try: FIRST10, WEEKEND20, AFRICAN15, or TASTYC10",
-      );
-      setPromoApplied(false);
-      setActivePromo(null);
-      clearAppliedPromo();
-    }
-  };
-
-  const removePromo = () => {
-    setPromoApplied(false);
-    setActivePromo(null);
-    setPromoCode("");
-    clearAppliedPromo();
-  };
-
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
-  const discountPercent =
-    promoApplied && activePromo ? activePromo.discount : 0;
+  const totalItems = getTotalItems();
+  const subtotal = getSubtotal();
+  const discountPercent = activePromo ? activePromo.discount : 0;
   const discount = (subtotal * discountPercent) / 100;
   const deliveryFee = orderType === "delivery" ? 3.99 : 0;
   const tax = (subtotal - discount) * 0.075;
   const total = subtotal - discount + deliveryFee + tax;
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  const handleApplyPromo = () => {
+    const result = applyPromo(promoCode.trim().toUpperCase(), subtotal);
+    if (!result.valid) {
+      setPromoError(result.message);
+    } else {
+      setPromoError("");
+    }
+  };
+
+  const handleRemovePromo = () => {
+    clearPromo();
+    setPromoCode("");
+    setPromoError("");
+  };
 
   const handlePlaceOrder = () => {
-    if (!customerName.trim()) {
-      alert("Please enter your name");
-      return;
-    }
-    if (!customerEmail.trim() || !customerEmail.includes("@")) {
-      alert("Please enter a valid email address");
-      return;
-    }
-    if (!customerPhone.trim()) {
-      alert("Please enter your phone number");
-      return;
-    }
-    if (orderType === "delivery" && !deliveryAddress.trim()) {
-      alert("Please enter your delivery address");
-      return;
-    }
-    if (orderType === "dine-in" && !tableNumber.trim()) {
-      alert("Please enter your table number");
-      return;
-    }
+    if (!customerName.trim()) return alert("Please enter your name");
+    if (!customerEmail.trim() || !customerEmail.includes("@")) return alert("Please enter a valid email address");
+    if (!customerPhone.trim()) return alert("Please enter your phone number");
+    if (orderType === "delivery" && !deliveryAddress.trim()) return alert("Please enter your delivery address");
+    if (orderType === "dine-in" && !tableNumber.trim()) return alert("Please enter your table number");
 
     setIsPlacingOrder(true);
 
-    const orderData = {
-      status: "pending" as const,
-      orderType,
-      items: cart.map((item) => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        description: item.description,
-        category: item.category,
-        spicy: item.spicy,
-        popular: item.popular,
-        veg: item.veg,
-      })),
-      subtotal,
-      discount,
-      deliveryFee,
-      tax,
-      total,
-      customerName: customerName.trim(),
-      customerEmail: customerEmail.trim(),
-      customerPhone: customerPhone.trim(),
-      specialInstructions: specialInstructions.trim() || undefined,
-      deliveryAddress:
-        orderType === "delivery" ? deliveryAddress.trim() : undefined,
-      tableNumber: orderType === "dine-in" ? tableNumber.trim() : undefined,
-      promoCode: activePromo?.code,
-    };
-
     setTimeout(() => {
-      const newOrder = saveOrder(orderData);
+      const newOrder = placeOrder({
+        status: "pending",
+        orderType,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image,
+          description: item.description,
+          category: item.category,
+          spicy: item.spicy,
+          popular: item.popular,
+          veg: item.veg,
+        })),
+        subtotal,
+        discount,
+        deliveryFee,
+        tax,
+        total,
+        customerName: customerName.trim(),
+        customerEmail: customerEmail.trim(),
+        customerPhone: customerPhone.trim(),
+        specialInstructions: specialInstructions.trim() || undefined,
+        deliveryAddress: orderType === "delivery" ? deliveryAddress.trim() : undefined,
+        tableNumber: orderType === "dine-in" ? tableNumber.trim() : undefined,
+        promoCode: activePromo?.code,
+      });
+
       setOrderPlaced(newOrder);
       setIsPlacingOrder(false);
-
-      localStorage.removeItem("cart");
-      clearAppliedPromo();
-      window.dispatchEvent(new Event("cartUpdated"));
-      setCart([]);
-
+      clearCart();
+      clearPromo();
       setCustomerName("");
       setCustomerEmail("");
       setCustomerPhone("");
       setDeliveryAddress("");
       setTableNumber("");
       setSpecialInstructions("");
-      setPromoApplied(false);
-      setActivePromo(null);
       setPromoCode("");
       setShowCheckoutModal(false);
     }, 1500);
   };
 
-  const closeSuccessModal = () => {
-    setOrderPlaced(null);
-  };
-
   return (
     <main className="bg-gray-50 min-h-screen">
+
+      {/* HERO */}
       <section className="relative h-[35vh] flex items-center justify-center overflow-hidden">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.70), rgba(0,0,0,0.80)), url(/assets/homeImg2.jpg)",
+            backgroundImage: "linear-gradient(rgba(0,0,0,0.70), rgba(0,0,0,0.80)), url(/assets/homeImg2.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
@@ -332,17 +158,14 @@ export default function CartPage() {
       </section>
 
       <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-20 py-16">
-        {cart.length === 0 ? (
+        {items.length === 0 ? (
           <MotionWrapper variant="fade-up" className="text-center py-24">
             <div className="w-24 h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <ShoppingCart className="w-10 h-10 text-yellow-500" />
             </div>
-            <h2 className="text-2xl font-bold font-serif text-gray-900 mb-3">
-              Your cart is empty
-            </h2>
+            <h2 className="text-2xl font-bold font-serif text-gray-900 mb-3">Your cart is empty</h2>
             <p className="text-gray-500 text-base mb-8 max-w-md mx-auto">
-              Looks like you haven&#39;t added anything yet. Head back to the
-              menu and explore our dishes.
+              Looks like you haven&apos;t added anything yet. Head back to the menu and explore our dishes.
             </p>
             <Link
               href="/menu"
@@ -354,11 +177,11 @@ export default function CartPage() {
           </MotionWrapper>
         ) : (
           <div className="flex flex-col lg:flex-row gap-10">
+
+            {/* LEFT — cart items */}
             <div className="flex-1">
               <MotionWrapper variant="fade-up" className="mb-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">
-                  Order Type
-                </h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Order Type</h2>
                 <div className="grid grid-cols-3 gap-3">
                   {(["dine-in", "takeout", "delivery"] as const).map((type) => (
                     <button
@@ -373,27 +196,16 @@ export default function CartPage() {
                       {type === "dine-in" && <MapPin className="w-4 h-4" />}
                       {type === "takeout" && <Package className="w-4 h-4" />}
                       {type === "delivery" && <Clock className="w-4 h-4" />}
-                      {type === "dine-in"
-                        ? "Dine In"
-                        : type === "takeout"
-                          ? "Takeout"
-                          : "Delivery"}
-                      {type === "delivery" && (
-                        <span className="text-xs text-gray-400">+$3.99</span>
-                      )}
+                      {type === "dine-in" ? "Dine In" : type === "takeout" ? "Takeout" : "Delivery"}
+                      {type === "delivery" && <span className="text-xs text-gray-400">+$3.99</span>}
                     </button>
                   ))}
                 </div>
               </MotionWrapper>
 
-              <MotionWrapper
-                variant="fade-up"
-                delay={100}
-                className="flex items-center justify-between mb-4"
-              >
+              <MotionWrapper variant="fade-up" delay={100} className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-gray-900">
-                  Cart Items{" "}
-                  <span className="text-yellow-500">({totalItems})</span>
+                  Cart Items <span className="text-yellow-500">({totalItems})</span>
                 </h2>
                 <button
                   onClick={clearCart}
@@ -405,19 +217,15 @@ export default function CartPage() {
               </MotionWrapper>
 
               <div className="space-y-4">
-                {cart.map((item, idx) => (
-                  <MotionWrapper
-                    key={item.id}
-                    variant="fade-up"
-                    delay={idx * 80}
-                  >
+                {items.map((item, idx) => (
+                  <MotionWrapper key={item.id} variant="fade-up" delay={idx * 80}>
                     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 flex gap-4 items-start">
                       <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0">
                         <Image
                           src={item.image || "/assets/homeImg1.jpg"}
                           alt={item.name}
                           fill
-                          className="w-full h-full object-cover"
+                          className="object-cover"
                         />
                         {item.popular && (
                           <div className="absolute top-1 left-1 bg-yellow-500 rounded-full p-0.5">
@@ -428,12 +236,8 @@ export default function CartPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div>
-                            <h3 className="font-bold text-gray-900 text-base leading-tight">
-                              {item.name}
-                            </h3>
-                            <p className="text-gray-400 text-xs mt-0.5">
-                              {item.category}
-                            </p>
+                            <h3 className="font-bold text-gray-900 text-base leading-tight">{item.name}</h3>
+                            <p className="text-gray-400 text-xs mt-0.5">{item.category}</p>
                           </div>
                           <button
                             onClick={() => removeItem(item.id)}
@@ -465,9 +269,7 @@ export default function CartPage() {
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="font-bold text-gray-900 w-6 text-center">
-                              {item.quantity}
-                            </span>
+                            <span className="font-bold text-gray-900 w-6 text-center">{item.quantity}</span>
                             <button
                               onClick={() => increaseQty(item.id)}
                               className="w-7 h-7 rounded-full bg-yellow-500 hover:bg-yellow-400 text-black flex items-center justify-center transition"
@@ -480,9 +282,7 @@ export default function CartPage() {
                               ${(item.price * item.quantity).toFixed(2)}
                             </p>
                             {item.quantity > 1 && (
-                              <p className="text-xs text-gray-500">
-                                ${item.price} each
-                              </p>
+                              <p className="text-xs text-gray-500">${item.price} each</p>
                             )}
                           </div>
                         </div>
@@ -503,8 +303,11 @@ export default function CartPage() {
               </MotionWrapper>
             </div>
 
+            {/* RIGHT — summary */}
             <div className="lg:w-96 shrink-0">
               <div className="sticky top-24 space-y-4">
+
+                {/* Promo */}
                 <MotionWrapper variant="fade-left" delay={200}>
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-5">
                     <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -523,22 +326,18 @@ export default function CartPage() {
                         className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition"
                       />
                       <button
-                        onClick={applyPromo}
+                        onClick={handleApplyPromo}
                         className="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-lg transition"
                       >
                         Apply
                       </button>
                     </div>
-                    {promoApplied && activePromo && (
+                    {activePromo && (
                       <div className="flex items-center justify-between mt-2">
                         <p className="text-green-600 text-xs font-medium">
-                          ✓ {activePromo.discount}% discount applied! (
-                          {activePromo.code})
+                          ✓ {activePromo.discount}% discount applied! ({activePromo.code})
                         </p>
-                        <button
-                          onClick={removePromo}
-                          className="text-red-500 hover:text-red-700"
-                        >
+                        <button onClick={handleRemovePromo} className="text-red-500 hover:text-red-700">
                           <X className="w-3 h-3" />
                         </button>
                       </div>
@@ -554,44 +353,34 @@ export default function CartPage() {
                   </div>
                 </MotionWrapper>
 
+                {/* Order summary */}
                 <MotionWrapper variant="fade-left" delay={300}>
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-5">
-                    <h3 className="font-bold text-gray-900 mb-4 text-lg">
-                      Order Summary
-                    </h3>
+                    <h3 className="font-bold text-gray-900 mb-4 text-lg">Order Summary</h3>
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between text-gray-600">
                         <span>Subtotal ({totalItems} items)</span>
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
-
-                      {promoApplied && activePromo && (
+                      {activePromo && (
                         <div className="flex justify-between text-green-600 font-medium">
-                          <span>
-                            Discount ({activePromo.discount}% -{" "}
-                            {activePromo.code})
-                          </span>
+                          <span>Discount ({activePromo.discount}% - {activePromo.code})</span>
                           <span>-${discount.toFixed(2)}</span>
                         </div>
                       )}
-
                       {orderType === "delivery" && (
                         <div className="flex justify-between text-gray-600">
                           <span>Delivery Fee</span>
                           <span>${deliveryFee.toFixed(2)}</span>
                         </div>
                       )}
-
                       <div className="flex justify-between text-gray-600">
                         <span>Tax (7.5%)</span>
                         <span>${tax.toFixed(2)}</span>
                       </div>
-
                       <div className="border-t border-gray-100 pt-3 flex justify-between font-black text-gray-900 text-base">
                         <span>Total</span>
-                        <span className="text-yellow-600">
-                          ${total.toFixed(2)}
-                        </span>
+                        <span className="text-yellow-600">${total.toFixed(2)}</span>
                       </div>
                     </div>
 
@@ -613,6 +402,7 @@ export default function CartPage() {
                   </div>
                 </MotionWrapper>
 
+                {/* Trust badges */}
                 <MotionWrapper variant="fade-left" delay={400}>
                   <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-5">
                     <div className="space-y-3">
@@ -621,10 +411,7 @@ export default function CartPage() {
                         { icon: Star, text: "100% fresh ingredients" },
                         { icon: Package, text: "Secure & easy checkout" },
                       ].map(({ icon: Icon, text }, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center gap-3 text-sm text-gray-600"
-                        >
+                        <div key={i} className="flex items-center gap-3 text-sm text-gray-600">
                           <div className="w-8 h-8 bg-yellow-50 rounded-full flex items-center justify-center shrink-0">
                             <Icon className="w-4 h-4 text-yellow-500" />
                           </div>
@@ -645,9 +432,7 @@ export default function CartPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 p-5 flex items-center justify-between">
-              <h2 className="text-xl font-bold font-serif text-gray-900">
-                Checkout
-              </h2>
+              <h2 className="text-xl font-bold font-serif text-gray-900">Checkout</h2>
               <button
                 onClick={() => setShowCheckoutModal(false)}
                 className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
@@ -739,7 +524,7 @@ export default function CartPage() {
                     <span className="text-gray-500">Subtotal:</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
-                  {promoApplied && activePromo && (
+                  {activePromo && (
                     <div className="flex justify-between text-green-600">
                       <span>Discount ({activePromo.discount}%):</span>
                       <span>-${discount.toFixed(2)}</span>
@@ -769,7 +554,7 @@ export default function CartPage() {
               >
                 {isPlacingOrder ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />{" "}
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                     Placing Order...
                   </>
                 ) : (
@@ -786,41 +571,31 @@ export default function CartPage() {
       {/* ORDER SUCCESS MODAL */}
       {orderPlaced && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <MotionWrapper
-            variant="fade-up"
-            className="bg-white rounded-2xl max-w-md w-full p-6 text-center"
-          >
+          <MotionWrapper variant="fade-up" className="bg-white rounded-2xl max-w-md w-full p-6 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2">
-              Order Placed!
-            </h2>
+            <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2">Order Placed!</h2>
             <p className="text-gray-500 mb-2">
-              Order Number:{" "}
-              <span className="font-bold text-yellow-600">
-                {orderPlaced.orderNumber}
-              </span>
+              Order Number: <span className="font-bold text-yellow-600">{orderPlaced.orderNumber}</span>
             </p>
             <p className="text-sm text-gray-400 mb-6">
               {orderPlaced.date} at {orderPlaced.time}
             </p>
             {orderPlaced.promoCode && (
-              <p className="text-sm text-green-600 mb-4">
-                Discount applied: {orderPlaced.promoCode}
-              </p>
+              <p className="text-sm text-green-600 mb-4">Discount applied: {orderPlaced.promoCode}</p>
             )}
             <div className="space-y-3">
               <Link
                 href="/order"
-                onClick={closeSuccessModal}
+                onClick={() => setOrderPlaced(null)}
                 className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-center"
               >
                 View My Orders
               </Link>
               <Link
                 href="/menu"
-                onClick={closeSuccessModal}
+                onClick={() => setOrderPlaced(null)}
                 className="block w-full py-3 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-yellow-600 font-semibold rounded-xl transition"
               >
                 Continue Shopping

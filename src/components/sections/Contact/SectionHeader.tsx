@@ -1,3 +1,4 @@
+import React from "react";
 import MotionWrapper from "@/components/MotionWrapper";
 
 export function SectionHeader({
@@ -21,15 +22,11 @@ export function SectionHeader({
           </p>
           <div className="h-0.5 w-6 bg-yellow-500" />
         </div>
-        <h2
-          className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}
-        >
+        <h2 className={`text-3xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight mb-4 ${light ? "text-white" : "text-gray-900"}`}>
           {title}
         </h2>
         {subtitle && (
-          <p
-            className={`text-base md:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-600"}`}
-          >
+          <p className={`text-base md:text-lg leading-relaxed ${light ? "text-gray-300" : "text-gray-600"}`}>
             {subtitle}
           </p>
         )}
