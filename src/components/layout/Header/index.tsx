@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ShoppingBag, X, Trash2 } from "lucide-react";
+import { ShoppingBag, X, Trash2, LogIn, UserPlus } from "lucide-react";
 import Image from "next/image";
 import { navItems } from "@/lib/constants";
 import { HeaderProps } from "@/types";
@@ -25,11 +25,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
   const isCartPage = usePathname() === "/cart";
 
-  // wait for client to mount before showing cart count
-  // this prevents hydration mismatch with zustand persist
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 70);
@@ -119,12 +115,32 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           </nav>
 
           {/* RIGHT SIDE */}
-          <div className="flex items-center gap-4 md:gap-6">
+          <div className="flex items-center gap-3 md:gap-4">
+
+            {/* Reservation button — desktop only */}
             <Link
               href="/reservation"
-              className="hidden md:inline-flex items-center px-7 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
+              className="hidden md:inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-lg transition"
             >
               Reservation
+            </Link>
+
+            {/* Login button — desktop only */}
+            <Link
+              href="/auth/login"
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition"
+            >
+              <LogIn className="w-4 h-4" />
+              Login
+            </Link>
+
+            {/* Register button — desktop only */}
+            <Link
+              href="/auth/register"
+              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
+            >
+              <UserPlus className="w-4 h-4" />
+              Register
             </Link>
 
             {/* CART */}
@@ -136,7 +152,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 className="relative text-2xl cursor-pointer hidden md:block group"
               >
                 <ShoppingBag className="text-black" size={24} />
-                {/* mounted check prevents hydration mismatch */}
                 {mounted && cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {cartItemCount > 99 ? "99+" : cartItemCount}
@@ -151,7 +166,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 className="relative text-2xl cursor-pointer md:hidden text-black block"
               >
                 <ShoppingBag size={24} />
-                {/* mounted check prevents hydration mismatch */}
                 {mounted && cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
                     {cartItemCount > 99 ? "99+" : cartItemCount}
@@ -322,23 +336,36 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   </div>
                 ))}
 
-                <div className="pt-3 flex items-center justify-between">
-                  <Link
-                    href="/reservation"
-                    onClick={() => setMobileOpen(false)}
-                    className="inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
-                  >
-                    Reservation
-                  </Link>
-                  <Link href="/cart" className="relative text-2xl cursor-pointer">
-                    <ShoppingBag />
-                    {/* mounted check prevents hydration mismatch */}
-                    {mounted && cartItemCount > 0 && (
-                      <span className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
-                        {cartItemCount > 99 ? "99+" : cartItemCount}
-                      </span>
-                    )}
-                  </Link>
+                {/* Mobile bottom actions — reservation, login, register, cart */}
+                <div className="pt-4 space-y-3">
+                  <div className="flex gap-3">
+                    <Link
+                      href="/auth/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 font-semibold text-sm rounded-lg transition"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Login
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setMobileOpen(false)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Register
+                    </Link>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Link
+                      href="/reservation"
+                      onClick={() => setMobileOpen(false)}
+                      className="inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
+                    >
+                      Reservation
+                    </Link>
+                    
+                  </div>
                 </div>
               </div>
             </motion.div>

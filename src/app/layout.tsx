@@ -1,3 +1,4 @@
+import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Josefin_Sans } from "next/font/google";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default function RootLayout({
       >
         {/* Pass showHeader=false if Hero has its own header */}
         <AppLayout>{children}</AppLayout>
+         <Toaster position="top-right" richColors />
       </body>
     </html>
   );
