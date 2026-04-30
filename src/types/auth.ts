@@ -11,10 +11,6 @@ export interface User {
   role: Role;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
 
 export interface LoginPayload {
   email: string;
@@ -26,3 +22,28 @@ export interface RegisterPayload {
   email: string;
   password: string;
 }
+
+export type AuthResponse = {
+  token: string;
+  user: {
+    role: string;
+    name?: string;
+    email?: string;
+  };
+};
+
+export type UserRole =
+  | "customer"
+  | "staff"
+  | "kitchen"
+  | "manager"
+  | "superadmin";
+
+export type SidebarItem = {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  roles?: UserRole[]; // optional role restriction
+};
+
+

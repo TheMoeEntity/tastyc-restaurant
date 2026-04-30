@@ -17,20 +17,29 @@ export default function LoginPage() {
     try {
       const res = await loginUser({ email, password });
 
-      // ✅ success toast
+      //  store for middleware (IMPORTANT)
+      document.cookie = `token=${res.token}; path=/`;
+      document.cookie = `role=${res.user.role}; path=/`;
+
+      
+
+      //  success toast
       toast.success("Login successful");
 
-      // redirect based on role
-      if (res.user.role === "manager" || res.user.role === "superadmin") {
-        router.push("/admin");
+      //  correct routing (matches the folder structure)
+      if (res.user.role === "customer") {
+        router.push("/dashboard/user");
+      } else if (res.user.role === "kitchen") {
+        router.push("/dashboard/kitchen");
       } else {
-        router.push("/");
+        router.push("/dashboard/admin");
       }
+
     } catch {
       const message = "Invalid email or password. Please try again.";
       setError(message);
 
-      // ❌ error toast
+      // error toast
       toast.error(message);
     } finally {
       setLoading(false);

@@ -15,12 +15,27 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
-      await registerUser({ name, email, password });
+      const res = await registerUser({ name, email, password });
+
+      // ✅ store for middleware
+      document.cookie = `token=${res.token}; path=/`;
+      document.cookie = `role=${res.user.role}; path=/`;
+
+      // optional (UI usage)
+      localStorage.setItem("user", JSON.stringify(res.user));
 
       // ✅ success toast
       toast.success("Account created successfully");
 
-      router.push("/");
+      // ✅ correct redirect
+      if (res.user.role === "customer") {
+        router.push("/dashboard/user");
+      } else if (res.user.role === "kitchen") {
+        router.push("/dashboard/kitchen");
+      } else {
+        router.push("/dashboard/admin");
+      }
+
     } catch {
       const message = "Something went wrong. Please try again.";
       setError(message);

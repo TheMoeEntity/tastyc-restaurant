@@ -4,7 +4,7 @@ import type {
   AuthResponse,
 } from "@/types/auth";
 
-// 🔐 LOGIN
+// LOGIN
 export const loginUser = async (
   payload: LoginPayload
 ): Promise<AuthResponse> => {
@@ -12,19 +12,26 @@ export const loginUser = async (
 
   return new Promise<AuthResponse>((resolve) => {
     setTimeout(() => {
+      // simulate different roles
+      let role: AuthResponse["user"]["role"] = "customer";
+
+      if (payload.email.includes("admin")) role = "manager";
+      if (payload.email.includes("kitchen")) role = "kitchen";
+      if (payload.email.includes("staff")) role = "staff";
+
       resolve({
         token: "fake-jwt",
         user: {
           name: "Test User",
           email: payload.email,
-          role: payload.email.includes("admin") ? "manager" : "customer",
+          role,
         },
       });
     }, 800);
   });
 };
 
-// 📝 REGISTER
+// REGISTER
 export const registerUser = async (
   payload: RegisterPayload
 ): Promise<AuthResponse> => {
@@ -37,7 +44,7 @@ export const registerUser = async (
         user: {
           name: payload.name,
           email: payload.email,
-          role: "customer", // 🔥 always customer
+          role: "customer", // always customer
         },
       });
     }, 800);
