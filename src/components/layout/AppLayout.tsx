@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import ScrollTop from "../ui/ScrollTop";
 import Header from "./Header";
 import Footer from "./Footer";
+import LoadingScreen from "../ui/LoadingScreen";
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -22,6 +23,7 @@ const AppLayout = ({
 
   return (
     <main className="w-full overflow-x-hidden">
+      <LoadingScreen />
       {showHeader && <Header />}
       <div className={showHeader && !isHome ? "pt-28" : ""}>{children}</div>
       {showFooter && <Footer />}

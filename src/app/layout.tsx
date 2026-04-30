@@ -1,8 +1,6 @@
-import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Josefin_Sans } from "next/font/google";
 import "./globals.css";
-import AppLayout from "@/components/layout/AppLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +32,7 @@ export default function RootLayout({
       <body
         className={`${josefinSans.className} ${geistSans.variable} ${geistMono.variable}  antialiased`}
       >
-        {/* Pass showHeader=false if Hero has its own header */}
-        <AppLayout>{children}</AppLayout>
-         <Toaster position="top-right" richColors />
+        {children}
       </body>
     </html>
   );
