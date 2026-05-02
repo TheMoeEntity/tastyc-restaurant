@@ -18,7 +18,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [accountHovered, setAccountHovered] = useState(false);
-  const [cartVersion, setCartVersion] = useState(0); // Force re-render on cart updates
+  const [cartVersion, setCartVersion] = useState(0);
 
   const { items, removeItem, getTotalItems, getSubtotal } = useCartStore();
   const cartItemCount = getTotalItems();
@@ -45,23 +45,18 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Listen for cart updates from other components (wishlist, shop, etc.)
   useEffect(() => {
     const handleCartUpdate = () => {
-      console.log("Navbar received cart update - refreshing cart count");
       setCartVersion(prev => prev + 1);
     };
-    
     window.addEventListener("cartUpdated", handleCartUpdate);
     window.addEventListener("storage", handleCartUpdate);
-    
     return () => {
       window.removeEventListener("cartUpdated", handleCartUpdate);
       window.removeEventListener("storage", handleCartUpdate);
     };
   }, []);
 
-  // nav items that are NOT the Account item — rendered in the main nav loop
   const mainNavItems = navItems.filter((item) => item.name !== "Account");
 
   return (
@@ -92,7 +87,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </div>
           </Link>
 
-          {/* DESKTOP NAV — all items except Account */}
+          {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-12">
             {mainNavItems.map((item, index) => (
               <div
@@ -148,30 +143,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
             {/* LOGIN + REGISTER — desktop only */}
             <div
-              className="hidden md:flex items-center overflow-hidden"
+              className="hidden md:flex flex-col items-stretch relative"
               onMouseEnter={() => setAccountHovered(true)}
               onMouseLeave={() => setAccountHovered(false)}
             >
-              <AnimatePresence>
-                {accountHovered && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20, width: 0 }}
-                    animate={{ opacity: 1, x: 0, width: "auto" }}
-                    exit={{ opacity: 0, x: 20, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden"
-                  >
-                    <Link
-                      href="/auth/login"
-                      className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition mr-2 whitespace-nowrap"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Login
-                    </Link>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <Link
                 href="/auth/register"
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition whitespace-nowrap"
@@ -179,6 +154,26 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 <UserPlus className="w-4 h-4" />
                 Register
               </Link>
+
+              <AnimatePresence>
+                {accountHovered && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, height: 0 }}
+                    animate={{ opacity: 1, y: 0, height: "auto" }}
+                    exit={{ opacity: 0, y: -6, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden absolute top-full left-0 right-0 pt-1 z-50"
+                  >
+                    <Link
+                      href="/auth/login"
+                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition whitespace-nowrap bg-white shadow-md"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Login
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* CART */}
@@ -211,7 +206,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 )}
               </button>
 
-              {/* Mini cart preview dropdown - Fixed for mobile */}
+              {/* Mini cart preview dropdown */}
               <AnimatePresence>
                 {cartPreviewOpen && (
                   <motion.div
@@ -332,57 +327,108 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             >
               <div className="px-4 py-4 space-y-1 border-t">
 
-                {/* nav links — all items including Account */}
+                {/* nav links */}
                 {navItems.map((item, index) => (
                   <div key={index} className="border-b border-gray-100 last:border-none">
-                    <div className="flex items-center justify-between">
-                      <Link
-                        href={item.href}
-                        onClick={() => setMobileOpen(false)}
-                        className="py-2.5 text-sm text-gray-800"
-                      >
-                        {item.name}
-                      </Link>
-                      {item.dropdown && (
-                        <button
-                          onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
-                          className="py-2.5 px-2 text-yellow-500 text-base"
-                        >
-                          {mobileExpanded === index ? "▴" : "▾"}
-                        </button>
-                      )}
-                    </div>
+                    {item.name === "Account" ? (
+                      // Account item — toggle Login + Register buttons on click
+                      <>
+                        <div className="flex items-center justify-between">
+                          <button
+                            onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                            className="py-2.5 text-sm text-gray-800 text-left w-full"
+                          >
+                            {item.name}
+                          </button>
+                          <button
+                            onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                            className="py-2.5 px-2 text-yellow-500 text-base"
+                          >
+                            {mobileExpanded === index ? "▴" : "▾"}
+                          </button>
+                        </div>
 
-                    <AnimatePresence>
-                      {mobileExpanded === index && item.dropdown && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden"
-                        >
-                          <div className="pb-3 flex flex-col gap-0.5 pl-2">
-                            {item.dropdown.map((drop, i) => (
-                              <Link
-                                key={i}
-                                href={drop.href}
-                                onClick={() => setMobileOpen(false)}
-                                className="py-2 px-2 text-xs text-gray-700 hover:bg-white hover:text-black rounded transition-all w-fit"
-                              >
-                                {drop.label}
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        <AnimatePresence>
+                          {mobileExpanded === index && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pb-3 flex gap-3">
+                                <Link
+                                  href="/auth/login"
+                                  onClick={() => setMobileOpen(false)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 font-semibold text-sm rounded-lg transition"
+                                >
+                                  <LogIn className="w-4 h-4" />
+                                  Login
+                                </Link>
+                                <Link
+                                  href="/auth/register"
+                                  onClick={() => setMobileOpen(false)}
+                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
+                                >
+                                  <UserPlus className="w-4 h-4" />
+                                  Register
+                                </Link>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    ) : (
+                      // All other nav items — normal behaviour
+                      <>
+                        <div className="flex items-center justify-between">
+                          <Link
+                            href={item.href}
+                            onClick={() => setMobileOpen(false)}
+                            className="py-2.5 text-sm text-gray-800"
+                          >
+                            {item.name}
+                          </Link>
+                          {item.dropdown && (
+                            <button
+                              onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                              className="py-2.5 px-2 text-yellow-500 text-base"
+                            >
+                              {mobileExpanded === index ? "▴" : "▾"}
+                            </button>
+                          )}
+                        </div>
+
+                        <AnimatePresence>
+                          {mobileExpanded === index && item.dropdown && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="pb-3 flex flex-col gap-0.5 pl-2">
+                                {item.dropdown.map((drop, i) => (
+                                  <Link
+                                    key={i}
+                                    href={drop.href}
+                                    onClick={() => setMobileOpen(false)}
+                                    className="py-2 px-2 text-xs text-gray-700 hover:bg-white hover:text-black rounded transition-all w-fit"
+                                  >
+                                    {drop.label}
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </>
+                    )}
                   </div>
                 ))}
 
                 {/* Mobile bottom actions */}
-                <div className="pt-4 space-y-3">
-
-                  {/* Reservation — full width on mobile */}
+                <div className="pt-4">
                   <Link
                     href="/reservation"
                     onClick={() => setMobileOpen(false)}
@@ -390,27 +436,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   >
                     Reservation
                   </Link>
-
-                  {/* Login + Register — side by side */}
-                  <div className="flex gap-3">
-                    <Link
-                      href="/auth/login"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 font-semibold text-sm rounded-lg transition"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Login
-                    </Link>
-                    <Link
-                      href="/auth/register"
-                      onClick={() => setMobileOpen(false)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Register
-                    </Link>
-                  </div>
                 </div>
+
               </div>
             </motion.div>
           )}
