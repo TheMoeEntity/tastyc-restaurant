@@ -67,6 +67,14 @@ export const navItems = [
       { label: "Cart", href: "/cart" },
     ],
   },
+  {
+    name: "Account",
+    href: "/auth/login",
+    dropdown: [
+      { label: "Login", href: "/auth/login" },
+      { label: "Register", href: "/auth/register" },
+    ],
+  },
 ];
 
 export const links: NavLink[] = [

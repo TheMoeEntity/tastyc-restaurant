@@ -17,6 +17,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [accountHovered, setAccountHovered] = useState(false);
+  const [cartVersion, setCartVersion] = useState(0); // Force re-render on cart updates
 
   const { items, removeItem, getTotalItems, getSubtotal } = useCartStore();
   const cartItemCount = getTotalItems();
@@ -42,6 +44,25 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Listen for cart updates from other components (wishlist, shop, etc.)
+  useEffect(() => {
+    const handleCartUpdate = () => {
+      console.log("Navbar received cart update - refreshing cart count");
+      setCartVersion(prev => prev + 1);
+    };
+    
+    window.addEventListener("cartUpdated", handleCartUpdate);
+    window.addEventListener("storage", handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener("cartUpdated", handleCartUpdate);
+      window.removeEventListener("storage", handleCartUpdate);
+    };
+  }, []);
+
+  // nav items that are NOT the Account item — rendered in the main nav loop
+  const mainNavItems = navItems.filter((item) => item.name !== "Account");
 
   return (
     <header
@@ -71,9 +92,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
             </div>
           </Link>
 
-          {/* DESKTOP NAV */}
+          {/* DESKTOP NAV — all items except Account */}
           <nav className="hidden md:flex items-center gap-12">
-            {navItems.map((item, index) => (
+            {mainNavItems.map((item, index) => (
               <div
                 key={index}
                 className="relative"
@@ -117,7 +138,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
           {/* RIGHT SIDE */}
           <div className="flex items-center gap-3 md:gap-4">
 
-            {/* Reservation button — desktop only */}
+            {/* Reservation — desktop only */}
             <Link
               href="/reservation"
               className="hidden md:inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-lg transition"
@@ -125,23 +146,40 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               Reservation
             </Link>
 
-            {/* Login button — desktop only */}
-            <Link
-              href="/auth/login"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition"
+            {/* LOGIN + REGISTER — desktop only */}
+            <div
+              className="hidden md:flex items-center overflow-hidden"
+              onMouseEnter={() => setAccountHovered(true)}
+              onMouseLeave={() => setAccountHovered(false)}
             >
-              <LogIn className="w-4 h-4" />
-              Login
-            </Link>
+              <AnimatePresence>
+                {accountHovered && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: "auto" }}
+                    exit={{ opacity: 0, x: 20, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden"
+                  >
+                    <Link
+                      href="/auth/login"
+                      className="inline-flex items-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition mr-2 whitespace-nowrap"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      Login
+                    </Link>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* Register button — desktop only */}
-            <Link
-              href="/auth/register"
-              className="hidden md:inline-flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
-            >
-              <UserPlus className="w-4 h-4" />
-              Register
-            </Link>
+              <Link
+                href="/auth/register"
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition whitespace-nowrap"
+              >
+                <UserPlus className="w-4 h-4" />
+                Register
+              </Link>
+            </div>
 
             {/* CART */}
             <div className="relative">
@@ -173,7 +211,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 )}
               </button>
 
-              {/* Mini cart preview dropdown */}
+              {/* Mini cart preview dropdown - Fixed for mobile */}
               <AnimatePresence>
                 {cartPreviewOpen && (
                   <motion.div
@@ -181,29 +219,30 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 top-full mt-4 w-[320px] max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                    className="fixed md:absolute right-0 left-0 md:left-auto top-auto md:top-full mt-2 md:mt-4 w-full md:w-[380px] max-h-[80vh] md:max-h-[500px] bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden mx-auto md:mx-0"
+                    style={{ bottom: "auto", top: "70px" }}
                   >
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                    <div className="sticky top-0 p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
                       <h3 className="font-bold text-gray-900">
                         Your Cart <span className="text-yellow-500">({cartItemCount})</span>
                       </h3>
                       <button
                         onClick={() => setCartPreviewOpen(false)}
-                        className="text-gray-400 hover:text-gray-600 transition"
+                        className="text-gray-400 hover:text-gray-600 transition p-1"
                       >
-                        <X size={18} />
+                        <X size={20} />
                       </button>
                     </div>
 
-                    <div className="max-h-80 overflow-y-auto p-4 space-y-4">
+                    <div className="overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(80vh - 160px)" }}>
                       {items.length === 0 ? (
-                        <div className="text-center py-6 text-gray-500 text-sm">
+                        <div className="text-center py-8 text-gray-500 text-sm">
                           Your cart is empty
                         </div>
                       ) : (
                         items.map((item, idx) => (
-                          <div key={`${item.id}-${idx}`} className="flex gap-3 items-center">
-                            <div className="relative w-12 h-12 rounded-md overflow-hidden shrink-0 bg-gray-100">
+                          <div key={`${item.id}-${idx}`} className="flex gap-3 items-start">
+                            <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0 bg-gray-100">
                               <Image
                                 src={item.image || "/assets/homeImg1.jpg"}
                                 alt={item.name}
@@ -212,18 +251,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-bold text-gray-900 truncate">{item.name}</h4>
-                              <p className="text-xs text-gray-500">
+                              <h4 className="text-sm font-bold text-gray-900 break-words leading-tight">
+                                {item.name}
+                              </h4>
+                              <p className="text-xs text-gray-500 mt-1">
                                 {item.quantity} × ${item.price.toFixed(2)}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
-                              <p className="text-sm font-bold text-yellow-600">
+                              <p className="text-sm font-bold text-yellow-600 whitespace-nowrap">
                                 ${(item.quantity * item.price).toFixed(2)}
                               </p>
                               <button
                                 onClick={() => removeItem(item.id)}
-                                className="text-gray-300 hover:text-red-500 transition mt-1"
+                                className="text-gray-300 hover:text-red-500 transition mt-2 p-1"
                               >
                                 <Trash2 size={14} />
                               </button>
@@ -234,7 +275,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     </div>
 
                     {items.length > 0 && (
-                      <div className="p-4 border-t border-gray-100 bg-gray-50 space-y-3">
+                      <div className="sticky bottom-0 p-4 border-t border-gray-100 bg-gray-50 space-y-3">
                         <div className="flex justify-between items-center font-bold text-gray-900 text-sm">
                           <span>Subtotal:</span>
                           <span className="text-yellow-600">${subtotal.toFixed(2)}</span>
@@ -290,6 +331,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               className="md:hidden overflow-hidden"
             >
               <div className="px-4 py-4 space-y-1 border-t">
+
+                {/* nav links — all items including Account */}
                 {navItems.map((item, index) => (
                   <div key={index} className="border-b border-gray-100 last:border-none">
                     <div className="flex items-center justify-between">
@@ -336,8 +379,19 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   </div>
                 ))}
 
-                {/* Mobile bottom actions — reservation, login, register, cart */}
+                {/* Mobile bottom actions */}
                 <div className="pt-4 space-y-3">
+
+                  {/* Reservation — full width on mobile */}
+                  <Link
+                    href="/reservation"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full flex items-center justify-center px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
+                  >
+                    Reservation
+                  </Link>
+
+                  {/* Login + Register — side by side */}
                   <div className="flex gap-3">
                     <Link
                       href="/auth/login"
@@ -355,16 +409,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                       <UserPlus className="w-4 h-4" />
                       Register
                     </Link>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <Link
-                      href="/reservation"
-                      onClick={() => setMobileOpen(false)}
-                      className="inline-flex items-center px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-base rounded-lg transition"
-                    >
-                      Reservation
-                    </Link>
-                    
                   </div>
                 </div>
               </div>

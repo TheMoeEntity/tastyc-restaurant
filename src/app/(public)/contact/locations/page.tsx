@@ -1,5 +1,11 @@
-import LocationsClient from './LocationsClient';
+import { LocationsHero } from "@/components/sections/Contact/LocationHero";
+import { LocationsContent } from "@/components/sections/Contact/LocationContent";
 
-export default function Page() {
-  return <LocationsClient />;
+export default function LocationsPage() {
+  return (
+    <main className="bg-white overflow-hidden">
+      <LocationsHero />
+      <LocationsContent />
+    </main>
+  );
 }

@@ -17,7 +17,7 @@ interface CartStore {
   decreaseQty: (id: string) => void;
   clearCart: () => void;
 
-  // computed helpers (functions so they always reflect current state)
+  // computed helpers
   getTotalItems: () => number;
   getSubtotal: () => number;
 }
@@ -27,7 +27,6 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
 
-      // Add from the menu page — MenuItem shape
       addMenuItem: (item: MenuItem) => {
         set((state) => {
           const existing = state.items.find((i) => i.id === item.id);
@@ -52,9 +51,13 @@ export const useCartStore = create<CartStore>()(
           };
           return { items: [...state.items, cartItem] };
         });
+        // Dispatch event after state update
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+          window.dispatchEvent(new Event("storage"));
+        }
       },
 
-      // Add from the shop page — Product shape
       addProduct: (product: Product) => {
         set((state) => {
           const existing = state.items.find((i) => i.id === product.id);
@@ -79,12 +82,20 @@ export const useCartStore = create<CartStore>()(
           };
           return { items: [...state.items, cartItem] };
         });
+        // Dispatch event after state update
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+          window.dispatchEvent(new Event("storage"));
+        }
       },
 
       removeItem: (id: string) => {
         set((state) => ({
           items: state.items.filter((i) => i.id !== id),
         }));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       },
 
       increaseQty: (id: string) => {
@@ -93,9 +104,11 @@ export const useCartStore = create<CartStore>()(
             i.id === id ? { ...i, quantity: i.quantity + 1 } : i
           ),
         }));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       },
 
-      // if qty is 1, remove the item entirely
       decreaseQty: (id: string) => {
         set((state) => {
           const item = state.items.find((i) => i.id === id);
@@ -109,9 +122,17 @@ export const useCartStore = create<CartStore>()(
             ),
           };
         });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
       },
 
-      clearCart: () => set({ items: [] }),
+      clearCart: () => {
+        set({ items: [] });
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
+      },
 
       getTotalItems: () => {
         return get().items.reduce((sum, item) => sum + item.quantity, 0);
@@ -125,7 +146,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: "tastyc-cart", // localStorage key
+      name: "tastyc-cart",
     }
   )
 );
