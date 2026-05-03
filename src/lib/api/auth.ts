@@ -1,52 +1,40 @@
-import type {
-  LoginPayload,
-  RegisterPayload,
-  AuthResponse,
-} from "@/types/auth";
+import { LoginPayload, RegisterPayload, AuthResponse } from "@/types/auth";
 
-// LOGIN
-export const loginUser = async (
-  payload: LoginPayload
-): Promise<AuthResponse> => {
-  console.log("API CALL → /api/auth/login", payload);
+// Fake users — swap these out when your real backend is ready
+const fakeUsers = [
+  { email: "admin@tastyc.com", password: "admin123", role: "superadmin", name: "Admin" },
+  { email: "kitchen@tastyc.com", password: "kitchen123", role: "kitchen", name: "Chef" },
+  { email: "user@tastyc.com", password: "user123", role: "customer", name: "Kingsley" },
+];
 
-  return new Promise<AuthResponse>((resolve) => {
-    setTimeout(() => {
-      // simulate different roles
-      let role: AuthResponse["user"]["role"] = "customer";
+export async function loginUser({ email, password }: LoginPayload): Promise<AuthResponse> {
+  // simulate network delay
+  await new Promise((r) => setTimeout(r, 600));
 
-      if (payload.email.includes("admin")) role = "manager";
-      if (payload.email.includes("kitchen")) role = "kitchen";
-      if (payload.email.includes("staff")) role = "staff";
+  const match = fakeUsers.find((u) => u.email === email && u.password === password);
 
-      resolve({
-        token: "fake-jwt",
-        user: {
-          name: "Test User",
-          email: payload.email,
-          role,
-        },
-      });
-    }, 800);
-  });
-};
+  if (!match) throw new Error("Invalid credentials");
 
-// REGISTER
-export const registerUser = async (
-  payload: RegisterPayload
-): Promise<AuthResponse> => {
-  console.log("API CALL → /api/auth/register", payload);
+  return {
+    token: "mock-token-" + match.role,
+    user: {
+      role: match.role,
+      name: match.name,
+      email: match.email,
+    },
+  };
+}
 
-  return new Promise<AuthResponse>((resolve) => {
-    setTimeout(() => {
-      resolve({
-        token: "fake-jwt",
-        user: {
-          name: payload.name,
-          email: payload.email,
-          role: "customer", // always customer
-        },
-      });
-    }, 800);
-  });
-};
+export async function registerUser({ name, email, password }: RegisterPayload): Promise<AuthResponse> {
+  await new Promise((r) => setTimeout(r, 600));
+
+  // registration always creates a customer for now
+  return {
+    token: "mock-token-customer",
+    user: {
+      role: "customer",
+      name,
+      email,
+    },
+  };
+}

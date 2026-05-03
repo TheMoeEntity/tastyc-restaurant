@@ -1,8 +1,8 @@
 "use client";
 
 import { ReactNode } from "react";
-import AdminSidebar from "./AdminSideBar";
-import AdminTopbar from "./AdminTopBar";
+import AdminSidebar from "./SideBar";
+import AdminTopbar from "./TopBar";
 
 type Props = {
   children: ReactNode;
