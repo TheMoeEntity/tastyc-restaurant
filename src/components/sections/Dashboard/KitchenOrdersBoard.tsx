@@ -4,7 +4,12 @@ import { useOrderStore } from "@/store/useOrderStore";
 import { Order, OrderStatus } from "@/types";
 import { Clock, Flame, CheckCircle2, AlertCircle } from "lucide-react";
 
-const kitchenStatuses: OrderStatus[] = ["pending", "confirmed", "preparing", "ready"];
+const kitchenStatuses: OrderStatus[] = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready",
+];
 
 const statusConfig = {
   pending: {
@@ -44,15 +49,33 @@ const statusConfig = {
 export default function KitchenOrdersBoard() {
   const { orders, updateStatus } = useOrderStore();
 
-  const activeOrders = orders.filter((o) =>
-    kitchenStatuses.includes(o.status)
-  );
+  const activeOrders = orders.filter((o) => kitchenStatuses.includes(o.status));
 
   const stats = [
-    { label: "New Orders", value: orders.filter(o => o.status === "pending").length, color: "from-yellow-400 to-orange-400" },
-    { label: "Preparing", value: orders.filter(o => o.status === "preparing").length, color: "from-orange-400 to-red-400" },
-    { label: "Ready", value: orders.filter(o => o.status === "ready").length, color: "from-green-400 to-emerald-400" },
-    { label: "Done Today", value: orders.filter(o => o.status === "delivered" && o.date === new Date().toISOString().split("T")[0]).length, color: "from-blue-400 to-cyan-400" },
+    {
+      label: "New Orders",
+      value: orders.filter((o) => o.status === "pending").length,
+      color: "from-yellow-400 to-orange-400",
+    },
+    {
+      label: "Preparing",
+      value: orders.filter((o) => o.status === "preparing").length,
+      color: "from-orange-400 to-red-400",
+    },
+    {
+      label: "Ready",
+      value: orders.filter((o) => o.status === "ready").length,
+      color: "from-green-400 to-emerald-400",
+    },
+    {
+      label: "Done Today",
+      value: orders.filter(
+        (o) =>
+          o.status === "delivered" &&
+          o.date === new Date().toISOString().split("T")[0],
+      ).length,
+      color: "from-blue-400 to-cyan-400",
+    },
   ];
 
   return (
@@ -60,8 +83,16 @@ export default function KitchenOrdersBoard() {
       {/* Stats */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         {stats.map(({ label, value, color }) => (
-          <div key={label} className="rounded-2xl border border-white/5 p-4" style={{ background: "rgba(255,255,255,0.03)" }}>
-            <p className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}>{value}</p>
+          <div
+            key={label}
+            className="rounded-2xl border border-white/5 p-4"
+            style={{ background: "rgba(255,255,255,0.03)" }}
+          >
+            <p
+              className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}
+            >
+              {value}
+            </p>
             <p className="text-white/40 text-xs mt-1">{label}</p>
           </div>
         ))}
@@ -72,18 +103,29 @@ export default function KitchenOrdersBoard() {
         <h2 className="text-white font-semibold">Live Order Queue</h2>
         <div className="flex items-center gap-2 text-xs text-white/30">
           <Clock size={12} />
-          <span>{activeOrders.length} active order{activeOrders.length !== 1 ? "s" : ""}</span>
+          <span>
+            {activeOrders.length} active order
+            {activeOrders.length !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
 
       {activeOrders.length === 0 ? (
-        <div className="text-center py-16 text-white/20 text-sm rounded-2xl border border-white/5" style={{ background: "rgba(255,255,255,0.02)" }}>
-          No active orders right now. New orders from customers will appear here.
+        <div
+          className="text-center py-16 text-white/20 text-sm rounded-2xl border border-white/5"
+          style={{ background: "rgba(255,255,255,0.02)" }}
+        >
+          No active orders right now. New orders from customers will appear
+          here.
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {activeOrders.map((order) => (
-            <KitchenOrderCard key={order.id} order={order} onUpdateStatus={updateStatus} />
+            <KitchenOrderCard
+              key={order.id}
+              order={order}
+              onUpdateStatus={updateStatus}
+            />
           ))}
         </div>
       )}
@@ -109,14 +151,18 @@ function KitchenOrderCard({
     >
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-white font-semibold text-sm">{order.orderNumber}</p>
+          <p className="text-white font-semibold text-sm">
+            {order.orderNumber}
+          </p>
           <p className="text-white/40 text-xs capitalize">
             {order.orderType === "dine-in"
               ? `Table ${order.tableNumber ?? "?"}`
               : order.orderType}
           </p>
         </div>
-        <div className={`flex items-center gap-1 text-xs font-medium ${config.color}`}>
+        <div
+          className={`flex items-center gap-1 text-xs font-medium ${config.color}`}
+        >
           <StatusIcon size={12} />
           {config.label}
         </div>
@@ -124,7 +170,10 @@ function KitchenOrderCard({
 
       <ul className="space-y-1">
         {order.items.map((item) => (
-          <li key={item.id} className="text-white/60 text-xs flex items-center gap-1.5">
+          <li
+            key={item.id}
+            className="text-white/60 text-xs flex items-center gap-1.5"
+          >
             <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
             {item.quantity}× {item.name}
           </li>
@@ -133,7 +182,7 @@ function KitchenOrderCard({
 
       {order.specialInstructions && (
         <p className="text-yellow-400/60 text-xs italic border-t border-white/5 pt-2">
-          "{order.specialInstructions}"
+          `{order.specialInstructions}`
         </p>
       )}
 

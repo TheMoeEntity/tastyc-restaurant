@@ -17,6 +17,7 @@ import {
   ShoppingBag,
   X,
 } from "lucide-react";
+import { SidebarContent } from "./SidebarContent";
 
 const adminLinks = [
   { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
@@ -30,7 +31,11 @@ const adminLinks = [
 
 const kitchenLinks = [
   { label: "Orders", href: "/dashboard/kitchen", icon: ChefHat },
-  { label: "Menu Items", href: "/dashboard/kitchen/menu", icon: UtensilsCrossed },
+  {
+    label: "Menu Items",
+    href: "/dashboard/kitchen/menu",
+    icon: UtensilsCrossed,
+  },
   { label: "Settings", href: "/dashboard/kitchen/settings", icon: Settings },
 ];
 
@@ -61,78 +66,23 @@ export default function Sidebar({ role }: { role: string }) {
     router.push("/auth/login");
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
-      {/* Logo */}
-      <div className="px-6 py-6 border-b border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-yellow-500 rounded-md flex items-center justify-center">
-            <UtensilsCrossed size={14} className="text-black" />
-          </div>
-          <span className="text-white font-bold text-lg tracking-tight">Tastyc</span>
-        </div>
-        {/* Close button — mobile only */}
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="md:hidden text-white/40 hover:text-white transition"
-        >
-          <X size={18} />
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {links.map(({ label, href, icon: Icon }) => {
-          const active = pathname === href;
-          return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group ${
-                active
-                  ? "bg-white/10 text-white"
-                  : "text-white/40 hover:text-white/80 hover:bg-white/5"
-              }`}
-            >
-              <Icon
-                size={16}
-                className={
-                  active
-                    ? "text-yellow-400"
-                    : "text-white/30 group-hover:text-white/60 transition-colors"
-                }
-              />
-              {label}
-              {active && (
-                <span className="ml-auto w-1 h-4 bg-yellow-400 rounded-full" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* Logout */}
-      <div className="px-3 py-4 border-t border-white/5">
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
-        >
-          <LogOut size={16} />
-          Log out
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <>
       {/* ── DESKTOP: fixed sidebar ── */}
       <aside
         className="hidden md:flex flex-col fixed left-0 top-0 h-full w-[220px] z-40 border-r border-white/5"
-        style={{ background: "rgba(15,15,15,0.95)", backdropFilter: "blur(20px)" }}
+        style={{
+          background: "rgba(15,15,15,0.95)",
+          backdropFilter: "blur(20px)",
+        }}
       >
-        <SidebarContent />
+        <SidebarContent
+          role={role}
+          pathname={pathname}
+          links={links}
+          handleLogout={handleLogout}
+          setMobileOpen={setMobileOpen}
+        />
       </aside>
 
       {/* ── MOBILE: hamburger trigger (rendered inside topbar via data attr) ── */}
@@ -158,9 +108,18 @@ export default function Sidebar({ role }: { role: string }) {
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed left-0 top-0 h-full w-[260px] z-50 md:hidden border-r border-white/5"
-              style={{ background: "rgba(15,15,15,0.98)", backdropFilter: "blur(20px)" }}
+              style={{
+                background: "rgba(15,15,15,0.98)",
+                backdropFilter: "blur(20px)",
+              }}
             >
-              <SidebarContent />
+              <SidebarContent
+                role={role}
+                pathname={pathname}
+                links={links}
+                handleLogout={handleLogout}
+                setMobileOpen={setMobileOpen}
+              />
             </motion.aside>
           </>
         )}

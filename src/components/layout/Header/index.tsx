@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ShoppingBag, X, Trash2, LogIn, UserPlus } from "lucide-react";
+import { ShoppingBag, X, Trash2, LogIn, UserPlus, User } from "lucide-react";
 import Image from "next/image";
 import { navItems } from "@/lib/constants";
 import { HeaderProps } from "@/types";
@@ -27,7 +27,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
   const isCartPage = usePathname() === "/cart";
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 70);
@@ -37,7 +39,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (headerRef.current && !headerRef.current.contains(event.target as Node)) {
+      if (
+        headerRef.current &&
+        !headerRef.current.contains(event.target as Node)
+      ) {
         setCartPreviewOpen(false);
       }
     };
@@ -47,7 +52,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
   useEffect(() => {
     const handleCartUpdate = () => {
-      setCartVersion(prev => prev + 1);
+      setCartVersion((prev) => prev + 1);
     };
     window.addEventListener("cartUpdated", handleCartUpdate);
     window.addEventListener("storage", handleCartUpdate);
@@ -64,12 +69,15 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
       ref={headerRef}
       className={`fixed transition-all duration-900 ease ${isScrolled ? "-top-2" : "top-4"} left-0 z-50 w-full flex justify-center`}
     >
-      <div className={`w-[97%] max-w-screen-2xl bg-white border border-gray-200 rounded-xl shadow-sm ${isScrolled ? "py-3" : "py-0"}`}>
+      <div
+        className={`w-[97%] max-w-screen-2xl bg-white border border-gray-200 rounded-xl shadow-sm ${isScrolled ? "py-3" : "py-0"}`}
+      >
         <div className="flex items-center justify-between px-4 md:px-8 py-3 md:py-3">
-
           {/* LOGO */}
           <Link href="/" className="flex flex-col leading-tight">
-            <h1 className={`transition-all duration-200 ease ${isScrolled ? "text-xl md:text-2xl" : "text-2xl md:text-4xl"} font-bold text-black`}>
+            <h1
+              className={`transition-all duration-200 ease ${isScrolled ? "text-xl md:text-2xl" : "text-2xl md:text-4xl"} font-bold text-black`}
+            >
               Tastyc
             </h1>
             <div className="flex items-center gap-1.5 md:gap-2">
@@ -102,9 +110,13 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                 >
                   {item.name}
                   {item.dropdown && (
-                    <span className="text-sm text-yellow-500 transition-opacity duration-150">▾</span>
+                    <span className="text-sm text-yellow-500 transition-opacity duration-150">
+                      ▾
+                    </span>
                   )}
-                  <span className={`absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-full transition-opacity duration-200 ${activeNav === index ? "opacity-100" : "opacity-0"}`} />
+                  <span
+                    className={`absolute bottom-0 left-0 w-full h-1 bg-yellow-500 rounded-full transition-opacity duration-200 ${activeNav === index ? "opacity-100" : "opacity-0"}`}
+                  />
                 </Link>
 
                 {activeNav === index && item.dropdown && (
@@ -132,7 +144,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
           {/* RIGHT SIDE */}
           <div className="flex items-center gap-3 md:gap-4">
-
             {/* Reservation — desktop only */}
             <Link
               href="/reservation"
@@ -141,36 +152,44 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               Reservation
             </Link>
 
-            {/* LOGIN + REGISTER — desktop only */}
+            {/* ACCOUNT — desktop only */}
             <div
-              className="hidden md:flex flex-col items-stretch relative"
+              className="hidden md:block relative"
               onMouseEnter={() => setAccountHovered(true)}
               onMouseLeave={() => setAccountHovered(false)}
             >
-              <Link
-                href="/auth/register"
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition whitespace-nowrap"
-              >
-                <UserPlus className="w-4 h-4" />
-                Register
-              </Link>
+              <button className="relative p-2 rounded-full hover:bg-gray-100 transition group cursor-pointer">
+                <User className="w-5 h-5 text-gray-700 group-hover:text-yellow-600 transition" />
+              </button>
 
               <AnimatePresence>
                 {accountHovered && (
                   <motion.div
-                    initial={{ opacity: 0, y: -6, height: 0 }}
-                    animate={{ opacity: 1, y: 0, height: "auto" }}
-                    exit={{ opacity: 0, y: -6, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden absolute top-full left-0 right-0 pt-1 z-50"
+                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="absolute right-0 top-full pt-2 z-50"
                   >
-                    <Link
-                      href="/auth/login"
-                      className="flex items-center justify-center gap-1.5 px-4 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 hover:text-yellow-600 font-semibold text-sm rounded-lg transition whitespace-nowrap bg-white shadow-md"
-                    >
-                      <LogIn className="w-4 h-4" />
-                      Login
-                    </Link>
+                    {/* Invisible bridge to prevent hover gap */}
+                    <div className="absolute -top-2 left-0 right-0 h-2" />
+                    <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-44">
+                      <Link
+                        href="/auth/login"
+                        className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        Login
+                      </Link>
+                      <div className="h-px bg-gray-100 mx-3" />
+                      <Link
+                        href="/auth/register"
+                        className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                        Sign Up
+                      </Link>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -178,10 +197,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
             {/* CART */}
             <div className="relative">
-
               {/* Desktop cart button */}
               <button
-                onClick={() => { if (!isCartPage) setCartPreviewOpen(!cartPreviewOpen); }}
+                onClick={() => {
+                  if (!isCartPage) setCartPreviewOpen(!cartPreviewOpen);
+                }}
                 className="relative text-2xl cursor-pointer hidden md:block group"
               >
                 <ShoppingBag className="text-black" size={24} />
@@ -195,7 +215,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
               {/* Mobile cart button */}
               <button
-                onClick={() => { if (!isCartPage) setCartPreviewOpen(!cartPreviewOpen); }}
+                onClick={() => {
+                  if (!isCartPage) setCartPreviewOpen(!cartPreviewOpen);
+                }}
                 className="relative text-2xl cursor-pointer md:hidden text-black block"
               >
                 <ShoppingBag size={24} />
@@ -219,7 +241,10 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   >
                     <div className="sticky top-0 p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
                       <h3 className="font-bold text-gray-900">
-                        Your Cart <span className="text-yellow-500">({cartItemCount})</span>
+                        Your Cart{" "}
+                        <span className="text-yellow-500">
+                          ({cartItemCount})
+                        </span>
                       </h3>
                       <button
                         onClick={() => setCartPreviewOpen(false)}
@@ -229,14 +254,20 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                       </button>
                     </div>
 
-                    <div className="overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(80vh - 160px)" }}>
+                    <div
+                      className="overflow-y-auto p-4 space-y-4"
+                      style={{ maxHeight: "calc(80vh - 160px)" }}
+                    >
                       {items.length === 0 ? (
                         <div className="text-center py-8 text-gray-500 text-sm">
                           Your cart is empty
                         </div>
                       ) : (
                         items.map((item, idx) => (
-                          <div key={`${item.id}-${idx}`} className="flex gap-3 items-start">
+                          <div
+                            key={`${item.id}-${idx}`}
+                            className="flex gap-3 items-start"
+                          >
                             <div className="relative w-16 h-16 rounded-md overflow-hidden shrink-0 bg-gray-100">
                               <Image
                                 src={item.image || "/assets/homeImg1.jpg"}
@@ -273,7 +304,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                       <div className="sticky bottom-0 p-4 border-t border-gray-100 bg-gray-50 space-y-3">
                         <div className="flex justify-between items-center font-bold text-gray-900 text-sm">
                           <span>Subtotal:</span>
-                          <span className="text-yellow-600">${subtotal.toFixed(2)}</span>
+                          <span className="text-yellow-600">
+                            ${subtotal.toFixed(2)}
+                          </span>
                         </div>
                         <div className="flex gap-2">
                           <Link
@@ -326,22 +359,32 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               className="md:hidden overflow-hidden"
             >
               <div className="px-4 py-4 space-y-1 border-t">
-
                 {/* nav links */}
                 {navItems.map((item, index) => (
-                  <div key={index} className="border-b border-gray-100 last:border-none">
+                  <div
+                    key={index}
+                    className="border-b border-gray-100 last:border-none"
+                  >
                     {item.name === "Account" ? (
                       // Account item — toggle Login + Register buttons on click
                       <>
                         <div className="flex items-center justify-between">
                           <button
-                            onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                            onClick={() =>
+                              setMobileExpanded(
+                                mobileExpanded === index ? null : index,
+                              )
+                            }
                             className="py-2.5 text-sm text-gray-800 text-left w-full"
                           >
                             {item.name}
                           </button>
                           <button
-                            onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                            onClick={() =>
+                              setMobileExpanded(
+                                mobileExpanded === index ? null : index,
+                              )
+                            }
                             className="py-2.5 px-2 text-yellow-500 text-base"
                           >
                             {mobileExpanded === index ? "▴" : "▾"}
@@ -391,7 +434,11 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                           </Link>
                           {item.dropdown && (
                             <button
-                              onClick={() => setMobileExpanded(mobileExpanded === index ? null : index)}
+                              onClick={() =>
+                                setMobileExpanded(
+                                  mobileExpanded === index ? null : index,
+                                )
+                              }
                               className="py-2.5 px-2 text-yellow-500 text-base"
                             >
                               {mobileExpanded === index ? "▴" : "▾"}
@@ -437,7 +484,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     Reservation
                   </Link>
                 </div>
-
               </div>
             </motion.div>
           )}
