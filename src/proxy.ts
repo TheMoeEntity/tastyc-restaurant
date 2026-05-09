@@ -1,34 +1,29 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export function proxy(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const role = request.cookies.get("role")?.value;
-
+export function middleware(request: NextRequest) {
+  const token = request.cookies.get("tastyc_access_token")?.value;
   const { pathname } = request.nextUrl;
 
-  //  block dashboard if not logged in
+  // Not logged in → redirect to login
   if (!token && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/auth/login", request.url));
+    const loginUrl = new URL("/auth/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  // protect admin
-  if (pathname.startsWith("/dashboard/admin")) {
-    if (!role || !["manager", "superadmin", "staff"].includes(role)) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
-  }
-
-  // protect kitchen
-  if (pathname.startsWith("/dashboard/kitchen")) {
-    if (!role || !["kitchen", "manager"].includes(role)) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+  // Already logged in → don't show login/register
+  if (
+    token &&
+    (pathname.startsWith("/auth/login") ||
+      pathname.startsWith("/auth/register"))
+  ) {
+    return NextResponse.redirect(new URL("/dashboard/user", request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/auth/login", "/auth/register"],
 };

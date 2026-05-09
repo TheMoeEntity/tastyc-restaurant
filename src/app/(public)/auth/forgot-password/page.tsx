@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Mail, ArrowLeft, SendHorizonal, CheckCircle, Loader2 } from "lucide-react";
+import {
+  Mail,
+  ArrowLeft,
+  SendHorizonal,
+  CheckCircle,
+  Loader2,
+} from "lucide-react";
+import { forgotPassword } from "@/lib/api/auth";
+import { toast } from "sonner";
 
 const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,14 +24,13 @@ export default function ForgotPasswordPage() {
     setLoading(true);
 
     try {
-      await fetch(`${API}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email }),
+      await forgotPassword(email).then(() => {
+        setSent(true);
+        toast.success("Reset link sent successfully");
       });
-      // Always show success regardless of whether the email exists
-      setSent(true);
+    } catch (error) {
+      console.error("Error sending reset link:", error);
+      toast.error("Failed to send reset link");
     } finally {
       setLoading(false);
     }
@@ -87,22 +94,31 @@ export default function ForgotPasswordPage() {
                 className="w-full flex items-center justify-center gap-2 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Sending…
+                  </>
                 ) : (
-                  <><SendHorizonal className="w-4 h-4" /> Send Reset Link</>
+                  <>
+                    <SendHorizonal className="w-4 h-4" /> Send Reset Link
+                  </>
                 )}
               </button>
             </form>
 
             <div className="flex items-center gap-3 my-6">
               <div className="flex-1 h-px bg-gray-100" />
-              <span className="text-xs text-gray-400 uppercase tracking-widest">or</span>
+              <span className="text-xs text-gray-400 uppercase tracking-widest">
+                or
+              </span>
               <div className="flex-1 h-px bg-gray-100" />
             </div>
 
             <p className="text-center text-sm text-gray-500">
               Remember it?{" "}
-              <Link href="/auth/login" className="text-yellow-600 font-semibold hover:text-yellow-700 transition">
+              <Link
+                href="/auth/login"
+                className="text-yellow-600 font-semibold hover:text-yellow-700 transition"
+              >
                 Sign in
               </Link>
             </p>
@@ -112,7 +128,9 @@ export default function ForgotPasswordPage() {
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Check your inbox</h1>
+            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
+              Check your inbox
+            </h1>
             <p className="text-gray-500 text-sm leading-relaxed">
               If an account exists with{" "}
               <span className="font-bold text-gray-800">{email}</span>, you will

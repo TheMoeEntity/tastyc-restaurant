@@ -1,40 +1,66 @@
-import { LoginPayload, RegisterPayload, AuthResponse } from "@/types/auth";
+import api from "@/lib/api";
 
-// Fake users — swap these out when your real backend is ready
-const fakeUsers = [
-  { email: "admin@tastyc.com", password: "admin123", role: "superadmin", name: "Admin" },
-  { email: "kitchen@tastyc.com", password: "kitchen123", role: "kitchen", name: "Chef" },
-  { email: "user@tastyc.com", password: "user123", role: "customer", name: "Kingsley" },
-];
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  avatar?: string;
+  loyaltyPoints: number;
+}
 
-export async function loginUser({ email, password }: LoginPayload): Promise<AuthResponse> {
-  // simulate network delay
-  await new Promise((r) => setTimeout(r, 600));
-
-  const match = fakeUsers.find((u) => u.email === email && u.password === password);
-
-  if (!match) throw new Error("Invalid credentials");
-
-  return {
-    token: "mock-token-" + match.role,
-    user: {
-      role: match.role,
-      name: match.name,
-      email: match.email,
-    },
+export interface AuthResponse {
+  success: boolean;
+  message: string;
+  data?: {
+    user: AuthUser;
   };
 }
 
-export async function registerUser({ name, email, password }: RegisterPayload): Promise<AuthResponse> {
-  await new Promise((r) => setTimeout(r, 600));
+export async function loginUser(
+  email: string,
+  password: string,
+): Promise<AuthResponse> {
+  const res = await api.post("/api/auth/login", { email, password });
+  return res.data;
+}
 
-  // registration always creates a customer for now
-  return {
-    token: "mock-token-customer",
-    user: {
-      role: "customer",
-      name,
-      email,
-    },
-  };
+export async function registerUser(
+  name: string,
+  email: string,
+  password: string,
+  phone?: string,
+): Promise<AuthResponse> {
+  const res = await api.post("/api/auth/register", {
+    name,
+    email,
+    password,
+    phone,
+  });
+  return res.data;
+}
+
+export async function logoutUser(): Promise<void> {
+  await api.post("/api/auth/logout");
+}
+
+export async function getMe(): Promise<AuthResponse> {
+  const res = await api.get("/api/auth/me");
+  return res.data;
+}
+
+export async function forgotPassword(email: string): Promise<AuthResponse> {
+  const res = await api.post("/api/auth/forgot-password", { email });
+  return res.data;
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+): Promise<AuthResponse> {
+  const res = await api.post("/api/auth/reset-password", {
+    token,
+    newPassword,
+  });
+  return res.data;
 }
