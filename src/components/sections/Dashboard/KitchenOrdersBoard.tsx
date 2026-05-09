@@ -1,200 +1,363 @@
 "use client";
 
-import { useOrderStore } from "@/store/useOrderStore";
-import { Order, OrderStatus } from "@/types";
-import { Clock, Flame, CheckCircle2, AlertCircle } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, Wifi, WifiOff, Clock, Flame, CheckCircle2 } from "lucide-react";
+import { io, Socket } from "socket.io-client";
 
-const kitchenStatuses: OrderStatus[] = [
-  "pending",
-  "confirmed",
-  "preparing",
-  "ready",
-];
+const API = process.env.NEXT_PUBLIC_API_URL!;
 
-const statusConfig = {
-  pending: {
-    label: "New",
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10 border-yellow-500/30",
-    icon: AlertCircle,
-    next: "preparing" as OrderStatus,
-    nextLabel: "Start Preparing",
-  },
-  confirmed: {
-    label: "Confirmed",
-    color: "text-blue-400",
-    bg: "bg-blue-500/10 border-blue-500/30",
-    icon: Clock,
-    next: "preparing" as OrderStatus,
-    nextLabel: "Start Preparing",
-  },
-  preparing: {
-    label: "Preparing",
-    color: "text-orange-400",
-    bg: "bg-orange-500/10 border-orange-500/30",
-    icon: Flame,
-    next: "ready" as OrderStatus,
-    nextLabel: "Mark Ready",
-  },
-  ready: {
-    label: "Ready",
-    color: "text-green-400",
-    bg: "bg-green-500/10 border-green-500/30",
-    icon: CheckCircle2,
-    next: "delivered" as OrderStatus,
-    nextLabel: "Mark Delivered",
-  },
-};
+type OrderStatus = "CONFIRMED" | "PREPARING" | "READY";
 
-export default function KitchenOrdersBoard() {
-  const { orders, updateStatus } = useOrderStore();
+interface KitchenOrderItem {
+  id: string;
+  quantity: number;
+  menuItem: { name: string };
+  variant?: { name: string } | null;
+}
 
-  const activeOrders = orders.filter((o) => kitchenStatuses.includes(o.status));
+interface KitchenOrder {
+  id: string;
+  orderNumber: string;
+  type: "DELIVERY" | "PICKUP" | "DINE_IN";
+  status: OrderStatus;
+  tableNumber?: string | null;
+  notes?: string | null;
+  createdAt: string;
+  items: KitchenOrderItem[];
+  isNew?: boolean;
+}
 
-  const stats = [
-    {
-      label: "New Orders",
-      value: orders.filter((o) => o.status === "pending").length,
-      color: "from-yellow-400 to-orange-400",
-    },
-    {
-      label: "Preparing",
-      value: orders.filter((o) => o.status === "preparing").length,
-      color: "from-orange-400 to-red-400",
-    },
-    {
-      label: "Ready",
-      value: orders.filter((o) => o.status === "ready").length,
-      color: "from-green-400 to-emerald-400",
-    },
-    {
-      label: "Done Today",
-      value: orders.filter(
-        (o) =>
-          o.status === "delivered" &&
-          o.date === new Date().toISOString().split("T")[0],
-      ).length,
-      color: "from-blue-400 to-cyan-400",
-    },
-  ];
+function getCookieToken(): string {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("tastyc_access_token="))
+      ?.split("=")[1] ?? ""
+  );
+}
+
+function playNotification() {
+  try {
+    const ctx = new AudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.6);
+  } catch {
+    // Audio API may not be available
+  }
+}
+
+function useTimeTicker() {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+}
+
+function timeAgo(iso: string) {
+  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
+
+function Clock12() {
+  const [time, setTime] = useState("");
+  useEffect(() => {
+    const update = () =>
+      setTime(new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }));
+    update();
+    const t = setInterval(update, 1000);
+    return () => clearInterval(t);
+  }, []);
+  return <span>{time}</span>;
+}
+
+function OrderCard({
+  order,
+  onUpdate,
+}: {
+  order: KitchenOrder;
+  onUpdate: (id: string, status: OrderStatus) => Promise<void>;
+}) {
+  useTimeTicker();
+  const [updating, setUpdating] = useState(false);
+  const [flash, setFlash] = useState(order.isNew ?? false);
+
+  useEffect(() => {
+    if (!flash) return;
+    const t = setTimeout(() => setFlash(false), 3000);
+    return () => clearTimeout(t);
+  }, [flash]);
+
+  const handleAction = async () => {
+    const next: OrderStatus = order.status === "CONFIRMED" ? "PREPARING" : "READY";
+    setUpdating(true);
+    await onUpdate(order.id, next);
+    setUpdating(false);
+  };
+
+  const actionLabel = order.status === "CONFIRMED" ? "Start Cooking" : "Mark Ready";
+
+  const locationLabel =
+    order.type === "DINE_IN"
+      ? `Table ${order.tableNumber ?? "?"}`
+      : order.type === "DELIVERY"
+      ? "Delivery"
+      : "Pickup";
 
   return (
-    <div className="space-y-6">
-      {/* Stats */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-        {stats.map(({ label, value, color }) => (
-          <div
-            key={label}
-            className="rounded-2xl border border-white/5 p-4"
-            style={{ background: "rgba(255,255,255,0.03)" }}
-          >
-            <p
-              className={`text-3xl font-bold bg-gradient-to-r ${color} bg-clip-text text-transparent`}
-            >
-              {value}
-            </p>
-            <p className="text-white/40 text-xs mt-1">{label}</p>
-          </div>
+    <div
+      className={`rounded-2xl p-4 space-y-3 border transition-all duration-500 ${
+        flash ? "ring-2 ring-yellow-400 border-yellow-400/60" : ""
+      } ${
+        order.status === "CONFIRMED"
+          ? "border-yellow-500/40 bg-yellow-500/5"
+          : order.status === "PREPARING"
+          ? "border-orange-500/40 bg-orange-500/5"
+          : "border-green-500/40 bg-green-500/5"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-white font-bold text-lg leading-none">{order.orderNumber}</p>
+          <p className="text-white/40 text-xs mt-0.5">{locationLabel}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-white/30 text-[10px]">{timeAgo(order.createdAt)}</p>
+          {flash && (
+            <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/20 px-1.5 py-0.5 rounded-full">
+              NEW
+            </span>
+          )}
+        </div>
+      </div>
+
+      <ul className="space-y-1.5">
+        {order.items.map((item) => (
+          <li key={item.id} className="text-white/70 text-sm flex items-start gap-2">
+            <span className="text-white/30 shrink-0">×{item.quantity}</span>
+            <div>
+              <span>{item.menuItem.name}</span>
+              {item.variant && (
+                <span className="text-white/30 text-xs ml-1">({item.variant.name})</span>
+              )}
+            </div>
+          </li>
         ))}
-      </div>
+      </ul>
 
-      {/* Board header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-white font-semibold">Live Order Queue</h2>
-        <div className="flex items-center gap-2 text-xs text-white/30">
-          <Clock size={12} />
-          <span>
-            {activeOrders.length} active order
-            {activeOrders.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-      </div>
+      {order.notes && (
+        <p className="text-yellow-400/70 text-xs italic border-t border-white/5 pt-2">
+          {order.notes}
+        </p>
+      )}
 
-      {activeOrders.length === 0 ? (
-        <div
-          className="text-center py-16 text-white/20 text-sm rounded-2xl border border-white/5"
-          style={{ background: "rgba(255,255,255,0.02)" }}
+      {order.status !== "READY" && (
+        <button
+          onClick={handleAction}
+          disabled={updating}
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50 ${
+            order.status === "CONFIRMED"
+              ? "bg-orange-500 hover:bg-orange-400 text-white"
+              : "bg-green-500 hover:bg-green-400 text-white"
+          }`}
         >
-          No active orders right now. New orders from customers will appear
-          here.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {activeOrders.map((order) => (
-            <KitchenOrderCard
-              key={order.id}
-              order={order}
-              onUpdateStatus={updateStatus}
-            />
-          ))}
-        </div>
+          {updating ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : order.status === "CONFIRMED" ? (
+            <Flame size={14} />
+          ) : (
+            <CheckCircle2 size={14} />
+          )}
+          {updating ? "Updating…" : actionLabel}
+        </button>
       )}
     </div>
   );
 }
 
-function KitchenOrderCard({
-  order,
-  onUpdateStatus,
-}: {
-  order: Order;
-  onUpdateStatus: (id: string, status: OrderStatus) => void;
-}) {
-  const config = statusConfig[order.status as keyof typeof statusConfig];
-  if (!config) return null;
-  const StatusIcon = config.icon;
+export default function KitchenOrdersBoard() {
+  const [orders, setOrders] = useState<KitchenOrder[]>([]);
+  const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const socketRef = useRef<Socket | null>(null);
+
+  useEffect(() => {
+    const fetchActive = async () => {
+      try {
+        const [r1, r2] = await Promise.all([
+          fetch(`${API}/api/orders?status=CONFIRMED&limit=50`, { credentials: "include" }),
+          fetch(`${API}/api/orders?status=PREPARING&limit=50`, { credentials: "include" }),
+        ]);
+        const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
+        const confirmed: KitchenOrder[] = j1.success ? (j1.data.orders ?? []) : [];
+        const preparing: KitchenOrder[] = j2.success ? (j2.data.orders ?? []) : [];
+        setOrders([...confirmed, ...preparing]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActive();
+
+    const token = getCookieToken();
+    const socket = io(API, { auth: { token }, transports: ["websocket"] });
+    socketRef.current = socket;
+
+    socket.on("connect", () => setConnected(true));
+    socket.on("disconnect", () => setConnected(false));
+
+    socket.emit("join-kitchen");
+
+    socket.on("new-order", (order: KitchenOrder) => {
+      playNotification();
+      setOrders((prev) => {
+        if (prev.find((o) => o.id === order.id)) return prev;
+        return [{ ...order, isNew: true }, ...prev];
+      });
+    });
+
+    socket.on(
+      "order-status-updated",
+      (payload: { orderId: string; status: string }) => {
+        const s = payload.status as OrderStatus;
+        if (["CONFIRMED", "PREPARING", "READY"].includes(s)) {
+          setOrders((prev) =>
+            prev.map((o) => (o.id === payload.orderId ? { ...o, status: s } : o))
+          );
+        } else {
+          // DELIVERED or CANCELLED — remove from board
+          setOrders((prev) => prev.filter((o) => o.id !== payload.orderId));
+        }
+      }
+    );
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const updateStatus = async (orderId: string, status: OrderStatus) => {
+    const r = await fetch(`${API}/api/orders/${orderId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ status }),
+    });
+    const json = await r.json();
+    if (json.success) {
+      if (status === "READY") {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status: "READY" } : o))
+        );
+      } else {
+        setOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+        );
+      }
+    }
+  };
+
+  const confirmed = orders.filter((o) => o.status === "CONFIRMED");
+  const preparing = orders.filter((o) => o.status === "PREPARING");
+  const ready = orders.filter((o) => o.status === "READY");
 
   return (
-    <div
-      className={`rounded-2xl border p-4 space-y-3 ${config.bg}`}
-      style={{ background: "rgba(255,255,255,0.02)" }}
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-white font-semibold text-sm">
-            {order.orderNumber}
-          </p>
-          <p className="text-white/40 text-xs capitalize">
-            {order.orderType === "dine-in"
-              ? `Table ${order.tableNumber ?? "?"}`
-              : order.orderType}
-          </p>
+    <div className="flex flex-col h-full min-h-[calc(100vh-4rem)]">
+      {/* Kitchen top bar */}
+      <div className="flex items-center justify-between px-2 py-3 border-b border-white/5 mb-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-white font-bold text-lg">Tastyc Kitchen</h1>
+          <span className="text-white/30 text-sm">|</span>
+          <Clock12 />
         </div>
-        <div
-          className={`flex items-center gap-1 text-xs font-medium ${config.color}`}
-        >
-          <StatusIcon size={12} />
-          {config.label}
+        <div className="flex items-center gap-2">
+          {connected ? (
+            <span className="flex items-center gap-1.5 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <Wifi size={12} /> Live
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-xs text-red-400">
+              <WifiOff size={12} /> Disconnected
+            </span>
+          )}
+          <span className="text-white/20 text-xs ml-2">
+            {orders.length} active order{orders.length !== 1 ? "s" : ""}
+          </span>
         </div>
       </div>
 
-      <ul className="space-y-1">
-        {order.items.map((item) => (
-          <li
-            key={item.id}
-            className="text-white/60 text-xs flex items-center gap-1.5"
-          >
-            <span className="w-1 h-1 rounded-full bg-white/20 shrink-0" />
-            {item.quantity}× {item.name}
-          </li>
-        ))}
-      </ul>
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 size={28} className="text-yellow-400 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 overflow-y-auto">
+          {/* NEW column */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-yellow-500/20">
+              <Clock size={14} className="text-yellow-400" />
+              <h2 className="text-yellow-400 font-bold text-sm uppercase tracking-wider">
+                New ({confirmed.length})
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {confirmed.length === 0 && (
+                <p className="text-white/20 text-xs text-center py-8">No new orders</p>
+              )}
+              {confirmed.map((o) => (
+                <OrderCard key={o.id} order={o} onUpdate={updateStatus} />
+              ))}
+            </div>
+          </div>
 
-      {order.specialInstructions && (
-        <p className="text-yellow-400/60 text-xs italic border-t border-white/5 pt-2">
-          `{order.specialInstructions}`
-        </p>
+          {/* PREPARING column */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-orange-500/20">
+              <Flame size={14} className="text-orange-400" />
+              <h2 className="text-orange-400 font-bold text-sm uppercase tracking-wider">
+                Preparing ({preparing.length})
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {preparing.length === 0 && (
+                <p className="text-white/20 text-xs text-center py-8">Nothing cooking</p>
+              )}
+              {preparing.map((o) => (
+                <OrderCard key={o.id} order={o} onUpdate={updateStatus} />
+              ))}
+            </div>
+          </div>
+
+          {/* READY column */}
+          <div>
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-green-500/20">
+              <CheckCircle2 size={14} className="text-green-400" />
+              <h2 className="text-green-400 font-bold text-sm uppercase tracking-wider">
+                Ready ({ready.length})
+              </h2>
+            </div>
+            <div className="space-y-3">
+              {ready.length === 0 && (
+                <p className="text-white/20 text-xs text-center py-8">Nothing ready yet</p>
+              )}
+              {ready.map((o) => (
+                <OrderCard key={o.id} order={o} onUpdate={updateStatus} />
+              ))}
+            </div>
+          </div>
+        </div>
       )}
-
-      <div className="flex items-center justify-between pt-1 border-t border-white/5">
-        <span className="text-white/20 text-[10px]">{order.time}</span>
-        <button
-          onClick={() => onUpdateStatus(order.id, config.next)}
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white transition"
-        >
-          {config.nextLabel}
-        </button>
-      </div>
     </div>
   );
 }
