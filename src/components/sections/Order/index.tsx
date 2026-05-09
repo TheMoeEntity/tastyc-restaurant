@@ -13,8 +13,10 @@ import {
   Truck,
   User,
   XCircle,
+  MapPin as TrackIcon,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export function OrderStatusBadge({ status }: { status: Order["status"] }) {
@@ -403,13 +405,21 @@ export function OrderDetailModal({
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link
+              href={`/order/track/${order.id}`}
+              onClick={handleClose}
+              className="flex-1 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition flex items-center justify-center gap-2"
+            >
+              <TrackIcon className="w-4 h-4" />
+              Track Order
+            </Link>
             {isCancellable && (
               <button
                 onClick={handleCancel}
-                className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition flex items-center justify-center gap-2"
+                className="flex-1 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 transition flex items-center justify-center gap-2"
               >
                 <XCircle className="w-4 h-4" />
-                Cancel Order
+                Cancel
               </button>
             )}
             <button

@@ -15,114 +15,23 @@ import {
   Star,
   Flame,
   Leaf,
-  User,
-  Home,
-  CheckCircle,
-  X,
 } from "lucide-react";
 import MotionWrapper from "@/components/MotionWrapper";
-import { Order, OrderType } from "@/types";
+import { OrderType } from "@/types";
 import { useCartStore } from "@/store/useCartStore";
-import { useOrderStore } from "@/store/useOrderStore";
-import { useShopStore } from "@/store/useShopStore";
 import { OrderSummary } from "./OrderSummary";
 
 export function CartContent() {
   const [mounted, setMounted] = useState(false);
-  const { items, removeItem, increaseQty, decreaseQty, clearCart, getTotalItems, getSubtotal } = useCartStore();
-  const { placeOrder } = useOrderStore();
-  const { activePromo, clearPromo } = useShopStore();
+  const { items, removeItem, increaseQty, decreaseQty, clearCart, getTotalItems } = useCartStore();
 
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
-  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
-  const [tableNumber, setTableNumber] = useState("");
-  const [specialInstructions, setSpecialInstructions] = useState("");
-  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState<Order | null>(null);
 
   const totalItems = getTotalItems();
-  const subtotal = getSubtotal();
-  const discountPercent = activePromo ? activePromo.discount : 0;
-  const discount = (subtotal * discountPercent) / 100;
-  const deliveryFee = orderType === "delivery" ? 3.99 : 0;
-  const tax = (subtotal - discount) * 0.075;
-  const total = subtotal - discount + deliveryFee + tax;
 
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const handlePlaceOrder = () => {
-    if (!customerName.trim()) {
-      alert("Please enter your name");
-      return;
-    }
-    if (!customerEmail.trim() || !customerEmail.includes("@")) {
-      alert("Please enter a valid email address");
-      return;
-    }
-    if (!customerPhone.trim()) {
-      alert("Please enter your phone number");
-      return;
-    }
-    if (orderType === "delivery" && !deliveryAddress.trim()) {
-      alert("Please enter your delivery address");
-      return;
-    }
-    if (orderType === "dine-in" && !tableNumber.trim()) {
-      alert("Please enter your table number");
-      return;
-    }
-
-    setIsPlacingOrder(true);
-
-    setTimeout(() => {
-      const newOrder = placeOrder({
-        status: "pending",
-        orderType,
-        items: items.map((item) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          image: item.image,
-          description: item.description,
-          category: item.category,
-          spicy: item.spicy,
-          popular: item.popular,
-          veg: item.veg,
-        })),
-        subtotal,
-        discount,
-        deliveryFee,
-        tax,
-        total,
-        customerName: customerName.trim(),
-        customerEmail: customerEmail.trim(),
-        customerPhone: customerPhone.trim(),
-        specialInstructions: specialInstructions.trim() || undefined,
-        deliveryAddress: orderType === "delivery" ? deliveryAddress.trim() : undefined,
-        tableNumber: orderType === "dine-in" ? tableNumber.trim() : undefined,
-        promoCode: activePromo?.code,
-      });
-
-      setOrderPlaced(newOrder);
-      setIsPlacingOrder(false);
-      clearCart();
-      clearPromo();
-      setCustomerName("");
-      setCustomerEmail("");
-      setCustomerPhone("");
-      setDeliveryAddress("");
-      setTableNumber("");
-      setSpecialInstructions("");
-      setShowCheckoutModal(false);
-    }, 1500);
-  };
 
   if (!mounted) {
     return (
@@ -302,192 +211,11 @@ export function CartContent() {
 
           {/* RIGHT - Order Summary */}
           <div className="lg:w-96">
-            <OrderSummary orderType={orderType} onCheckout={() => setShowCheckoutModal(true)} />
+            <OrderSummary orderType={orderType} />
           </div>
         </div>
       </div>
 
-      {/* Checkout Modal */}
-      {showCheckoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-2xl max-w-lg w-full my-8 overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-              <h2 className="text-xl font-bold font-serif text-gray-900">Checkout</h2>
-              <button
-                onClick={() => setShowCheckoutModal(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4 space-y-4">
-              {/* Customer Info */}
-              <div>
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-sm">
-                  <User className="w-4 h-4 text-yellow-500" />
-                  Your Information
-                </h3>
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Full Name *"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email Address *"
-                    value={customerEmail}
-                    onChange={(e) => setCustomerEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition"
-                  />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number *"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition"
-                  />
-                </div>
-              </div>
-
-              {/* Delivery Address or Table Number */}
-              {orderType === "delivery" && (
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-sm">
-                    <Home className="w-4 h-4 text-yellow-500" />
-                    Delivery Address
-                  </h3>
-                  <textarea
-                    placeholder="Street Address, City, Zip Code *"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    rows={3}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition resize-none"
-                  />
-                </div>
-              )}
-
-              {orderType === "dine-in" && (
-                <div>
-                  <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-yellow-500" />
-                    Table Number
-                  </h3>
-                  <input
-                    type="text"
-                    placeholder="Table Number *"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition"
-                  />
-                </div>
-              )}
-
-              {/* Special Instructions */}
-              <div>
-                <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2 text-sm">
-                  <Package className="w-4 h-4 text-yellow-500" />
-                  Special Instructions (Optional)
-                </h3>
-                <textarea
-                  placeholder="Any allergies, preferences, or special requests..."
-                  value={specialInstructions}
-                  onChange={(e) => setSpecialInstructions(e.target.value)}
-                  rows={2}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-yellow-400 transition resize-none"
-                />
-              </div>
-
-              {/* Order Total */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h3 className="font-bold text-gray-900 mb-2">Order Total</h3>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal:</span>
-                    <span>${subtotal.toFixed(2)}</span>
-                  </div>
-                  {activePromo && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount ({activePromo.discount}%):</span>
-                      <span>-${discount.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {orderType === "delivery" && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Delivery Fee:</span>
-                      <span>${deliveryFee.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tax:</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-2 flex justify-between font-bold">
-                    <span>Total:</span>
-                    <span className="text-yellow-600">${total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={handlePlaceOrder}
-                disabled={isPlacingOrder}
-                className="w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isPlacingOrder ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                    Placing Order...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-5 h-5" /> Place Order
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Order Success Modal */}
-      {orderPlaced && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-10 h-10 text-green-500" />
-            </div>
-            <h2 className="text-2xl font-bold font-serif text-gray-900 mb-2">Order Placed!</h2>
-            <p className="text-gray-500 mb-2">
-              Order Number: <span className="font-bold text-yellow-600">{orderPlaced.orderNumber}</span>
-            </p>
-            <p className="text-sm text-gray-400 mb-6">
-              {orderPlaced.date} at {orderPlaced.time}
-            </p>
-            {orderPlaced.promoCode && (
-              <p className="text-sm text-green-600 mb-4">Discount applied: {orderPlaced.promoCode}</p>
-            )}
-            <div className="space-y-3">
-              <Link
-                href="/order"
-                onClick={() => setOrderPlaced(null)}
-                className="block w-full py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-center"
-              >
-                View My Orders
-              </Link>
-              <Link
-                href="/menu"
-                onClick={() => setOrderPlaced(null)}
-                className="block w-full py-3 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-yellow-600 font-semibold rounded-xl transition text-center"
-              >
-                Continue Shopping
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   );
 }

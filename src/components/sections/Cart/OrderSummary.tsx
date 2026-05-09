@@ -3,16 +3,17 @@
 import { useState } from "react";
 import { Tag, X, AlertCircle, CreditCard, MapPin, Clock, Star, Package as PackageIcon } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import MotionWrapper from "@/components/MotionWrapper";
 import { useCartStore } from "@/store/useCartStore";
 import { useShopStore } from "@/store/useShopStore";
 
 interface OrderSummaryProps {
   orderType: "dine-in" | "takeout" | "delivery";
-  onCheckout: () => void;
 }
 
-export function OrderSummary({ orderType, onCheckout }: OrderSummaryProps) {
+export function OrderSummary({ orderType }: OrderSummaryProps) {
+  const router = useRouter();
   const { getTotalItems, getSubtotal } = useCartStore();
   const { activePromo, applyPromo, clearPromo } = useShopStore();
 
@@ -125,7 +126,7 @@ export function OrderSummary({ orderType, onCheckout }: OrderSummaryProps) {
         </div>
 
         <button
-          onClick={onCheckout}
+          onClick={() => router.push(`/checkout?type=${orderType}`)}
           className="w-full mt-4 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm"
         >
           <CreditCard className="w-4 h-4" />
