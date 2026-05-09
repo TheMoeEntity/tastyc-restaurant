@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { io, Socket } from "socket.io-client";
 import {
   ArrowLeft,
   Receipt,
@@ -11,143 +12,143 @@ import {
   Package,
   ShoppingBag,
   Truck,
-  XCircle,
   MapPin,
-  User,
-  Phone,
-  Mail,
-  CreditCard,
   Flame,
   Leaf,
-  RefreshCw,
+  CreditCard,
   Home,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
-import { useOrderStore } from "@/store/useOrderStore";
-import { OrderTrackingSteps, OrderStatusBadge } from "@/components/sections/Order";
-import { statusConfig, orderTypeConfig } from "@/lib/utils/orderUtils";
-import { Order } from "@/types";
 
-const statusMeta: Record<
-  Order["status"],
-  { title: string; desc: string; eta: string; color: string; bg: string; pulse: boolean }
-> = {
-  pending: {
-    title: "Awaiting Confirmation",
-    desc: "Your order has been placed and is waiting to be confirmed by the restaurant.",
-    eta: "Being confirmed · ~5 min",
-    color: "text-yellow-600",
-    bg: "bg-yellow-50",
-    pulse: true,
-  },
-  confirmed: {
-    title: "Order Confirmed",
-    desc: "Your order has been confirmed and is queued for the kitchen.",
-    eta: "Preparation starting · ~20 min",
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    pulse: false,
-  },
-  preparing: {
-    title: "Being Prepared",
-    desc: "Our chef is preparing your order with fresh ingredients.",
-    eta: "Almost ready · ~15 min",
-    color: "text-orange-600",
-    bg: "bg-orange-50",
-    pulse: true,
-  },
-  ready: {
-    title: "Ready!",
-    desc: "Your order is ready. Head to the counter or wait for your server.",
-    eta: "Ready to serve now",
-    color: "text-green-600",
-    bg: "bg-green-50",
-    pulse: true,
-  },
-  delivered: {
-    title: "Delivered",
-    desc: "Your order has been delivered. Enjoy your meal!",
-    eta: "Completed",
-    color: "text-emerald-600",
-    bg: "bg-emerald-50",
-    pulse: false,
-  },
-  cancelled: {
-    title: "Order Cancelled",
-    desc: "This order has been cancelled.",
-    eta: "",
-    color: "text-red-600",
-    bg: "bg-red-50",
-    pulse: false,
-  },
+const API = process.env.NEXT_PUBLIC_API_URL;
+
+type OrderStatus = "PENDING" | "CONFIRMED" | "PREPARING" | "READY" | "DELIVERED";
+type OrderType = "DELIVERY" | "PICKUP";
+
+interface OrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  image?: string;
+  spicy?: boolean;
+  veg?: boolean;
+}
+
+interface OrderData {
+  id: string;
+  orderNumber: string;
+  type: OrderType;
+  status: OrderStatus;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee?: number;
+  tax?: number;
+  total: number;
+  estimatedTime?: string;
+  address?: { street: string; city: string; state: string };
+  notes?: string;
+  createdAt: string;
+}
+
+const STEPS: { key: OrderStatus; label: string; icon: typeof Clock }[] = [
+  { key: "PENDING",   label: "Order Placed", icon: Receipt },
+  { key: "CONFIRMED", label: "Confirmed",    icon: CheckCircle },
+  { key: "PREPARING", label: "Preparing",    icon: Package },
+  { key: "READY",     label: "Ready",        icon: ShoppingBag },
+  { key: "DELIVERED", label: "Delivered",    icon: Truck },
+];
+
+const STEP_INDEX: Record<OrderStatus, number> = {
+  PENDING: 0, CONFIRMED: 1, PREPARING: 2, READY: 3, DELIVERED: 4,
 };
 
-const statusIcons: Record<Order["status"], typeof Clock> = {
-  pending: Clock,
-  confirmed: CheckCircle,
-  preparing: Package,
-  ready: ShoppingBag,
-  delivered: Truck,
-  cancelled: XCircle,
+const STATUS_META: Record<OrderStatus, { title: string; desc: string; eta: string; color: string; bg: string; pulse: boolean }> = {
+  PENDING:   { title: "Awaiting Confirmation", desc: "Your order has been placed and is waiting to be confirmed.", eta: "~5 min",  color: "text-yellow-600",  bg: "bg-yellow-50",  pulse: true  },
+  CONFIRMED: { title: "Order Confirmed",       desc: "Confirmed! Your order is queued for the kitchen.",           eta: "~20 min", color: "text-blue-600",    bg: "bg-blue-50",    pulse: false },
+  PREPARING: { title: "Being Prepared",        desc: "Our chef is preparing your order right now.",                eta: "~15 min", color: "text-orange-600",  bg: "bg-orange-50",  pulse: true  },
+  READY:     { title: "Ready!",                desc: "Your order is ready — pick up or wait for delivery.",        eta: "Now",     color: "text-green-600",   bg: "bg-green-50",   pulse: true  },
+  DELIVERED: { title: "Delivered",             desc: "Your order has been delivered. Enjoy your meal!",            eta: "Done",    color: "text-emerald-600", bg: "bg-emerald-50", pulse: false },
 };
+
+function getCookieToken(): string {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1] ?? ""
+  );
+}
 
 export default function OrderTrackingClient({ id }: { id: string }) {
-  const { orders, cancelOrder } = useOrderStore();
-  const [order, setOrder] = useState<Order | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(0);
-  const [tick, setTick] = useState(0);
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [fetchState, setFetchState] = useState<"loading" | "ok" | "error">("loading");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [liveLabel, setLiveLabel] = useState("Connecting…");
+  const socketRef = useRef<Socket | null>(null);
 
+  // Fetch initial order data
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    fetch(`${API}/api/orders/${id}`, { credentials: "include" })
+      .then(async (r) => {
+        const json = await r.json();
+        if (!json.success) throw new Error(json.message ?? "Order not found");
+        setOrder(json.data);
+        setFetchState("ok");
+      })
+      .catch((err: unknown) => {
+        setErrorMsg(err instanceof Error ? err.message : "Could not load order.");
+        setFetchState("error");
+      });
+  }, [id]);
 
+  // Socket.IO live updates
   useEffect(() => {
-    if (!mounted) return;
-    const found = orders.find((o) => o.id === id);
-    setOrder(found ?? null);
-    setLastUpdated(Date.now());
-  }, [mounted, orders, id]);
+    const token = getCookieToken();
+    const socket = io(API!, { auth: { token }, transports: ["websocket"] });
+    socketRef.current = socket;
 
-  // Poll Zustand store every 5s to reflect external status changes
-  useEffect(() => {
-    if (!mounted) return;
-    const interval = setInterval(() => {
-      const found = orders.find((o) => o.id === id);
-      setOrder(found ?? null);
-      setLastUpdated(Date.now());
-      setTick((t) => t + 1);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [mounted, orders, id]);
+    socket.on("connect", () => setLiveLabel("Live"));
+    socket.on("disconnect", () => setLiveLabel("Reconnecting…"));
+    socket.on("connect_error", () => setLiveLabel("Offline"));
 
-  const secondsAgo = Math.floor((Date.now() - lastUpdated) / 1000);
+    socket.emit("join-order", id);
 
-  if (!mounted) {
+    socket.on("order-status-updated", (payload: { orderId: string; status: OrderStatus }) => {
+      if (payload.orderId === id) {
+        setOrder((prev) => (prev ? { ...prev, status: payload.status } : prev));
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [id]);
+
+  // ── Loading ──
+  if (fetchState === "loading") {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-8 animate-pulse space-y-4">
-        <div className="h-40 bg-gray-800 rounded-2xl" />
-        <div className="h-32 bg-gray-100 rounded-xl" />
-        <div className="h-48 bg-gray-100 rounded-xl" />
+      <div className="max-w-4xl mx-auto px-4 py-20 flex flex-col items-center gap-4 text-center">
+        <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
+        <p className="text-gray-500 text-sm">Loading your order…</p>
       </div>
     );
   }
 
-  if (!order) {
+  // ── Error ──
+  if (fetchState === "error" || !order) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-20 text-center">
         <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <Receipt className="w-10 h-10 text-gray-400" />
         </div>
-        <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
-          Order Not Found
-        </h1>
-        <p className="text-gray-500 mb-8">
-          We couldn&apos;t find an order with that ID. It may have been removed or
-          the link is incorrect.
-        </p>
+        <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Order Not Found</h1>
+        <p className="text-gray-500 mb-2 text-sm">{errorMsg}</p>
         <Link
           href="/order"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition mt-6"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to My Orders
@@ -156,104 +157,62 @@ export default function OrderTrackingClient({ id }: { id: string }) {
     );
   }
 
-  const meta = statusMeta[order.status];
-  const StatusIcon = statusIcons[order.status];
-  const typeConf = orderTypeConfig[order.orderType];
-  const TypeIcon = typeConf.icon;
+  const currentStep = STEP_INDEX[order.status] ?? 0;
+  const meta = STATUS_META[order.status];
+  const StatusIcon = STEPS[currentStep]?.icon ?? Clock;
   const totalItems = order.items.reduce((s, i) => s + i.quantity, 0);
-  const isCancellable = order.status === "pending" || order.status === "confirmed";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 md:py-10 space-y-5">
-      {/* ── Back link ── */}
-      <Link
-        href="/order"
-        className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 transition text-sm font-medium"
-      >
+      {/* Back */}
+      <Link href="/order" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-800 transition text-sm font-medium">
         <ArrowLeft className="w-4 h-4" />
         Back to orders
       </Link>
 
-      {/* ── Hero card ── */}
+      {/* Hero */}
       <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-6 md:p-8 overflow-hidden">
         <div className="absolute inset-0 opacity-5 bg-[url('/bg.jpg.webp')] bg-cover bg-center" />
-        <div className="relative z-10">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xs font-bold uppercase tracking-widest text-yellow-400">
-                  Order Tracking
-                </span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold font-serif text-white">
-                {order.orderNumber}
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                {order.date} · {order.time}
-              </p>
-            </div>
-
-            {/* Live badge */}
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-3 py-1.5">
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    meta.pulse ? "bg-green-400 animate-pulse" : "bg-gray-400"
-                  }`}
-                />
-                <span className="text-xs font-semibold text-white">
-                  {meta.pulse ? "Live" : "Final"}
-                </span>
-              </div>
-              <OrderStatusBadge status={order.status} />
-            </div>
+        <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-yellow-400 mb-1">Order Tracking</p>
+            <h1 className="text-2xl md:text-3xl font-bold font-serif text-white">
+              {order.orderNumber}
+            </h1>
+            <p className="text-gray-400 text-sm mt-1">
+              {new Date(order.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+            </p>
           </div>
 
-          {/* Order type pill */}
-          <div className="mt-4 flex items-center gap-2">
-            <div
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/20`}
-            >
-              <TypeIcon className="w-3.5 h-3.5" />
-              {order.orderType === "dine-in"
-                ? "Dine In"
-                : order.orderType === "takeout"
-                ? "Takeout"
-                : "Delivery"}
-              {order.tableNumber && ` · Table ${order.tableNumber}`}
-              {order.deliveryAddress && ` · ${order.deliveryAddress.split(",")[0]}`}
+          <div className="flex flex-col items-end gap-2">
+            {/* Live badge */}
+            <div className="flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-3 py-1.5">
+              <span className={`w-2 h-2 rounded-full ${liveLabel === "Live" ? "bg-green-400 animate-pulse" : "bg-gray-400"}`} />
+              <span className="text-xs font-semibold text-white">{liveLabel}</span>
             </div>
-
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-white border border-white/20">
-              <RefreshCw className="w-3 h-3" />
-              {secondsAgo < 5 ? "Just updated" : `${secondsAgo}s ago`}
+            {/* Order type pill */}
+            <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1 text-white text-xs font-semibold">
+              {order.type === "DELIVERY" ? <Truck className="w-3.5 h-3.5" /> : <Package className="w-3.5 h-3.5" />}
+              {order.type === "DELIVERY" ? "Delivery" : "Pickup"}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Status card ── */}
-      <div className={`rounded-2xl border p-6 ${meta.bg} border-opacity-50`} style={{ borderColor: "transparent" }}>
+      {/* Status card */}
+      <div className={`rounded-2xl p-6 ${meta.bg}`}>
         <div className="flex items-start gap-4">
-          <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${
-              order.status === "cancelled" ? "bg-red-100" : "bg-white shadow-md"
-            }`}
-          >
-            <StatusIcon
-              className={`w-7 h-7 ${meta.color} ${meta.pulse ? "animate-pulse" : ""}`}
-            />
+          <div className="w-14 h-14 bg-white rounded-2xl shadow-md flex items-center justify-center shrink-0">
+            <StatusIcon className={`w-7 h-7 ${meta.color} ${meta.pulse ? "animate-pulse" : ""}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className={`text-xl font-bold font-serif ${meta.color} mb-1`}>
-              {meta.title}
-            </h2>
+            <h2 className={`text-xl font-bold font-serif ${meta.color} mb-1`}>{meta.title}</h2>
             <p className="text-gray-600 text-sm leading-relaxed">{meta.desc}</p>
             {meta.eta && (
               <div className="flex items-center gap-1.5 mt-3">
                 <Clock className="w-4 h-4 text-gray-400" />
                 <span className="text-sm font-semibold text-gray-700">
-                  {meta.eta}
+                  {order.estimatedTime ? `Ready by ${order.estimatedTime}` : `ETA: ${meta.eta}`}
                 </span>
               </div>
             )}
@@ -261,19 +220,38 @@ export default function OrderTrackingClient({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* ── Progress steps ── */}
-      {order.status !== "cancelled" && (
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5 md:p-6">
-          <h3 className="font-bold text-gray-900 mb-2 text-sm uppercase tracking-widest text-gray-400">
-            Progress
-          </h3>
-          <OrderTrackingSteps status={order.status} />
+      {/* Progress bar */}
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5 md:p-6">
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">Progress</p>
+        <div className="relative flex justify-between">
+          {/* Background track */}
+          <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200">
+            <div
+              className="h-full bg-yellow-500 transition-all duration-700"
+              style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+            />
+          </div>
+          {STEPS.map((step, idx) => {
+            const Icon = step.icon;
+            const done = idx <= currentStep;
+            const current = idx === currentStep;
+            return (
+              <div key={step.key} className="relative flex flex-col items-center">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all duration-300 ${done ? "bg-yellow-500 text-black" : "bg-gray-200 text-gray-400"} ${current ? "ring-4 ring-yellow-200 scale-110" : ""}`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <span className={`text-xs mt-2 font-medium hidden sm:block ${done ? "text-gray-700" : "text-gray-400"}`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
-      )}
+      </div>
 
-      {/* ── Two column: items + details ── */}
+      {/* Two-column: items + details */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Order items */}
+        {/* Items */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5">
           <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
             <ShoppingBag className="w-4 h-4 text-yellow-500" />
@@ -283,18 +261,11 @@ export default function OrderTrackingClient({ id }: { id: string }) {
             {order.items.map((item, idx) => (
               <div key={idx} className="flex gap-3 items-center">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                  <Image
-                    src={item.image || "/assets/homeImg1.jpg"}
-                    alt={item.name}
-                    fill
-                    className="object-cover"
-                  />
+                  <Image src={item.image || "/assets/homeImg1.jpg"} alt={item.name} fill className="object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-800 text-sm truncate">
-                    {item.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <p className="font-semibold text-gray-800 text-sm truncate">{item.name}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
                     {item.spicy && <Flame className="w-3 h-3 text-red-500" />}
                     {item.veg && <Leaf className="w-3 h-3 text-green-600" />}
                     <span className="text-xs text-gray-400">× {item.quantity}</span>
@@ -306,69 +277,65 @@ export default function OrderTrackingClient({ id }: { id: string }) {
               </div>
             ))}
           </div>
+          {order.notes && (
+            <p className="mt-3 text-xs text-gray-500 italic border-t border-gray-100 pt-3">
+              &ldquo;{order.notes}&rdquo;
+            </p>
+          )}
         </div>
 
-        {/* Customer + price */}
+        {/* Details */}
         <div className="space-y-4">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5">
-            <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <User className="w-4 h-4 text-yellow-500" />
-              Customer
-            </h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-gray-600">
-                <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                {order.customerName}
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                {order.customerEmail}
-              </div>
-              <div className="flex items-center gap-2 text-gray-600">
-                <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                {order.customerPhone}
-              </div>
-              {order.tableNumber && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  Table {order.tableNumber}
-                </div>
-              )}
-              {order.deliveryAddress && (
-                <div className="flex items-start gap-2 text-gray-600">
-                  <Home className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
-                  <span>{order.deliveryAddress}</span>
-                </div>
-              )}
+          {/* Delivery address */}
+          {order.type === "DELIVERY" && order.address && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5">
+              <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                <Home className="w-4 h-4 text-yellow-500" />
+                Deliver to
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                {order.address.street}<br />
+                {order.address.city}, {order.address.state}
+              </p>
             </div>
-          </div>
+          )}
 
+          {order.type === "PICKUP" && (
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5">
+              <h3 className="font-bold text-gray-900 mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-yellow-500" />
+                Pickup Location
+              </h3>
+              <p className="text-sm text-gray-600">123 Foodie Street, Lagos</p>
+              <p className="text-xs text-gray-400 mt-1">Ready at counter when status is &ldquo;Ready&rdquo;</p>
+            </div>
+          )}
+
+          {/* Price */}
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-5">
             <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-yellow-500" />
               Payment
             </h3>
             <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between text-gray-500">
-                <span>Subtotal</span>
-                <span>${order.subtotal.toFixed(2)}</span>
-              </div>
-              {order.discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount</span>
-                  <span>-${order.discount.toFixed(2)}</span>
+              {order.subtotal != null && (
+                <div className="flex justify-between text-gray-500">
+                  <span>Subtotal</span>
+                  <span>${order.subtotal.toFixed(2)}</span>
                 </div>
               )}
-              {order.deliveryFee > 0 && (
+              {order.deliveryFee != null && order.deliveryFee > 0 && (
                 <div className="flex justify-between text-gray-500">
                   <span>Delivery</span>
                   <span>${order.deliveryFee.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-gray-500">
-                <span>Tax</span>
-                <span>${order.tax.toFixed(2)}</span>
-              </div>
+              {order.tax != null && order.tax > 0 && (
+                <div className="flex justify-between text-gray-500">
+                  <span>Tax</span>
+                  <span>${order.tax.toFixed(2)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-100 pt-2 flex justify-between font-black text-gray-900">
                 <span>Total</span>
                 <span className="text-yellow-600">${order.total.toFixed(2)}</span>
@@ -378,19 +345,8 @@ export default function OrderTrackingClient({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* ── Actions ── */}
+      {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 pb-6">
-        {isCancellable && (
-          <button
-            onClick={() => {
-              if (confirm("Cancel this order?")) cancelOrder(order.id);
-            }}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 transition text-sm"
-          >
-            <XCircle className="w-4 h-4" />
-            Cancel Order
-          </button>
-        )}
         <Link
           href="/menu"
           className="flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-yellow-600 font-semibold rounded-xl transition text-sm"
@@ -398,9 +354,16 @@ export default function OrderTrackingClient({ id }: { id: string }) {
           <ShoppingBag className="w-4 h-4" />
           Order Again
         </Link>
+        <button
+          onClick={() => window.location.reload()}
+          className="flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 hover:border-yellow-400 text-gray-600 hover:text-yellow-600 font-semibold rounded-xl transition text-sm"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </button>
         <Link
           href="/order"
-          className="flex items-center justify-center gap-2 px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-sm ml-auto"
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-sm sm:ml-auto"
         >
           <Receipt className="w-4 h-4" />
           All Orders

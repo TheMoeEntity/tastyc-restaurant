@@ -12,7 +12,10 @@ import {
   Loader2,
   ShieldAlert,
   KeyRound,
+  AlertCircle,
 } from "lucide-react";
+
+const API = process.env.NEXT_PUBLIC_API_URL;
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -27,7 +30,13 @@ function ResetPasswordForm() {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  // No token in URL → invalid link
+  useEffect(() => {
+    if (done) {
+      const t = setTimeout(() => router.push("/auth/login"), 2000);
+      return () => clearTimeout(t);
+    }
+  }, [done, router]);
+
   if (!token) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
@@ -35,12 +44,9 @@ function ResetPasswordForm() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <ShieldAlert className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
-            Invalid Reset Link
-          </h1>
+          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Invalid Reset Link</h1>
           <p className="text-gray-500 text-sm mb-6">
-            This password reset link is invalid or has expired. Please request a
-            new one.
+            This password reset link is invalid or has expired. Please request a new one.
           </p>
           <Link
             href="/auth/forgot-password"
@@ -68,21 +74,30 @@ function ResetPasswordForm() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch(`${API}/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password }),
+        credentials: "include",
+        body: JSON.stringify({ token, newPassword: password }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Something went wrong");
+      const json = await res.json();
+      if (!json.success) throw new Error(json.message ?? "Something went wrong");
       setDone(true);
-      setTimeout(() => router.push("/auth/login"), 3000);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   };
+
+  const strengthLevel = password.length === 0 ? 0
+    : password.length < 6 ? 1
+    : password.length < 10 ? 2
+    : /[A-Z]/.test(password) && /[0-9]/.test(password) ? 4
+    : 3;
+
+  const strengthColors = ["bg-gray-200", "bg-red-400", "bg-orange-400", "bg-yellow-400", "bg-green-500"];
+  const strengthLabels = ["", "Too short", "Weak", "Good", "Strong"];
 
   return (
     <main className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
@@ -97,7 +112,6 @@ function ResetPasswordForm() {
 
         {!done ? (
           <>
-            {/* Heading */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-0.5 w-6 bg-yellow-500" />
@@ -115,7 +129,8 @@ function ResetPasswordForm() {
             </div>
 
             {error && (
-              <div className="mb-5 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+              <div className="mb-5 flex items-start gap-3 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
                 {error}
               </div>
             )}
@@ -123,10 +138,7 @@ function ResetPasswordForm() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* New password */}
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   New Password
                 </label>
                 <div className="relative">
@@ -149,33 +161,25 @@ function ResetPasswordForm() {
                   </button>
                 </div>
 
-                {/* Strength indicator */}
+                {/* Strength meter */}
                 {password.length > 0 && (
-                  <div className="mt-2 flex gap-1">
-                    {[1, 2, 3, 4].map((level) => (
-                      <div
-                        key={level}
-                        className={`h-1 flex-1 rounded-full transition-all ${
-                          password.length >= level * 3
-                            ? level <= 2
-                              ? "bg-red-400"
-                              : level === 3
-                              ? "bg-yellow-400"
-                              : "bg-green-500"
-                            : "bg-gray-200"
-                        }`}
-                      />
-                    ))}
+                  <div className="mt-2 space-y-1">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((level) => (
+                        <div
+                          key={level}
+                          className={`h-1 flex-1 rounded-full transition-all ${level <= strengthLevel ? strengthColors[strengthLevel] : "bg-gray-200"}`}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-400">{strengthLabels[strengthLevel]}</p>
                   </div>
                 )}
               </div>
 
               {/* Confirm password */}
               <div>
-                <label
-                  htmlFor="confirm"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5"
-                >
+                <label htmlFor="confirm" className="block text-sm font-semibold text-gray-700 mb-1.5">
                   Confirm Password
                 </label>
                 <div className="relative">
@@ -202,9 +206,7 @@ function ResetPasswordForm() {
                   </button>
                 </div>
                 {confirm && confirm !== password && (
-                  <p className="text-red-500 text-xs mt-1.5">
-                    Passwords do not match
-                  </p>
+                  <p className="text-red-500 text-xs mt-1.5">Passwords do not match</p>
                 )}
               </div>
 
@@ -214,32 +216,23 @@ function ResetPasswordForm() {
                 className="w-full flex items-center justify-center gap-2 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Resetting…
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Resetting…</>
                 ) : (
-                  <>
-                    <KeyRound className="w-4 h-4" />
-                    Reset Password
-                  </>
+                  <><KeyRound className="w-4 h-4" /> Reset Password</>
                 )}
               </button>
             </form>
           </>
         ) : (
-          /* ── Success ── */
           <div className="text-center py-6">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
-              Password Reset!
-            </h1>
-            <p className="text-gray-500 text-sm leading-relaxed mb-6">
-              Your password has been changed successfully. Redirecting you to
-              sign in&hellip;
+            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Password Reset!</h1>
+            <p className="text-gray-500 text-sm leading-relaxed mb-1">
+              Your password has been changed successfully.
             </p>
+            <p className="text-gray-400 text-xs mb-6">Redirecting you to sign in…</p>
             <Link
               href="/auth/login"
               className="inline-flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition"
@@ -256,13 +249,11 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
-        </div>
-      }
-    >
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-yellow-500 animate-spin" />
+      </div>
+    }>
       <ResetPasswordForm />
     </Suspense>
   );

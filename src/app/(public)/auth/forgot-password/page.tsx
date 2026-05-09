@@ -4,28 +4,26 @@ import { useState } from "react";
 import Link from "next/link";
 import { Mail, ArrowLeft, SendHorizonal, CheckCircle, Loader2 } from "lucide-react";
 
+const API = process.env.NEXT_PUBLIC_API_URL;
+
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      await fetch(`${API}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Something went wrong");
+      // Always show success regardless of whether the email exists
       setSent(true);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -34,7 +32,6 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
       <div className="w-full max-w-md">
-        {/* Back link */}
         <Link
           href="/auth/login"
           className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-gray-700 transition mb-8"
@@ -45,7 +42,6 @@ export default function ForgotPasswordPage() {
 
         {!sent ? (
           <>
-            {/* Heading */}
             <div className="mb-8">
               <div className="flex items-center gap-3 mb-2">
                 <div className="h-0.5 w-6 bg-yellow-500" />
@@ -58,19 +54,11 @@ export default function ForgotPasswordPage() {
                 <span className="text-yellow-500">password?</span>
               </h1>
               <p className="text-gray-500 text-sm mt-3 leading-relaxed">
-                No worries — enter the email address linked to your account and
-                we&apos;ll send you a reset link.
+                Enter the email address linked to your account and we&apos;ll
+                send you a reset link.
               </p>
             </div>
 
-            {/* Error */}
-            {error && (
-              <div className="mb-5 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl">
-                {error}
-              </div>
-            )}
-
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label
@@ -99,15 +87,9 @@ export default function ForgotPasswordPage() {
                 className="w-full flex items-center justify-center gap-2 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending…
-                  </>
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</>
                 ) : (
-                  <>
-                    <SendHorizonal className="w-4 h-4" />
-                    Send Reset Link
-                  </>
+                  <><SendHorizonal className="w-4 h-4" /> Send Reset Link</>
                 )}
               </button>
             </form>
@@ -120,28 +102,23 @@ export default function ForgotPasswordPage() {
 
             <p className="text-center text-sm text-gray-500">
               Remember it?{" "}
-              <Link
-                href="/auth/login"
-                className="text-yellow-600 font-semibold hover:text-yellow-700 transition"
-              >
+              <Link href="/auth/login" className="text-yellow-600 font-semibold hover:text-yellow-700 transition">
                 Sign in
               </Link>
             </p>
           </>
         ) : (
-          /* ── Success state ── */
           <div className="text-center py-6">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="w-10 h-10 text-green-500" />
             </div>
-            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
-              Check your inbox
-            </h1>
-            <p className="text-gray-500 text-sm leading-relaxed mb-2">
-              We&apos;ve sent a password reset link to
+            <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Check your inbox</h1>
+            <p className="text-gray-500 text-sm leading-relaxed">
+              If an account exists with{" "}
+              <span className="font-bold text-gray-800">{email}</span>, you will
+              receive a reset link shortly.
             </p>
-            <p className="font-bold text-gray-800 mb-6">{email}</p>
-            <p className="text-gray-400 text-xs mb-8">
+            <p className="text-gray-400 text-xs mt-4 mb-8">
               Didn&apos;t receive it? Check your spam folder, or{" "}
               <button
                 onClick={() => setSent(false)}
