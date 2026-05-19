@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Tag, X, AlertCircle, CreditCard, MapPin, Clock, Star, Package as PackageIcon } from "lucide-react";
+import {
+  Tag,
+  X,
+  AlertCircle,
+  CreditCard,
+  MapPin,
+  Clock,
+  Star,
+  Package as PackageIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import MotionWrapper from "@/components/MotionWrapper";
@@ -24,9 +33,9 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
   const subtotal = getSubtotal();
   const discountPercent = activePromo ? activePromo.discount : 0;
   const discount = (subtotal * discountPercent) / 100;
-  const deliveryFee = orderType === "delivery" ? 3.99 : 0;
-  const tax = (subtotal - discount) * 0.075;
-  const total = subtotal - discount + deliveryFee + tax;
+  const deliveryFee = orderType === "delivery" ? 1000 : 0;
+  // const tax = (subtotal - discount) * 0.075;
+  const total = subtotal - discount + deliveryFee;
 
   const handleApplyPromo = () => {
     const result = applyPromo(promoCode.trim().toUpperCase(), subtotal);
@@ -80,7 +89,10 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
             <p className="text-green-600 text-xs font-medium">
               ✓ {activePromo.discount}% discount applied! ({activePromo.code})
             </p>
-            <button onClick={handleRemovePromo} className="text-red-500 hover:text-red-700">
+            <button
+              onClick={handleRemovePromo}
+              className="text-red-500 hover:text-red-700"
+            >
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -101,27 +113,27 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between text-gray-600">
             <span>Subtotal ({totalItems} items)</span>
-            <span>${subtotal.toFixed(2)}</span>
+            <span>₦{subtotal.toLocaleString()}</span>
           </div>
           {activePromo && (
             <div className="flex justify-between text-green-600 font-medium">
               <span>Discount ({activePromo.discount}%)</span>
-              <span>-${discount.toFixed(2)}</span>
+              <span>-₦{discount.toLocaleString()}</span>
             </div>
           )}
           {orderType === "delivery" && (
             <div className="flex justify-between text-gray-600">
               <span>Delivery Fee</span>
-              <span>${deliveryFee.toFixed(2)}</span>
+              <span>₦{deliveryFee.toLocaleString()}</span>
             </div>
           )}
-          <div className="flex justify-between text-gray-600">
+          {/* <div className="flex justify-between text-gray-600">
             <span>Tax (7.5%)</span>
             <span>${tax.toFixed(2)}</span>
-          </div>
+          </div> */}
           <div className="border-t border-gray-100 pt-3 flex justify-between font-black text-gray-900 text-base">
             <span>Total</span>
-            <span className="text-yellow-600">${total.toFixed(2)}</span>
+            <span className="text-yellow-600">₦{total.toLocaleString()}</span>
           </div>
         </div>
 
@@ -146,7 +158,10 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-4 hidden md:block">
         <div className="space-y-3">
           {trustBadges.map(({ icon: Icon, text }, i) => (
-            <div key={i} className="flex items-center gap-3 text-sm text-gray-600">
+            <div
+              key={i}
+              className="flex items-center gap-3 text-sm text-gray-600"
+            >
               <div className="w-8 h-8 bg-yellow-50 rounded-full flex items-center justify-center shrink-0">
                 <Icon className="w-4 h-4 text-yellow-500" />
               </div>

@@ -17,7 +17,7 @@ import {
 import { resetPassword } from "@/lib/api/auth";
 import { toast } from "sonner";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();

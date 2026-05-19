@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -17,63 +17,119 @@ import {
   Star,
   MapPin,
   User,
+  Truck,
+  Mail,
 } from "lucide-react";
 import { SidebarContent } from "./SidebarContent";
+import { useLogout } from "@/hooks/useLogout";
 
-const adminLinks = [
+// ── Link definitions ──────────────────────────────────────────
+
+type NavLink = {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+};
+
+export type NavSection = {
+  label: string;
+  links: NavLink[];
+};
+
+const adminLinks: NavLink[] = [
   { label: "Overview", href: "/dashboard/admin", icon: LayoutDashboard },
   { label: "Orders", href: "/dashboard/admin/orders", icon: ClipboardList },
-  { label: "Menu Management", href: "/dashboard/admin/menu", icon: UtensilsCrossed },
-  { label: "Reservations", href: "/dashboard/admin/reservations", icon: Calendar },
-  { label: "Customers", href: "/dashboard/admin/customers", icon: Users },
+  {
+    label: "Menu Management",
+    href: "/dashboard/admin/menu",
+    icon: UtensilsCrossed,
+  },
+  {
+    label: "Reservations",
+    href: "/dashboard/admin/reservations",
+    icon: Calendar,
+  },
+  { label: "Users", href: "/dashboard/admin/customers", icon: Users },
+  { label: "Newsletter", href: "/dashboard/admin/newsletter", icon: Mail },
   { label: "Analytics", href: "/dashboard/admin/analytics", icon: BarChart2 },
   { label: "QR Codes", href: "/dashboard/admin/qr", icon: QrCode },
   { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
 ];
 
-const kitchenLinks = [
+const kitchenLinks: NavLink[] = [
   { label: "Kitchen Board", href: "/dashboard/kitchen", icon: ChefHat },
   { label: "Settings", href: "/dashboard/kitchen/settings", icon: Settings },
 ];
 
-const userLinks = [
+const userLinks: NavLink[] = [
   { label: "My Orders", href: "/dashboard/user", icon: ShoppingBag },
-  { label: "Reservations", href: "/dashboard/user/reservations", icon: Calendar },
+  {
+    label: "Reservations",
+    href: "/dashboard/user/reservations",
+    icon: Calendar,
+  },
   { label: "Profile", href: "/dashboard/user/profile", icon: User },
   { label: "Loyalty Points", href: "/dashboard/user/loyalty", icon: Star },
   { label: "Addresses", href: "/dashboard/user/addresses", icon: MapPin },
 ];
 
-function getLinks(role: string) {
-  if (role === "kitchen") return kitchenLinks;
-  if (role === "customer") return userLinks;
-  return adminLinks;
+// STAFF: front-of-house — orders and reservations only
+const staffLinks: NavLink[] = [
+  { label: "Orders", href: "/dashboard/admin/orders", icon: ClipboardList },
+  {
+    label: "Reservations",
+    href: "/dashboard/admin/reservations",
+    icon: Calendar,
+  },
+  { label: "Deliveries", href: "/dashboard/admin/orders", icon: Truck },
+];
+
+// ── Sections per role ─────────────────────────────────────────
+
+function getSections(role: string): NavSection[] {
+  switch (role) {
+    case "SUPERADMIN":
+      return [
+        { label: "Admin Panel", links: adminLinks },
+        { label: "Kitchen", links: kitchenLinks },
+      ];
+    case "MANAGER":
+      return [
+        { label: "Management", links: adminLinks },
+        { label: "Kitchen", links: kitchenLinks },
+      ];
+    case "STAFF":
+      return [{ label: "Staff", links: staffLinks }];
+    case "KITCHEN":
+      return [{ label: "Kitchen", links: kitchenLinks }];
+    case "CUSTOMER":
+    default:
+      return [{ label: "My Account", links: userLinks }];
+  }
 }
+
+// ── Sidebar ───────────────────────────────────────────────────
 
 export default function Sidebar({ role }: { role: string }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const links = getLinks(role);
+  const sections = getSections(role);
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleLogout = () => {
-    document.cookie = "tastyc_access_token=; path=/; max-age=0";
-    document.cookie = "token=; path=/; max-age=0";
-    document.cookie = "role=; path=/; max-age=0";
-    localStorage.removeItem("user");
-    router.push("/auth/login");
-  };
+  const { handleLogout, modal } = useLogout(() => setMobileOpen(false));
 
   return (
     <>
+      {modal}
       <aside
-        className="hidden md:flex flex-col fixed left-0 top-0 h-full w-[220px] z-40 border-r border-white/5"
-        style={{ background: "rgba(15,15,15,0.95)", backdropFilter: "blur(20px)" }}
+        className="hidden no-scrollbar md:flex flex-col fixed left-0 top-0 h-full w-[220px] z-40 border-r border-white/5"
+        style={{
+          background: "rgba(15,15,15,0.95)",
+          backdropFilter: "blur(20px)",
+        }}
       >
         <SidebarContent
           role={role}
           pathname={pathname}
-          links={links}
+          sections={sections}
           handleLogout={handleLogout}
           setMobileOpen={setMobileOpen}
         />
@@ -97,12 +153,15 @@ export default function Sidebar({ role }: { role: string }) {
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="fixed left-0 top-0 h-full w-[260px] z-50 md:hidden border-r border-white/5"
-              style={{ background: "rgba(15,15,15,0.98)", backdropFilter: "blur(20px)" }}
+              style={{
+                background: "rgba(15,15,15,0.98)",
+                backdropFilter: "blur(20px)",
+              }}
             >
               <SidebarContent
                 role={role}
                 pathname={pathname}
-                links={links}
+                sections={sections}
                 handleLogout={handleLogout}
                 setMobileOpen={setMobileOpen}
               />

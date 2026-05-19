@@ -11,8 +11,10 @@ import {
   CheckCircle,
   X,
 } from "lucide-react";
+import { toast } from "sonner";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 interface Address {
   id: string;
@@ -23,7 +25,13 @@ interface Address {
   isDefault: boolean;
 }
 
-const emptyForm = { label: "", street: "", city: "", state: "", isDefault: false };
+const emptyForm = {
+  label: "",
+  street: "",
+  city: "",
+  state: "",
+  isDefault: false,
+};
 
 export default function UserAddressesPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -37,17 +45,20 @@ export default function UserAddressesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const runFetch = () =>
-    fetch(`${API}/api/users/addresses`, { credentials: "include" })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message);
-        setAddresses(json.data ?? []);
+    apiFetch<any>(`/api/users/addresses`)
+      .then((r) => {
+        if (!r.success) throw new Error(r.message);
+        setAddresses(r.data?.addresses ?? []);
         setError("");
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
       .finally(() => setLoading(false));
 
-  useEffect(() => { runFetch(); }, []); // eslint-disable-line
+  useEffect(() => {
+    runFetch();
+  }, []); // eslint-disable-line
 
   const openAdd = () => {
     setForm(emptyForm);
@@ -72,37 +83,41 @@ export default function UserAddressesPage() {
     setSaving(true);
     try {
       const url = editingId
-        ? `${API}/api/users/addresses/${editingId}`
-        : `${API}/api/users/addresses`;
+        ? `/api/users/addresses/${editingId}` // ← add leading slash
+        : `/api/users/addresses`; // ← add leading slash
       const method = editingId ? "PATCH" : "POST";
-      const r = await fetch(url, {
+      const r = await apiFetch<any>(url, {
         method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(form),
+        data: form, // ← data not body
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.message);
+      if (!r.success) throw new Error(r.message);
       setShowForm(false);
       setEditingId(null);
       runFetch();
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Save failed");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save address",
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this address?")) return;
+    const ok = await confirmDel({
+      title: "Delete address?",
+      message: `This will delete this address. This action cannot be undone.`,
+      confirmLabel: "Delete",
+      cancelLabel: "Cancel",
+    });
+    if (!ok) return;
     setDeletingId(id);
     try {
-      const r = await fetch(`${API}/api/users/addresses/${id}`, {
+      const r = await apiFetch<any>(`/api/users/addresses/${id}`, {
+        // ← add leading slash
         method: "DELETE",
-        credentials: "include",
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.message);
+      if (!r.success) throw new Error(r.message);
       setAddresses((prev) => prev.filter((a) => a.id !== id));
     } finally {
       setDeletingId(null);
@@ -114,7 +129,9 @@ export default function UserAddressesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-white font-bold text-xl mb-1">Addresses</h1>
-          <p className="text-white/40 text-sm">Manage your saved delivery addresses</p>
+          <p className="text-white/40 text-sm">
+            Manage your saved delivery addresses
+          </p>
         </div>
         {!showForm && (
           <button
@@ -147,13 +164,17 @@ export default function UserAddressesPage() {
             <input
               placeholder="Label (e.g. Home, Work) *"
               value={form.label}
-              onChange={(e) => setForm((p) => ({ ...p, label: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, label: e.target.value }))
+              }
               className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-yellow-400/50"
             />
             <input
               placeholder="Street address *"
               value={form.street}
-              onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, street: e.target.value }))
+              }
               className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-yellow-400/50"
             />
             <input
@@ -165,7 +186,9 @@ export default function UserAddressesPage() {
             <input
               placeholder="State *"
               value={form.state}
-              onChange={(e) => setForm((p) => ({ ...p, state: e.target.value }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, state: e.target.value }))
+              }
               className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-yellow-400/50"
             />
           </div>
@@ -173,7 +196,9 @@ export default function UserAddressesPage() {
             <input
               type="checkbox"
               checked={form.isDefault}
-              onChange={(e) => setForm((p) => ({ ...p, isDefault: e.target.checked }))}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, isDefault: e.target.checked }))
+              }
               className="rounded accent-yellow-500"
             />
             Set as default address
@@ -187,10 +212,20 @@ export default function UserAddressesPage() {
             </button>
             <button
               onClick={handleSave}
-              disabled={saving || !form.label || !form.street || !form.city || !form.state}
+              disabled={
+                saving ||
+                !form.label ||
+                !form.street ||
+                !form.city ||
+                !form.state
+              }
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-xl transition disabled:opacity-50"
             >
-              {saving ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+              {saving ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <CheckCircle size={14} />
+              )}
               Save
             </button>
           </div>
@@ -216,15 +251,21 @@ export default function UserAddressesPage() {
             <div
               key={addr.id}
               className={`rounded-2xl border p-4 ${
-                addr.isDefault ? "border-yellow-500/30 bg-yellow-500/5" : "border-white/5"
+                addr.isDefault
+                  ? "border-yellow-500/30 bg-yellow-500/5"
+                  : "border-white/5"
               }`}
-              style={addr.isDefault ? {} : { background: "rgba(255,255,255,0.03)" }}
+              style={
+                addr.isDefault ? {} : { background: "rgba(255,255,255,0.03)" }
+              }
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <MapPin size={13} className="text-white/40 shrink-0" />
-                    <span className="text-white font-semibold text-sm">{addr.label}</span>
+                    <span className="text-white font-semibold text-sm">
+                      {addr.label}
+                    </span>
                     {addr.isDefault && (
                       <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded-full">
                         Default

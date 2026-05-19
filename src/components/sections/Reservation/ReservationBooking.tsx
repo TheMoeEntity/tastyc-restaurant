@@ -2,15 +2,35 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Clock,
-  MapPin,
-  Users,
-  CheckCircle,
-  Phone,
-} from "lucide-react";
+import { Clock, MapPin, Users, CheckCircle, Phone } from "lucide-react";
 import { fadeUp, stagger } from "@/lib/data/aboutData";
-
+import apiFetch from "@/lib/api";
+const TIME_SLOTS = [
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
+];
 export function ReservationBooking() {
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,7 +46,7 @@ export function ReservationBooking() {
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     setFormData({
       ...formData,
@@ -34,18 +54,36 @@ export function ReservationBooking() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const reservations = JSON.parse(
-      localStorage.getItem("reservations") || "[]"
-    );
-    reservations.push({
-      ...formData,
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-    });
-    localStorage.setItem("reservations", JSON.stringify(reservations));
-    setSubmitted(true);
+    setApiError("");
+    setSubmitting(true);
+
+    try {
+      const res = await apiFetch<any>("/api/reservations", {
+        method: "POST",
+        data: {
+          date: formData.date,
+          time: formData.time,
+          partySize: parseInt(formData.guests),
+          notes: formData.requests.trim() || undefined,
+        },
+      });
+
+      if (!res.success) throw new Error(res.message ?? "Booking failed");
+      setSubmitted(true);
+    } catch (err) {
+      setApiError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const today = new Date().toISOString().split("T")[0];
@@ -203,7 +241,9 @@ export function ReservationBooking() {
                     your email.
                   </p>
                   <div className="bg-white rounded-lg p-4 mb-6 text-left">
-                    <p className="text-sm text-gray-500">Reservation Details:</p>
+                    <p className="text-sm text-gray-500">
+                      Reservation Details:
+                    </p>
                     <p className="text-gray-900 font-semibold text-base">
                       {formData.name}
                     </p>
@@ -333,14 +373,20 @@ export function ReservationBooking() {
                       <label className="block text-base font-semibold text-gray-700 mb-2">
                         Preferred Time *
                       </label>
-                      <input
+                      <select
                         name="time"
-                        type="time"
                         value={formData.time}
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition text-base"
                         required
-                      />
+                      >
+                        <option value="">Select a time</option>
+                        {TIME_SLOTS.map((slot) => (
+                          <option key={slot} value={slot}>
+                            {slot}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -356,12 +402,18 @@ export function ReservationBooking() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition resize-none text-base"
                       />
                     </div>
+                    {apiError && (
+                      <p className="text-red-500 text-sm flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        {apiError}
+                      </p>
+                    )}
 
                     <button
                       type="submit"
-                      className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-base"
+                      disabled={submitting}
+                      className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                     >
-                      Confirm Reservation
+                      {submitting ? "Booking..." : "Confirm Reservation"}
                     </button>
 
                     <p className="text-sm text-gray-400 text-center">

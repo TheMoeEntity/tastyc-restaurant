@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, AlertCircle, RefreshCw, Star } from "lucide-react";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 type TxType = "EARN" | "REDEEM" | "EXPIRE";
 
@@ -18,11 +19,11 @@ interface LoyaltyTransaction {
 interface LoyaltyData {
   currentBalance: number;
   canRedeem: boolean;
-  transactions: LoyaltyTransaction[];
+  recentTransactions: LoyaltyTransaction[];
 }
 
 const TX_COLORS: Record<TxType, string> = {
-  EARN:   "text-green-400 bg-green-500/10 border-green-500/20",
+  EARN: "text-green-400 bg-green-500/10 border-green-500/20",
   REDEEM: "text-orange-400 bg-orange-500/10 border-orange-500/20",
   EXPIRE: "text-red-400 bg-red-500/10 border-red-500/20",
 };
@@ -35,19 +36,25 @@ export default function UserLoyaltyPage() {
   const [error, setError] = useState("");
 
   const runFetch = () =>
-    fetch(`${API}/api/users/loyalty`, { credentials: "include" })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message);
-        setData(json.data);
+    apiFetch<any>(`/api/users/loyalty`)
+      .then((r) => {
+        if (!r.success) throw new Error(r.message);
+        setData(r.data);
         setError("");
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
       .finally(() => setLoading(false));
 
-  useEffect(() => { runFetch(); }, []); // eslint-disable-line
+  useEffect(() => {
+    runFetch();
+  }, []); // eslint-disable-line
 
-  const retry = () => { setLoading(true); runFetch(); };
+  const retry = () => {
+    setLoading(true);
+    runFetch();
+  };
 
   if (loading) {
     return (
@@ -62,14 +69,17 @@ export default function UserLoyaltyPage() {
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <AlertCircle size={24} className="text-red-400" />
         <p className="text-white/40 text-sm">{error}</p>
-        <button onClick={retry} className="flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300">
+        <button
+          onClick={retry}
+          className="flex items-center gap-1.5 text-xs text-yellow-400 hover:text-yellow-300"
+        >
           <RefreshCw size={12} /> Retry
         </button>
       </div>
     );
   }
 
-  const { currentBalance, canRedeem, transactions } = data;
+  const { currentBalance, canRedeem, recentTransactions: transactions } = data;
   const progress = Math.min((currentBalance / MIN_REDEEM) * 100, 100);
   const potentialDiscount = currentBalance * 50;
 
@@ -77,7 +87,9 @@ export default function UserLoyaltyPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-white font-bold text-xl mb-1">Loyalty Points</h1>
-        <p className="text-white/40 text-sm">Earn points on every order and redeem for discounts</p>
+        <p className="text-white/40 text-sm">
+          Earn points on every order and redeem for discounts
+        </p>
       </div>
 
       {/* Balance card */}
@@ -91,13 +103,17 @@ export default function UserLoyaltyPage() {
           </div>
           <div>
             <p className="text-white/40 text-xs">Current Balance</p>
-            <p className="text-yellow-400 font-bold text-4xl leading-none">{currentBalance}</p>
+            <p className="text-yellow-400 font-bold text-4xl leading-none">
+              {currentBalance}
+            </p>
           </div>
         </div>
 
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-white/30">
-            <span>{currentBalance} / {MIN_REDEEM} points to redeem</span>
+            <span>
+              {currentBalance} / {MIN_REDEEM} points to redeem
+            </span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-2 bg-white/5 rounded-full overflow-hidden">
@@ -132,9 +148,13 @@ export default function UserLoyaltyPage() {
         className="rounded-2xl border border-white/5 p-5"
         style={{ background: "rgba(255,255,255,0.03)" }}
       >
-        <h2 className="text-white font-semibold text-sm mb-4">Transaction History</h2>
+        <h2 className="text-white font-semibold text-sm mb-4">
+          Transaction History
+        </h2>
         {transactions.length === 0 ? (
-          <p className="text-white/30 text-sm text-center py-8">No transactions yet.</p>
+          <p className="text-white/30 text-sm text-center py-8">
+            No transactions yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {transactions.map((tx) => (
@@ -157,7 +177,8 @@ export default function UserLoyaltyPage() {
                       tx.type === "EARN" ? "text-green-400" : "text-red-400"
                     }`}
                   >
-                    {tx.type === "EARN" ? "+" : "-"}{Math.abs(tx.points)} pts
+                    {tx.type === "EARN" ? "+" : "-"}
+                    {Math.abs(tx.points)} pts
                   </p>
                   <p className="text-white/20 text-[10px]">
                     {new Date(tx.createdAt).toLocaleDateString("en-NG", {

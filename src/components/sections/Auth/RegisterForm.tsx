@@ -16,8 +16,47 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
+  const getPasswordStrength = (pass: string) => {
+    let score = 0;
+    if (!pass) return { score, label: "", color: "bg-gray-200" };
+    if (pass.length >= 8) score += 1;
+    if (/[a-z]/.test(pass)) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/\d/.test(pass)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
+
+    let label = "";
+    let color = "";
+    switch (score) {
+      case 1:
+      case 2:
+        label = "Weak";
+        color = "bg-red-500";
+        break;
+      case 3:
+        label = "Fair";
+        color = "bg-yellow-500";
+        break;
+      case 4:
+        label = "Good";
+        color = "bg-green-400";
+        break;
+      case 5:
+        label = "Strong";
+        color = "bg-green-600";
+        break;
+      default:
+        label = "Very Weak";
+        color = "bg-red-500";
+    }
+    return { score, label, color };
+  };
+
+  const strength = getPasswordStrength(password);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("sent over", name, email, password);
     onSubmit(name, email, password);
   };
 
@@ -26,9 +65,6 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
       {/* Form */}
       <div className="w-full flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-md">
-
-         
-
           {/* heading */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
@@ -61,7 +97,6 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
 
           {/* form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-
             {/* name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -132,21 +167,48 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
                   )}
                 </button>
               </div>
-              <p className="text-xs text-gray-400 mt-1">
-                Minimum 8 characters
-              </p>
+              
+              <div className="mt-2 space-y-1.5">
+                <div className="flex gap-1 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                  {[1, 2, 3, 4, 5].map((level) => (
+                    <div
+                      key={level}
+                      className={`h-full flex-1 transition-colors duration-300 ${
+                        password && strength.score >= level ? strength.color : "bg-transparent"
+                      }`}
+                    />
+                  ))}
+                </div>
+                {password ? (
+                  <p className="text-xs text-gray-500 flex justify-between">
+                    <span>Password strength: <span className="font-medium text-gray-700">{strength.label}</span></span>
+                    <span className={strength.score >= 4 ? "text-green-600" : "text-gray-400"}>
+                      {strength.score >= 4 ? "✓ Looks good" : "Use 8+ chars, mix case & symbols"}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400">Minimum 8 characters</p>
+                )}
+              </div>
             </div>
 
             {/* terms */}
             <p className="text-xs text-gray-400 leading-relaxed">
               By registering, you agree to our{" "}
-              <Link href="/terms" className="text-yellow-600 hover:underline font-medium">
+              <Link
+                href="/terms"
+                className="text-yellow-600 hover:underline font-medium"
+              >
                 Terms
               </Link>{" "}
               and{" "}
-              <Link href="/privacy" className="text-yellow-600 hover:underline font-medium">
+              <Link
+                href="/privacy"
+                className="text-yellow-600 hover:underline font-medium"
+              >
                 Privacy Policy
-              </Link>.
+              </Link>
+              .
             </p>
 
             {/* submit */}
@@ -178,7 +240,10 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
           </div>
 
           <p className="text-center text-sm text-gray-400">
-            <Link href="/" className="hover:text-yellow-600 transition font-medium">
+            <Link
+              href="/"
+              className="hover:text-yellow-600 transition font-medium"
+            >
               ← Back to Tastyc
             </Link>
           </p>

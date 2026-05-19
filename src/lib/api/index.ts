@@ -1,42 +1,104 @@
-// apps/web/src/lib/api.ts
-import axios from "axios";
+const BASE_URL = "http://localhost:4000";
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true, // sends httpOnly cookies automatically
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+interface FetchOptions extends RequestInit {
+  data?: unknown;
+}
 
-// Silent token refresh interceptor
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
+// ── Refresh-token mutex ───────────────────────────────────────
+// Prevents multiple concurrent 401 responses from each trying to
+// refresh the token independently (race condition).
+let isRefreshing = false;
+let refreshQueue: Array<(ok: boolean) => void> = [];
 
-    // If 401 and we haven't retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+function drainQueue(ok: boolean) {
+  refreshQueue.forEach((resolve) => resolve(ok));
+  refreshQueue = [];
+}
 
-      try {
-        // Silently refresh the access token
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`,
-          {},
-          { withCredentials: true },
-        );
+async function silentRefresh(): Promise<boolean> {
+  if (isRefreshing) {
+    // Another request is already refreshing — wait for its result
+    return new Promise((resolve) => {
+      refreshQueue.push(resolve);
+    });
+  }
 
-        // Retry the original request
-        return api(originalRequest);
-      } catch {
-        // Refresh failed — redirect to login
-        window.location.href = "/auth/login";
-      }
+  isRefreshing = true;
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    console.log("Silent refresh status:", res.status);
+    const body = await res.json();
+    console.log("Silent refresh body:", body);
+    const ok = res.ok;
+    drainQueue(ok);
+    return ok;
+  } catch {
+    drainQueue(false);
+    return false;
+  } finally {
+    isRefreshing = false;
+  }
+}
+
+// ── Core fetch wrapper ────────────────────────────────────────
+// ── Auth endpoints that should never trigger silent refresh ───
+const NO_REFRESH_PATHS = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/refresh",
+];
+
+async function apiFetch<T>(
+  path: string,
+  options: FetchOptions = {},
+  _isRetry = false,
+): Promise<T> {
+  const { data, ...rest } = options;
+  const isFormData = data instanceof FormData;
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...rest,
+    credentials: "include",
+    headers: {
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
+      ...rest.headers,
+    },
+    body: isFormData ? data : data ? JSON.stringify(data) : rest.body,
+  });
+
+  // ── Silent refresh on 401 ─────────────────────────────────
+  if (res.status === 401 && !_isRetry) {
+    const json = await res.json();
+
+    // Never refresh for auth endpoints — surface the real error
+    if (NO_REFRESH_PATHS.some((p) => path.startsWith(p))) {
+      throw new Error(json.message || "Request failed with status 401");
     }
 
-    return Promise.reject(error);
-  },
-);
+    const refreshed = await silentRefresh();
 
-export default api;
+    if (refreshed) {
+      return apiFetch<T>(path, options, true);
+    }
+
+    if (typeof window !== "undefined") {
+      window.location.href = "/auth/login?unauthenticated=true";
+    }
+
+    throw new Error("Session expired. Please log in again.");
+  }
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || `Request failed with status ${res.status}`);
+  }
+
+  return json;
+}
+
+export default apiFetch;

@@ -6,41 +6,32 @@ import { toast } from "sonner";
 import RegisterForm from "@/components/sections/Auth/RegisterForm";
 import { registerUser } from "@/lib/api/auth";
 
-export default function RegisterPage() {
-  const router = useRouter();
+export default function RegisterClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const handleSubmit = async (name: string, email: string, password: string) => {
+  const { push } = useRouter();
+  const handleSubmit = async (
+    name: string,
+    email: string,
+    password: string,
+  ) => {
     setLoading(true);
     setError("");
+
     try {
-      const res = await registerUser({ name, email, password });
+      const res = await registerUser(name, email, password);
 
-      // ✅ store for middleware
-      document.cookie = `token=${res.token}; path=/`;
-      document.cookie = `role=${res.user.role}; path=/`;
-
-      // optional (UI usage)
-      localStorage.setItem("user", JSON.stringify(res.user));
-
-      // ✅ success toast
-      toast.success("Account created successfully");
-
-      // ✅ correct redirect
-      if (res.user.role === "customer") {
-        router.push("/dashboard/user");
-      } else if (res.user.role === "kitchen") {
-        router.push("/dashboard/kitchen");
-      } else {
-        router.push("/dashboard/admin");
+      if (!res.success || !res.data) {
+        throw new Error(res.message || "Registration failed");
       }
 
-    } catch {
-      const message = "Something went wrong. Please try again.";
-      setError(message);
+      toast.success("Account created successfully! Login to continue");
 
-      // ❌ error toast
+      push("/auth/login");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
+      setError(message);
       toast.error(message);
     } finally {
       setLoading(false);
@@ -48,10 +39,6 @@ export default function RegisterPage() {
   };
 
   return (
-    <RegisterForm
-      onSubmit={handleSubmit}
-      loading={loading}
-      error={error}
-    />
+    <RegisterForm onSubmit={handleSubmit} loading={loading} error={error} />
   );
 }

@@ -574,7 +574,9 @@ export function WishlistSidebar({
                       <h4 className="font-semibold text-gray-800">
                         {item.name}
                       </h4>
-                      <p className="text-yellow-600 font-bold">${item.price}</p>
+                      <p className="text-yellow-600 font-bold">
+                        ₦{item.price.toLocaleString()}
+                      </p>
                       <div className="flex gap-2 mt-2">
                         <button
                           onClick={() => {

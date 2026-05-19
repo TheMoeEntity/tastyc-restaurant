@@ -8,6 +8,7 @@ import MotionWrapper from "@/components/MotionWrapper";
 import { socialLinks } from "@/lib/utils/contactUtils";
 import homeImg3 from "@/../public/assets/homeImg3.jpg";
 import homeImg2 from "@/../public/assets/homeImg2.jpg";
+import apiFetch from "@/lib/api";
 
 export function ContactFormSocial() {
   const [formData, setFormData] = useState({
@@ -19,22 +20,67 @@ export function ContactFormSocial() {
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterMsg, setNewsletterMsg] = useState("");
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
 
+  const handleNewsletter = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewsletterLoading(true);
+    try {
+      const res = await apiFetch<any>("/api/newsletter/subscribe", {
+        method: "POST",
+        data: { email: newsletterEmail },
+      });
+      if (!res.success) throw new Error(res.message);
+      setNewsletterMsg("You're subscribed!");
+      setNewsletterEmail("");
+    } catch (err) {
+      setNewsletterMsg(
+        err instanceof Error ? err.message : "Failed to subscribe",
+      );
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setError("");
+
+    try {
+      const res = await apiFetch<any>("/api/contact", {
+        method: "POST",
+        data: {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          subject: formData.subject,
+          message: formData.message,
+        },
+      });
+
+      if (!res.success) throw new Error(res.message);
       setIsSubmitted(true);
       setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
-      setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1500);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to send message. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -51,23 +97,30 @@ export function ContactFormSocial() {
                     Send Us a Message
                   </h2>
                   <p className="text-gray-600 text-base">
-                    Fill out the form below and we&apos;ll get back to you within 24 hours.
+                    Fill out the form below and we&apos;ll get back to you
+                    within 24 hours.
                   </p>
                 </div>
 
                 {isSubmitted ? (
                   <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
                     <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Message Sent!</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">
+                      Message Sent!
+                    </h3>
                     <p className="text-gray-600">
-                      Thank you for reaching out. We&apos;ll respond as soon as possible.
+                      Thank you for reaching out. We&apos;ll respond as soon as
+                      possible.
                     </p>
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label htmlFor="name" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Your Name *
                         </label>
                         <input
@@ -82,7 +135,10 @@ export function ContactFormSocial() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Email Address *
                         </label>
                         <input
@@ -100,7 +156,10 @@ export function ContactFormSocial() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div>
-                        <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="phone"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Phone Number
                         </label>
                         <input
@@ -114,7 +173,10 @@ export function ContactFormSocial() {
                         />
                       </div>
                       <div>
-                        <label htmlFor="subject" className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label
+                          htmlFor="subject"
+                          className="block text-sm font-semibold text-gray-700 mb-2"
+                        >
                           Subject *
                         </label>
                         <select
@@ -126,7 +188,9 @@ export function ContactFormSocial() {
                           className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 outline-none transition text-base bg-white"
                         >
                           <option value="">Select a subject</option>
-                          <option value="Reservation">Reservation Inquiry</option>
+                          <option value="Reservation">
+                            Reservation Inquiry
+                          </option>
                           <option value="Catering">Catering Request</option>
                           <option value="Feedback">Feedback</option>
                           <option value="Complaint">Complaint</option>
@@ -137,7 +201,10 @@ export function ContactFormSocial() {
                     </div>
 
                     <div>
-                      <label htmlFor="message" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label
+                        htmlFor="message"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
                         Message *
                       </label>
                       <textarea
@@ -151,7 +218,11 @@ export function ContactFormSocial() {
                         placeholder="Tell us how we can help you..."
                       />
                     </div>
-
+                    {error && (
+                      <p className="text-red-500 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                        {error}
+                      </p>
+                    )}
                     <button
                       type="submit"
                       disabled={isSubmitting}
@@ -198,9 +269,11 @@ export function ContactFormSocial() {
                   </p>
                   <div className="w-12 h-0.5 bg-yellow-500/50 mx-auto my-4" />
                   <p className="text-gray-300 text-base">
-                    <strong className="text-yellow-400">Call us:</strong> +234 801 234 5678
+                    <strong className="text-yellow-400">Call us:</strong> +234
+                    801 234 5678
                     <br />
-                    <strong className="text-yellow-400">Email:</strong> hello@tastyc.com
+                    <strong className="text-yellow-400">Email:</strong>{" "}
+                    hello@tastyc.com
                   </p>
                   <Link
                     href="https://maps.google.com/?q=123+Foodie+Street+Lekki+Lagos+Nigeria"
@@ -244,7 +317,8 @@ export function ContactFormSocial() {
                   Join Our <span className="text-yellow-500">Community</span>
                 </h2>
                 <p className="text-gray-300 text-base md:text-lg leading-relaxed mb-8">
-                  Follow us on social media for daily updates, behind-the-scenes content, and special offers.
+                  Follow us on social media for daily updates, behind-the-scenes
+                  content, and special offers.
                 </p>
                 <div className="flex gap-4 justify-center lg:justify-start">
                   {socialLinks.map((social, index) => (
@@ -273,19 +347,39 @@ export function ContactFormSocial() {
                     Get 10% Off Your First Order
                   </h3>
                   <p className="text-gray-300 text-sm md:text-base mb-6">
-                    Subscribe to our newsletter and receive exclusive offers, new menu alerts, and more.
+                    Subscribe to our newsletter and receive exclusive offers,
+                    new menu alerts, and more.
                   </p>
-                  <form className="flex flex-col sm:flex-row gap-3">
+                  <form
+                    onSubmit={handleNewsletter}
+                    className="flex flex-col sm:flex-row gap-3"
+                  >
                     <input
                       type="email"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
                       placeholder="Your email address"
+                      required
                       className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 outline-none transition text-base"
                     />
-                    <button className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl transition whitespace-nowrap">
-                      Subscribe
+                    <button
+                      type="submit"
+                      disabled={newsletterLoading}
+                      className="px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold rounded-xl transition whitespace-nowrap disabled:opacity-50"
+                    >
+                      {newsletterLoading ? "..." : "Subscribe"}
                     </button>
                   </form>
-                  <p className="text-gray-400 text-xs mt-4">No spam. Unsubscribe anytime.</p>
+                  {newsletterMsg && (
+                    <p
+                      className={`text-xs mt-3 ${newsletterMsg.includes("subscribed") ? "text-green-400" : "text-red-400"}`}
+                    >
+                      {newsletterMsg}
+                    </p>
+                  )}
+                  <p className="text-gray-400 text-xs mt-4">
+                    No spam. Unsubscribe anytime.
+                  </p>
                 </div>
               </div>
             </MotionWrapper>

@@ -3,12 +3,23 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ShoppingBag, X, Trash2, LogIn, UserPlus, User } from "lucide-react";
+import {
+  ShoppingBag,
+  X,
+  Trash2,
+  LogIn,
+  UserPlus,
+  User,
+  LayoutDashboard,
+  LogOut,
+} from "lucide-react";
 import Image from "next/image";
 import { navItems } from "@/lib/constants";
 import { HeaderProps } from "@/types";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCartStore } from "@/store/useCartStore";
+import apiFetch from "@/lib/api";
+import { useConfirmModal } from "@/hooks/useConfirmModal";
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,6 +30,9 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [mounted, setMounted] = useState(false);
   const [accountHovered, setAccountHovered] = useState(false);
   const [cartVersion, setCartVersion] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+  const { confirm, modal } = useConfirmModal();
 
   const { items, removeItem, getTotalItems, getSubtotal } = useCartStore();
   const cartItemCount = getTotalItems();
@@ -29,7 +43,29 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
   useEffect(() => {
     setMounted(true);
+    // tastyc_user_id is not httpOnly — intentionally readable by JS for auth detection
+    setIsAuthenticated(document.cookie.includes("tastyc_user_id="));
   }, []);
+
+  const handleLogout = async () => {
+    const confirmed = await confirm({
+      title: "Log out?",
+      message: "You'll need to sign in again to access your account.",
+      confirmLabel: "Log out",
+      cancelLabel: "Stay",
+      danger: true,
+    });
+    if (!confirmed) return;
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // best-effort — clear UI regardless
+    }
+    setIsAuthenticated(false);
+    setAccountHovered(false);
+    setMobileOpen(false);
+    router.push("/");
+  };
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 70);
@@ -65,6 +101,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const mainNavItems = navItems.filter((item) => item.name !== "Account");
 
   return (
+    <>
     <header
       ref={headerRef}
       className={`fixed transition-all duration-900 ease ${isScrolled ? "-top-2" : "top-4"} left-0 z-50 w-full flex justify-center`}
@@ -174,21 +211,43 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                     {/* Invisible bridge to prevent hover gap */}
                     <div className="absolute -top-2 left-0 right-0 h-2" />
                     <div className="bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden w-44">
-                      <Link
-                        href="/auth/login"
-                        className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
-                      >
-                        <LogIn className="w-4 h-4" />
-                        Login
-                      </Link>
-                      <div className="h-px bg-gray-100 mx-3" />
-                      <Link
-                        href="/auth/register"
-                        className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
-                      >
-                        <UserPlus className="w-4 h-4" />
-                        Sign Up
-                      </Link>
+                      {isAuthenticated ? (
+                        <>
+                          <Link
+                            href="/dashboard/user"
+                            className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
+                          >
+                            <LayoutDashboard className="w-4 h-4" />
+                            Dashboard
+                          </Link>
+                          <div className="h-px bg-gray-100 mx-3" />
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
+                          >
+                            <LogOut className="w-4 h-4" />
+                            Logout
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <Link
+                            href="/auth/login"
+                            className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
+                          >
+                            <LogIn className="w-4 h-4" />
+                            Login
+                          </Link>
+                          <div className="h-px bg-gray-100 mx-3" />
+                          <Link
+                            href="/auth/register"
+                            className="flex items-center gap-2.5 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-yellow-50 hover:text-yellow-700 transition"
+                          >
+                            <UserPlus className="w-4 h-4" />
+                            Sign Up
+                          </Link>
+                        </>
+                      )}
                     </div>
                   </motion.div>
                 )}
@@ -281,12 +340,12 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                                 {item.name}
                               </h4>
                               <p className="text-xs text-gray-500 mt-1">
-                                {item.quantity} × ${item.price.toFixed(2)}
+                                {item.quantity} × ${item.price.toLocaleString()}
                               </p>
                             </div>
                             <div className="text-right shrink-0">
                               <p className="text-sm font-bold text-yellow-600 whitespace-nowrap">
-                                ${(item.quantity * item.price).toFixed(2)}
+                                ₦{(item.quantity * item.price).toLocaleString()}
                               </p>
                               <button
                                 onClick={() => removeItem(item.id)}
@@ -305,7 +364,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                         <div className="flex justify-between items-center font-bold text-gray-900 text-sm">
                           <span>Subtotal:</span>
                           <span className="text-yellow-600">
-                            ${subtotal.toFixed(2)}
+                            ₦{subtotal.toLocaleString()}
                           </span>
                         </div>
                         <div className="flex gap-2">
@@ -317,7 +376,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                             View Cart
                           </Link>
                           <Link
-                            href="/cart"
+                            href="/checkout"
                             onClick={() => setCartPreviewOpen(false)}
                             className="flex-1 text-center py-2.5 bg-yellow-500 text-black font-bold text-sm rounded-lg hover:bg-yellow-400 transition"
                           >
@@ -400,22 +459,44 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                               className="overflow-hidden"
                             >
                               <div className="pb-3 flex gap-3">
-                                <Link
-                                  href="/auth/login"
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 font-semibold text-sm rounded-lg transition"
-                                >
-                                  <LogIn className="w-4 h-4" />
-                                  Login
-                                </Link>
-                                <Link
-                                  href="/auth/register"
-                                  onClick={() => setMobileOpen(false)}
-                                  className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
-                                >
-                                  <UserPlus className="w-4 h-4" />
-                                  Register
-                                </Link>
+                                {isAuthenticated ? (
+                                  <>
+                                    <Link
+                                      href="/dashboard/user"
+                                      onClick={() => setMobileOpen(false)}
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold text-sm rounded-lg transition"
+                                    >
+                                      <LayoutDashboard className="w-4 h-4" />
+                                      Dashboard
+                                    </Link>
+                                    <button
+                                      onClick={handleLogout}
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-red-400 text-gray-700 hover:text-red-600 font-semibold text-sm rounded-lg transition"
+                                    >
+                                      <LogOut className="w-4 h-4" />
+                                      Logout
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Link
+                                      href="/auth/login"
+                                      onClick={() => setMobileOpen(false)}
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 border border-gray-200 hover:border-yellow-500 text-gray-700 font-semibold text-sm rounded-lg transition"
+                                    >
+                                      <LogIn className="w-4 h-4" />
+                                      Login
+                                    </Link>
+                                    <Link
+                                      href="/auth/register"
+                                      onClick={() => setMobileOpen(false)}
+                                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-900 hover:bg-gray-800 text-white font-semibold text-sm rounded-lg transition"
+                                    >
+                                      <UserPlus className="w-4 h-4" />
+                                      Register
+                                    </Link>
+                                  </>
+                                )}
                               </div>
                             </motion.div>
                           )}
@@ -490,5 +571,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
         </AnimatePresence>
       </div>
     </header>
+    {modal}
+    </>
   );
 }

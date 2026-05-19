@@ -20,8 +20,9 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 type OrderStatus =
   | "PENDING"
@@ -33,12 +34,11 @@ type OrderType = "DELIVERY" | "PICKUP";
 
 interface OrderItem {
   id: string;
-  name: string;
+  menuItem: { name: string; image?: string };
   quantity: number;
-  price: number;
-  image?: string;
-  spicy?: boolean;
-  veg?: boolean;
+  unitPrice: number; // ← matches Prisma field name
+  totalPrice: number;
+  notes?: string;
 }
 
 interface OrderData {
@@ -147,11 +147,10 @@ export default function OrderTrackingClient({ id }: { id: string }) {
 
   // Fetch initial order data
   useEffect(() => {
-    fetch(`${API}/api/orders/${id}`, { credentials: "include" })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message ?? "Order not found");
-        setOrder(json.data);
+    apiFetch<any>(`/api/orders/${id}`)
+      .then((r) => {
+        if (!r.success) throw new Error(r.message ?? "Order not found");
+        setOrder(r.data.order);
         setFetchState("ok");
       })
       .catch((err: unknown) => {
@@ -164,6 +163,7 @@ export default function OrderTrackingClient({ id }: { id: string }) {
 
   // Socket.IO live updates
   useEffect(() => {
+    const API = process.env.NEXT_PUBLIC_API_URL;
     const token = getCookieToken();
     const socket = io(API!, { auth: { token }, transports: ["websocket"] });
     socketRef.current = socket;
@@ -358,15 +358,15 @@ export default function OrderTrackingClient({ id }: { id: string }) {
               <div key={idx} className="flex gap-3 items-center">
                 <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                   <Image
-                    src={item.image || "/assets/homeImg1.jpg"}
-                    alt={item.name}
+                    src={item.menuItem.image || "/assets/homeImg1.jpg"}
+                    alt={item.menuItem.name}
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-gray-800 text-sm truncate">
-                    {item.name}
+                    {item.menuItem.name}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {item.spicy && <Flame className="w-3 h-3 text-red-500" />}
@@ -377,7 +377,7 @@ export default function OrderTrackingClient({ id }: { id: string }) {
                   </div>
                 </div>
                 <p className="font-bold text-yellow-600 text-sm shrink-0">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ₦{item.totalPrice.toLocaleString()}
                 </p>
               </div>
             ))}
@@ -429,25 +429,25 @@ export default function OrderTrackingClient({ id }: { id: string }) {
               {order.subtotal != null && (
                 <div className="flex justify-between text-gray-500">
                   <span>Subtotal</span>
-                  <span>${order.subtotal.toFixed(2)}</span>
+                  <span>₦{order.subtotal.toLocaleString()}</span>
                 </div>
               )}
               {order.deliveryFee != null && order.deliveryFee > 0 && (
                 <div className="flex justify-between text-gray-500">
                   <span>Delivery</span>
-                  <span>${order.deliveryFee.toFixed(2)}</span>
+                  <span>₦{order.deliveryFee.toLocaleString()}</span>
                 </div>
               )}
               {order.tax != null && order.tax > 0 && (
                 <div className="flex justify-between text-gray-500">
                   <span>Tax</span>
-                  <span>${order.tax.toFixed(2)}</span>
+                  <span>₦{order.tax.toLocaleString()}</span>
                 </div>
               )}
               <div className="border-t border-gray-100 pt-2 flex justify-between font-black text-gray-900">
                 <span>Total</span>
                 <span className="text-yellow-600">
-                  ${order.total.toFixed(2)}
+                  ₦{order.total.toLocaleString()}
                 </span>
               </div>
             </div>

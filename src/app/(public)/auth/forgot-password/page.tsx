@@ -12,7 +12,7 @@ import {
 import { forgotPassword } from "@/lib/api/auth";
 import { toast } from "sonner";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");

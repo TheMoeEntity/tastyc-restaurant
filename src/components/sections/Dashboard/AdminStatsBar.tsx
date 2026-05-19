@@ -11,13 +11,19 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 const fmt = (n: number) => `₦${Math.round(n).toLocaleString("en-NG")}`;
 
 interface Overview {
   today: { revenue: number; orders: number };
-  thisMonth: { revenue: number; orders: number; newCustomers: number; averageOrderValue: number };
+  thisMonth: {
+    revenue: number;
+    orders: number;
+    newCustomers: number;
+    averageOrderValue: number;
+  };
   changes: { revenue: number; orders: number };
   totals: { customers: number; pendingOrders: number };
 }
@@ -43,11 +49,10 @@ export default function AdminStatsBar() {
   const [error, setError] = useState("");
 
   const runFetch = () =>
-    fetch(`${API}/api/dashboard/overview`, { credentials: "include" })
+    apiFetch<any>(`/api/dashboard/overview`)
       .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message ?? "Failed to load");
-        setData(json.data);
+        if (!r.success) throw new Error(r.message ?? "Failed to load");
+        setData(r.data);
         setError("");
       })
       .catch((err: unknown) => {
@@ -55,9 +60,15 @@ export default function AdminStatsBar() {
       })
       .finally(() => setLoading(false));
 
-  useEffect(() => { runFetch(); }, []);
+  useEffect(() => {
+    runFetch();
+  }, []);
 
-  const retry = () => { setLoading(true); setError(""); runFetch(); };
+  const retry = () => {
+    setLoading(true);
+    setError("");
+    runFetch();
+  };
 
   if (loading) {
     return (
@@ -125,7 +136,10 @@ export default function AdminStatsBar() {
       change: null as number | null,
       gradient: "from-yellow-400 to-orange-400",
       bg: "bg-yellow-500/10",
-      border: data.totals.pendingOrders > 0 ? "border-yellow-400/60" : "border-yellow-500/20",
+      border:
+        data.totals.pendingOrders > 0
+          ? "border-yellow-400/60"
+          : "border-yellow-500/20",
       icon: Clock,
       attention: data.totals.pendingOrders > 0,
     },
@@ -153,31 +167,42 @@ export default function AdminStatsBar() {
 
   return (
     <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
-      {stats.map(({ label, value, change, attention, gradient, bg, border, icon: Icon }) => (
-        <div
-          key={label}
-          className={`relative rounded-2xl p-4 border ${border} ${bg} overflow-hidden`}
-        >
-          <div className="flex items-start justify-between mb-2">
-            <div
-              className={`w-9 h-9 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center`}
-            >
-              <Icon size={16} className="text-white" />
-            </div>
-            {change !== null && <ChangeIndicator pct={change} />}
-            {attention && (
-              <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded-full">
-                Needs attention
-              </span>
-            )}
-          </div>
-          <p className="text-white font-bold text-xl">{value}</p>
-          <p className="text-white/40 text-xs mt-0.5">{label}</p>
+      {stats.map(
+        ({
+          label,
+          value,
+          change,
+          attention,
+          gradient,
+          bg,
+          border,
+          icon: Icon,
+        }) => (
           <div
-            className={`absolute -right-4 -top-4 w-20 h-20 bg-linear-to-br ${gradient} opacity-10 rounded-full blur-2xl`}
-          />
-        </div>
-      ))}
+            key={label}
+            className={`relative rounded-2xl p-4 border ${border} ${bg} overflow-hidden`}
+          >
+            <div className="flex items-start justify-between mb-2">
+              <div
+                className={`w-9 h-9 rounded-xl bg-linear-to-br ${gradient} flex items-center justify-center`}
+              >
+                <Icon size={16} className="text-white" />
+              </div>
+              {change !== null && <ChangeIndicator pct={change} />}
+              {attention && (
+                <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/20 px-2 py-0.5 rounded-full">
+                  Needs attention
+                </span>
+              )}
+            </div>
+            <p className="text-white font-bold text-xl">{value}</p>
+            <p className="text-white/40 text-xs mt-0.5">{label}</p>
+            <div
+              className={`absolute -right-4 -top-4 w-20 h-20 bg-linear-to-br ${gradient} opacity-10 rounded-full blur-2xl`}
+            />
+          </div>
+        ),
+      )}
     </div>
   );
 }

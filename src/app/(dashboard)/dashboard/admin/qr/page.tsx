@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { QrCode, Download, Loader2, AlertCircle, Wifi } from "lucide-react";
 import Image from "next/image";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 interface QRCode {
   tableNumber: number;
@@ -20,10 +21,9 @@ export default function AdminQRPage() {
   const [activeSessions, setActiveSessions] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(`${API}/api/qr/active-sessions`, { credentials: "include" })
-      .then(async (r) => {
-        const json = await r.json();
-        if (json.success) setActiveSessions(json.data?.count ?? json.data ?? 0);
+    apiFetch<any>(`/api/qr/active-sessions`)
+      .then((r) => {
+        if (r.success) setActiveSessions(r.data?.count ?? r.data ?? 0);
       })
       .catch(() => {});
   }, []);
@@ -32,15 +32,12 @@ export default function AdminQRPage() {
     setGenerating(true);
     setError("");
     try {
-      const r = await fetch(`${API}/api/qr/generate-all`, {
+      const r = await apiFetch<any>(`api/qr/generate-all`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ tableCount }),
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.message ?? "Generation failed");
-      setQrCodes(json.data ?? []);
+      if (!r.success) throw new Error(r.message ?? "Generation failed");
+      setQrCodes(r.data ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Generation failed");
     } finally {
@@ -60,7 +57,9 @@ export default function AdminQRPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-white font-bold text-xl mb-1">QR Codes</h1>
-          <p className="text-white/40 text-sm">Generate and manage table QR codes</p>
+          <p className="text-white/40 text-sm">
+            Generate and manage table QR codes
+          </p>
         </div>
         {activeSessions !== null && (
           <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-500/10 border border-green-500/20">
@@ -79,7 +78,9 @@ export default function AdminQRPage() {
         <p className="text-white/60 text-sm font-semibold">Generate QR Codes</p>
         <div className="flex items-center gap-4">
           <div>
-            <label className="block text-white/40 text-xs mb-1.5">Number of tables</label>
+            <label className="block text-white/40 text-xs mb-1.5">
+              Number of tables
+            </label>
             <input
               type="number"
               min={1}
@@ -95,9 +96,13 @@ export default function AdminQRPage() {
             className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-xl transition disabled:opacity-50 mt-5"
           >
             {generating ? (
-              <><Loader2 size={14} className="animate-spin" /> Generating…</>
+              <>
+                <Loader2 size={14} className="animate-spin" /> Generating…
+              </>
             ) : (
-              <><QrCode size={14} /> Generate</>
+              <>
+                <QrCode size={14} /> Generate
+              </>
             )}
           </button>
         </div>
@@ -128,7 +133,9 @@ export default function AdminQRPage() {
                     className="object-contain p-1"
                   />
                 </div>
-                <p className="text-white font-semibold text-sm">Table {qr.tableNumber}</p>
+                <p className="text-white font-semibold text-sm">
+                  Table {qr.tableNumber}
+                </p>
                 <button
                   onClick={() => downloadQR(qr)}
                   className="flex items-center justify-center gap-1.5 w-full py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-white/60 hover:text-white text-xs transition"

@@ -15,14 +15,15 @@ import {
   CreditCard,
   RefreshCw,
 } from "lucide-react";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 interface VerifyData {
   reference: string;
   amount: number;
   currency: string;
-  paid_at: string;
+  paidAt: string;
   gateway_response: string;
   channel: string;
 }
@@ -30,47 +31,49 @@ interface VerifyData {
 function ConfirmContent() {
   const params = useParams();
   const searchParams = useSearchParams();
-  const reference = searchParams.get("reference") ?? searchParams.get("trxref") ?? "";
+  const reference =
+    searchParams.get("reference") ?? searchParams.get("trxref") ?? "";
   const orderId = params.id as string;
 
   const [state, setState] = useState<"loading" | "success" | "error">(
-    reference ? "loading" : "error"
+    reference ? "loading" : "error",
   );
   const [data, setData] = useState<VerifyData | null>(null);
   const [errorMsg, setErrorMsg] = useState(
-    reference ? "" : "No payment reference found in the URL."
+    reference ? "" : "No payment reference found in the URL.",
   );
 
   useEffect(() => {
     if (!reference) return;
 
-    fetch(`${API}/api/payments/verify/${reference}`, {
-      credentials: "include",
-    })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message ?? "Verification failed");
-        setData(json.data);
+    apiFetch<any>(`/api/payments/verify/${reference}`)
+      .then((r) => {
+        if (!r.success) throw new Error(r.message ?? "Verification failed");
+        setData(r.data);
         setState("success");
       })
       .catch((err: unknown) => {
-        setErrorMsg(err instanceof Error ? err.message : "Could not verify payment.");
+        setErrorMsg(
+          err instanceof Error ? err.message : "Could not verify payment.",
+        );
         setState("error");
       });
   }, [reference]);
 
   const amountFormatted = data
-    ? `₦${(data.amount / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
+    ? `₦${data.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}`
     : null;
 
   const paidAt = data
-    ? new Date(data.paid_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })
+    ? new Date(data.paidAt).toLocaleString("en-US", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : null;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-
         {/* Loading */}
         {state === "loading" && (
           <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-10 text-center">
@@ -118,7 +121,9 @@ function ConfirmContent() {
                     <CreditCard className="w-3.5 h-3.5" />
                     Amount
                   </div>
-                  <span className="text-sm font-black text-yellow-600">{amountFormatted}</span>
+                  <span className="text-sm font-black text-yellow-600">
+                    {amountFormatted}
+                  </span>
                 </div>
               )}
 
@@ -128,7 +133,9 @@ function ConfirmContent() {
                     <Calendar className="w-3.5 h-3.5" />
                     Paid at
                   </div>
-                  <span className="text-sm font-medium text-gray-700">{paidAt}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {paidAt}
+                  </span>
                 </div>
               )}
 
@@ -192,7 +199,10 @@ function ConfirmContent() {
         )}
 
         <div className="text-center mt-6">
-          <Link href="/order" className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 transition text-sm">
+          <Link
+            href="/order"
+            className="inline-flex items-center gap-2 text-gray-400 hover:text-gray-600 transition text-sm"
+          >
             <ArrowLeft className="w-3.5 h-3.5" />
             All orders
           </Link>
@@ -204,11 +214,13 @@ function ConfirmContent() {
 
 export default function PaymentConfirmPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 text-yellow-500 animate-spin" />
+        </div>
+      }
+    >
       <ConfirmContent />
     </Suspense>
   );

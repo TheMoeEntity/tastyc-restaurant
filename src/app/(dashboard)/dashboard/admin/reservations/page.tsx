@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { Loader2, AlertCircle, RefreshCw, Calendar } from "lucide-react";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
 
@@ -22,7 +23,7 @@ interface Reservation {
 }
 
 const STATUS_COLORS: Record<ReservationStatus, string> = {
-  PENDING:   "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+  PENDING: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
   CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
   CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
   COMPLETED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
@@ -39,30 +40,32 @@ export default function AdminReservationsPage() {
   const fetchReservations = (d: string) => {
     setLoading(true);
     setError("");
-    fetch(`${API}/api/reservations?date=${d}`, { credentials: "include" })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error(json.message);
-        setReservations(json.data?.reservations ?? json.data ?? []);
+    apiFetch<any>(`/api/reservations?date=${d}`)
+      .then((r) => {
+        if (!r.success) throw new Error(r.message);
+        setReservations(r.data?.reservations ?? r.data ?? []);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchReservations(date); }, [date]);
+  useEffect(() => {
+    fetchReservations(date);
+  }, [date]);
 
   const updateStatus = async (id: string, status: ReservationStatus) => {
     setUpdatingId(id);
     try {
-      const r = await fetch(`${API}/api/reservations/${id}`, {
+      const r = await apiFetch<any>(`api/reservations/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ status }),
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.message);
-      setReservations((prev) => prev.map((rv) => (rv.id === id ? { ...rv, status } : rv)));
+      if (!r.success) throw new Error(r.message);
+      setReservations((prev) =>
+        prev.map((rv) => (rv.id === id ? { ...rv, status } : rv)),
+      );
     } finally {
       setUpdatingId(null);
     }
@@ -73,16 +76,13 @@ export default function AdminReservationsPage() {
     if (!tableNumber) return;
     setUpdatingId(id);
     try {
-      const r = await fetch(`${API}/api/reservations/${id}`, {
+      const r = await apiFetch<any>(`api/reservations/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ tableNumber }),
       });
-      const json = await r.json();
-      if (!json.success) throw new Error(json.message);
+      if (!r.success) throw new Error(r.message);
       setReservations((prev) =>
-        prev.map((rv) => (rv.id === id ? { ...rv, tableNumber } : rv))
+        prev.map((rv) => (rv.id === id ? { ...rv, tableNumber } : rv)),
       );
       setTableInput((prev) => ({ ...prev, [id]: "" }));
     } finally {
@@ -94,7 +94,9 @@ export default function AdminReservationsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-white font-bold text-xl mb-1">Reservations</h1>
-        <p className="text-white/40 text-sm">Manage table reservations by date</p>
+        <p className="text-white/40 text-sm">
+          Manage table reservations by date
+        </p>
       </div>
 
       <div className="flex items-center gap-3">
@@ -130,7 +132,14 @@ export default function AdminReservationsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-white/5">
-                {["Customer", "Date & Time", "Party", "Status", "Table", "Actions"].map((h) => (
+                {[
+                  "Customer",
+                  "Date & Time",
+                  "Party",
+                  "Status",
+                  "Table",
+                  "Actions",
+                ].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-3 text-left text-white/30 text-xs font-semibold uppercase tracking-wider"
@@ -145,15 +154,22 @@ export default function AdminReservationsPage() {
                 const name = rv.user?.name ?? rv.customerName ?? "Guest";
                 const email = rv.user?.email ?? rv.customerEmail ?? "";
                 return (
-                  <tr key={rv.id} className="hover:bg-white/3 transition-colors">
+                  <tr
+                    key={rv.id}
+                    className="hover:bg-white/3 transition-colors"
+                  >
                     <td className="px-4 py-3">
-                      <p className="text-white/80 text-xs font-medium">{name}</p>
+                      <p className="text-white/80 text-xs font-medium">
+                        {name}
+                      </p>
                       <p className="text-white/30 text-[10px]">{email}</p>
                     </td>
                     <td className="px-4 py-3 text-white/60 text-xs">
                       {rv.date} {rv.time}
                     </td>
-                    <td className="px-4 py-3 text-white/60 text-xs">{rv.partySize}</td>
+                    <td className="px-4 py-3 text-white/60 text-xs">
+                      {rv.partySize}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold border ${STATUS_COLORS[rv.status]}`}
@@ -163,14 +179,19 @@ export default function AdminReservationsPage() {
                     </td>
                     <td className="px-4 py-3">
                       {rv.tableNumber ? (
-                        <span className="text-white/60 text-xs">#{rv.tableNumber}</span>
+                        <span className="text-white/60 text-xs">
+                          #{rv.tableNumber}
+                        </span>
                       ) : (
                         <div className="flex items-center gap-1">
                           <input
                             placeholder="#"
                             value={tableInput[rv.id] ?? ""}
                             onChange={(e) =>
-                              setTableInput((p) => ({ ...p, [rv.id]: e.target.value }))
+                              setTableInput((p) => ({
+                                ...p,
+                                [rv.id]: e.target.value,
+                              }))
                             }
                             className="w-14 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-white outline-none"
                           />
@@ -195,7 +216,8 @@ export default function AdminReservationsPage() {
                             Confirm
                           </button>
                         )}
-                        {(rv.status === "PENDING" || rv.status === "CONFIRMED") && (
+                        {(rv.status === "PENDING" ||
+                          rv.status === "CONFIRMED") && (
                           <>
                             <button
                               onClick={() => updateStatus(rv.id, "COMPLETED")}
@@ -214,7 +236,10 @@ export default function AdminReservationsPage() {
                           </>
                         )}
                         {updatingId === rv.id && (
-                          <Loader2 size={12} className="text-yellow-400 animate-spin" />
+                          <Loader2
+                            size={12}
+                            className="text-yellow-400 animate-spin"
+                          />
                         )}
                       </div>
                     </td>

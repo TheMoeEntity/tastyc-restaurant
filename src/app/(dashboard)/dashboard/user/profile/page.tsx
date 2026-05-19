@@ -1,10 +1,19 @@
 "use client";
-
+import apiFetch from "@/lib/api";
 import { useEffect, useState, useRef } from "react";
-import { Loader2, AlertCircle, CheckCircle, Upload, Lock } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  Upload,
+  Lock,
+  X,
+} from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
+import { AnimatePresence, motion } from "framer-motion";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 interface Profile {
   id: string;
@@ -30,6 +39,7 @@ export default function UserProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [avatarPreview, setAvatarPreview] = useState("");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   // Password
   const [currentPassword, setCurrentPassword] = useState("");
@@ -40,18 +50,31 @@ export default function UserProfilePage() {
   const [passwordError, setPasswordError] = useState("");
 
   useEffect(() => {
-    fetch(`${API}/api/users/profile`, { credentials: "include" })
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setAvatarModalOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    apiFetch<any>(`/api/users/profile`)
       .then(async (r) => {
-        const json = await r.json();
+        const json = await r;
         if (!json.success) throw new Error(json.message);
-        const p: Profile = json.data;
+        const p: Profile = json.data.user;
         setProfile(p);
         setName(p.name);
         setPhone(p.phone ?? "");
         setAvatarPreview(p.avatar ?? "");
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Failed to load"))
-      .finally(() => setLoading(false));
+      .catch((err: unknown) =>
+        setError(err instanceof Error ? err.message : "Failed to load"),
+      )
+      .finally(() => {
+        console.log(profile);
+        setLoading(false);
+      });
   }, []);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,18 +83,19 @@ export default function UserProfilePage() {
     setUploadingAvatar(true);
     try {
       const fd = new FormData();
-      fd.append("image", file);
-      const r = await fetch(`${API}/api/upload/avatar`, {
+      fd.append("image", file); // match upload.single("avatar")
+
+      const json = await apiFetch<any>(`/api/upload/avatar`, {
         method: "POST",
-        credentials: "include",
-        body: fd,
+        data: fd, // use data, not body — so apiFetch can detect FormData
       });
-      const json = await r.json();
+
       if (!json.success) throw new Error(json.message ?? "Upload failed");
-      setAvatarPreview(json.data.url);
-      setProfile((p) => p ? { ...p, avatar: json.data.url } : p);
+      setAvatarPreview(json.data.user.avatar);
+      setProfile((p) => (p ? { ...p, avatar: json.data.url } : p));
+      toast.success("Profile updated successfully.");
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : "Upload failed");
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploadingAvatar(false);
     }
@@ -81,15 +105,15 @@ export default function UserProfilePage() {
     setSavingProfile(true);
     setProfileMsg("");
     try {
-      const r = await fetch(`${API}/api/users/profile`, {
+      const json = await apiFetch<any>(`/api/users/profile`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ name: name || undefined, phone: phone || undefined }),
+        data: {
+          name: name || undefined,
+          phone: phone || undefined,
+        },
       });
-      const json = await r.json();
       if (!json.success) throw new Error(json.message);
-      setProfile((p) => p ? { ...p, name, phone } : p);
+      setProfile((p) => (p ? { ...p, name, phone } : p));
       setProfileMsg("Profile updated successfully.");
     } catch (err: unknown) {
       setProfileMsg(err instanceof Error ? err.message : "Update failed");
@@ -111,20 +135,22 @@ export default function UserProfilePage() {
     }
     setSavingPassword(true);
     try {
-      const r = await fetch(`${API}/api/users/profile/password`, {
+      const json = await apiFetch<any>(`/api/users/profile/password`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ currentPassword, newPassword }),
+        data: {
+          currentPassword,
+          newPassword,
+        },
       });
-      const json = await r.json();
       if (!json.success) throw new Error(json.message);
       setPasswordMsg("Password changed successfully.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: unknown) {
-      setPasswordError(err instanceof Error ? err.message : "Failed to change password");
+      setPasswordError(
+        err instanceof Error ? err.message : "Failed to change password",
+      );
     } finally {
       setSavingPassword(false);
     }
@@ -159,9 +185,27 @@ export default function UserProfilePage() {
         className="rounded-2xl border border-white/5 p-5 flex items-center gap-5"
         style={{ background: "rgba(255,255,255,0.03)" }}
       >
-        <div className="relative w-16 h-16 rounded-full overflow-hidden bg-white/5 shrink-0">
+        <button
+          type="button"
+          onClick={() => avatarPreview && setAvatarModalOpen(true)}
+          className={`relative w-16 h-16 rounded-full overflow-hidden bg-white/5 shrink-0 group ${avatarPreview ? "cursor-pointer" : "cursor-default"}`}
+          aria-label="View profile photo"
+        >
           {avatarPreview ? (
-            <Image src={avatarPreview} alt="avatar" fill className="object-cover" />
+            <>
+              <Image
+                src={avatarPreview}
+                alt="avatar"
+                fill
+                quality={100}
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
+                <span className="text-white text-[10px] font-medium opacity-0 group-hover:opacity-100 transition">
+                  View
+                </span>
+              </div>
+            </>
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl">
               {profile.name[0]?.toUpperCase()}
@@ -172,10 +216,12 @@ export default function UserProfilePage() {
               <Loader2 size={16} className="text-white animate-spin" />
             </div>
           )}
-        </div>
+        </button>
         <div>
           <p className="text-white font-semibold text-sm">{profile.name}</p>
-          <p className="text-white/40 text-xs mb-2 capitalize">{profile.role.toLowerCase()}</p>
+          <p className="text-white/40 text-xs mb-2 capitalize">
+            {profile.role.toLowerCase()}
+          </p>
           <input
             ref={fileRef}
             type="file"
@@ -201,7 +247,9 @@ export default function UserProfilePage() {
         <p className="text-white font-semibold text-sm">Personal Information</p>
         <div className="space-y-3">
           <div>
-            <label className="block text-white/40 text-xs mb-1.5">Full Name</label>
+            <label className="block text-white/40 text-xs mb-1.5">
+              Full Name
+            </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -209,7 +257,9 @@ export default function UserProfilePage() {
             />
           </div>
           <div>
-            <label className="block text-white/40 text-xs mb-1.5">Email (read-only)</label>
+            <label className="block text-white/40 text-xs mb-1.5">
+              Email (read-only)
+            </label>
             <input
               value={profile.email}
               readOnly
@@ -227,7 +277,9 @@ export default function UserProfilePage() {
           </div>
         </div>
         {profileMsg && (
-          <p className={`text-xs flex items-center gap-1.5 ${profileMsg.includes("success") ? "text-green-400" : "text-red-400"}`}>
+          <p
+            className={`text-xs flex items-center gap-1.5 ${profileMsg.includes("success") ? "text-green-400" : "text-red-400"}`}
+          >
             <CheckCircle size={12} /> {profileMsg}
           </p>
         )}
@@ -236,7 +288,11 @@ export default function UserProfilePage() {
           disabled={savingProfile}
           className="flex items-center gap-2 px-4 py-2.5 bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-sm rounded-xl transition disabled:opacity-50"
         >
-          {savingProfile ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+          {savingProfile ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <CheckCircle size={14} />
+          )}
           Save Changes
         </button>
       </div>
@@ -277,17 +333,74 @@ export default function UserProfilePage() {
             }`}
           />
         </div>
-        {passwordError && <p className="text-red-400 text-xs">{passwordError}</p>}
+        {passwordError && (
+          <p className="text-red-400 text-xs">{passwordError}</p>
+        )}
         {passwordMsg && <p className="text-green-400 text-xs">{passwordMsg}</p>}
         <button
           onClick={savePassword}
           disabled={savingPassword || !currentPassword || !newPassword}
           className="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white/70 hover:text-white font-semibold text-sm rounded-xl transition disabled:opacity-50"
         >
-          {savingPassword ? <Loader2 size={14} className="animate-spin" /> : <Lock size={14} />}
+          {savingPassword ? (
+            <Loader2 size={14} className="animate-spin" />
+          ) : (
+            <Lock size={14} />
+          )}
           Update Password
         </button>
       </div>
+
+      {/* Avatar preview modal */}
+      <AnimatePresence>
+        {avatarModalOpen && avatarPreview && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setAvatarModalOpen(false)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+
+            {/* Image card */}
+            <motion.div
+              className="relative z-10 flex flex-col items-center gap-4"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative w-72 h-72 rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl">
+                <Image
+                  src={avatarPreview}
+                  alt="Profile photo"
+                  fill
+                  className="object-cover"
+                  sizes="288px"
+                />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-semibold text-sm">
+                  {profile.name}
+                </p>
+                <p className="text-white/40 text-xs capitalize">
+                  {profile.role.toLowerCase()}
+                </p>
+              </div>
+              <button
+                onClick={() => setAvatarModalOpen(false)}
+                className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 px-4 py-2 rounded-xl transition"
+              >
+                <X size={12} /> Close
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -4,14 +4,14 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
 
-// NAVIGATION 
+// NAVIGATION
 
 export interface NavLink {
   name: string;
   href: string;
 }
 
-// ANIMATION 
+// ANIMATION
 
 export type AnimationVariant =
   | "fade-up"
@@ -19,6 +19,22 @@ export type AnimationVariant =
   | "fade-left"
   | "fade-right"
   | "fade-in";
+
+export interface CartItem {
+  id: string; // composite: menuItemId or menuItemId-variantId
+  menuItemId: string; // ← add this
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  category: string;
+  image: string;
+  variantId?: string;
+  variantName?: string;
+  spicy?: boolean;
+  veg?: boolean;
+  popular?: boolean;
+}
 
 export interface MotionWrapperProps {
   children: React.ReactNode;
@@ -29,13 +45,13 @@ export interface MotionWrapperProps {
   className?: string;
 }
 
-// HEADER 
+// HEADER
 
 export interface HeaderProps {
   cartCount?: number;
 }
 
-// MENU 
+// MENU
 
 export interface MenuItem {
   id: string;
@@ -58,7 +74,7 @@ export interface MenuCategory {
   icon: LucideIcon;
 }
 
-// SHOP 
+// SHOP
 
 export interface Product {
   id: string;
@@ -105,7 +121,7 @@ export type SortOption = "default" | "price-asc" | "price-desc" | "rating";
 
 export type ViewMode = "grid" | "list";
 
-// CART 
+// CART
 
 // Single CartItem shape used everywhere — menu page, shop page, and cart page.
 // When adding a MenuItem, map it to this shape.
@@ -123,7 +139,7 @@ export interface CartItem {
   veg?: boolean;
 }
 
-// PROMO 
+// PROMO
 
 export interface AppliedPromo {
   code: string;
@@ -132,7 +148,7 @@ export interface AppliedPromo {
   appliedAt: string;
 }
 
-// ORDERS 
+// ORDERS
 
 export type OrderStatus =
   | "pending"
@@ -168,4 +184,7 @@ export interface Order {
 
 // PlaceOrderPayload is what the cart page sends — no id/orderNumber/date/time
 // those are generated inside the store
-export type PlaceOrderPayload = Omit<Order, "id" | "orderNumber" | "date" | "time">;
+export type PlaceOrderPayload = Omit<
+  Order,
+  "id" | "orderNumber" | "date" | "time"
+>;

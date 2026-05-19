@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Wifi, WifiOff, Clock, Flame, CheckCircle2 } from "lucide-react";
+import {
+  Loader2,
+  Wifi,
+  WifiOff,
+  Clock,
+  Flame,
+  CheckCircle2,
+} from "lucide-react";
 import { io, Socket } from "socket.io-client";
+import apiFetch from "@/lib/api";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -73,7 +81,12 @@ function Clock12() {
   const [time, setTime] = useState("");
   useEffect(() => {
     const update = () =>
-      setTime(new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }));
+      setTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      );
     update();
     const t = setInterval(update, 1000);
     return () => clearInterval(t);
@@ -99,20 +112,22 @@ function OrderCard({
   }, [flash]);
 
   const handleAction = async () => {
-    const next: OrderStatus = order.status === "CONFIRMED" ? "PREPARING" : "READY";
+    const next: OrderStatus =
+      order.status === "CONFIRMED" ? "PREPARING" : "READY";
     setUpdating(true);
     await onUpdate(order.id, next);
     setUpdating(false);
   };
 
-  const actionLabel = order.status === "CONFIRMED" ? "Start Cooking" : "Mark Ready";
+  const actionLabel =
+    order.status === "CONFIRMED" ? "Start Cooking" : "Mark Ready";
 
   const locationLabel =
     order.type === "DINE_IN"
       ? `Table ${order.tableNumber ?? "?"}`
       : order.type === "DELIVERY"
-      ? "Delivery"
-      : "Pickup";
+        ? "Delivery"
+        : "Pickup";
 
   return (
     <div
@@ -122,17 +137,21 @@ function OrderCard({
         order.status === "CONFIRMED"
           ? "border-yellow-500/40 bg-yellow-500/5"
           : order.status === "PREPARING"
-          ? "border-orange-500/40 bg-orange-500/5"
-          : "border-green-500/40 bg-green-500/5"
+            ? "border-orange-500/40 bg-orange-500/5"
+            : "border-green-500/40 bg-green-500/5"
       }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-white font-bold text-lg leading-none">{order.orderNumber}</p>
+          <p className="text-white font-bold text-lg leading-none">
+            {order.orderNumber}
+          </p>
           <p className="text-white/40 text-xs mt-0.5">{locationLabel}</p>
         </div>
         <div className="text-right">
-          <p className="text-white/30 text-[10px]">{timeAgo(order.createdAt)}</p>
+          <p className="text-white/30 text-[10px]">
+            {timeAgo(order.createdAt)}
+          </p>
           {flash && (
             <span className="text-[10px] font-bold text-yellow-400 bg-yellow-500/20 px-1.5 py-0.5 rounded-full">
               NEW
@@ -143,12 +162,17 @@ function OrderCard({
 
       <ul className="space-y-1.5">
         {order.items.map((item) => (
-          <li key={item.id} className="text-white/70 text-sm flex items-start gap-2">
+          <li
+            key={item.id}
+            className="text-white/70 text-sm flex items-start gap-2"
+          >
             <span className="text-white/30 shrink-0">×{item.quantity}</span>
             <div>
               <span>{item.menuItem.name}</span>
               {item.variant && (
-                <span className="text-white/30 text-xs ml-1">({item.variant.name})</span>
+                <span className="text-white/30 text-xs ml-1">
+                  ({item.variant.name})
+                </span>
               )}
             </div>
           </li>
@@ -195,12 +219,15 @@ export default function KitchenOrdersBoard() {
     const fetchActive = async () => {
       try {
         const [r1, r2] = await Promise.all([
-          fetch(`${API}/api/orders?status=CONFIRMED&limit=50`, { credentials: "include" }),
-          fetch(`${API}/api/orders?status=PREPARING&limit=50`, { credentials: "include" }),
+          apiFetch<any>(`/api/orders?status=CONFIRMED&limit=50`),
+          apiFetch<any>(`/api/orders?status=PREPARING&limit=50`),
         ]);
-        const [j1, j2] = await Promise.all([r1.json(), r2.json()]);
-        const confirmed: KitchenOrder[] = j1.success ? (j1.data.orders ?? []) : [];
-        const preparing: KitchenOrder[] = j2.success ? (j2.data.orders ?? []) : [];
+        const confirmed: KitchenOrder[] = r1.success
+          ? (r1.data.orders ?? [])
+          : [];
+        const preparing: KitchenOrder[] = r2.success
+          ? (r2.data.orders ?? [])
+          : [];
         setOrders([...confirmed, ...preparing]);
       } finally {
         setLoading(false);
@@ -232,13 +259,15 @@ export default function KitchenOrdersBoard() {
         const s = payload.status as OrderStatus;
         if (["CONFIRMED", "PREPARING", "READY"].includes(s)) {
           setOrders((prev) =>
-            prev.map((o) => (o.id === payload.orderId ? { ...o, status: s } : o))
+            prev.map((o) =>
+              o.id === payload.orderId ? { ...o, status: s } : o,
+            ),
           );
         } else {
           // DELIVERED or CANCELLED — remove from board
           setOrders((prev) => prev.filter((o) => o.id !== payload.orderId));
         }
-      }
+      },
     );
 
     return () => {
@@ -247,21 +276,18 @@ export default function KitchenOrdersBoard() {
   }, []);
 
   const updateStatus = async (orderId: string, status: OrderStatus) => {
-    const r = await fetch(`${API}/api/orders/${orderId}/status`, {
+    const r = await apiFetch<any>(`/api/orders/${orderId}/status`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ status }),
     });
-    const json = await r.json();
-    if (json.success) {
+    if (r.success) {
       if (status === "READY") {
         setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status: "READY" } : o))
+          prev.map((o) => (o.id === orderId ? { ...o, status: "READY" } : o)),
         );
       } else {
         setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? { ...o, status } : o))
+          prev.map((o) => (o.id === orderId ? { ...o, status } : o)),
         );
       }
     }
@@ -313,7 +339,9 @@ export default function KitchenOrdersBoard() {
             </div>
             <div className="space-y-3">
               {confirmed.length === 0 && (
-                <p className="text-white/20 text-xs text-center py-8">No new orders</p>
+                <p className="text-white/20 text-xs text-center py-8">
+                  No new orders
+                </p>
               )}
               {confirmed.map((o) => (
                 <OrderCard key={o.id} order={o} onUpdate={updateStatus} />
@@ -331,7 +359,9 @@ export default function KitchenOrdersBoard() {
             </div>
             <div className="space-y-3">
               {preparing.length === 0 && (
-                <p className="text-white/20 text-xs text-center py-8">Nothing cooking</p>
+                <p className="text-white/20 text-xs text-center py-8">
+                  Nothing cooking
+                </p>
               )}
               {preparing.map((o) => (
                 <OrderCard key={o.id} order={o} onUpdate={updateStatus} />
@@ -349,7 +379,9 @@ export default function KitchenOrdersBoard() {
             </div>
             <div className="space-y-3">
               {ready.length === 0 && (
-                <p className="text-white/20 text-xs text-center py-8">Nothing ready yet</p>
+                <p className="text-white/20 text-xs text-center py-8">
+                  Nothing ready yet
+                </p>
               )}
               {ready.map((o) => (
                 <OrderCard key={o.id} order={o} onUpdate={updateStatus} />

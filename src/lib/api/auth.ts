@@ -1,4 +1,4 @@
-import api from "@/lib/api";
+import apiFetch from "@/lib/api";
 
 export interface AuthUser {
   id: string;
@@ -21,8 +21,10 @@ export async function loginUser(
   email: string,
   password: string,
 ): Promise<AuthResponse> {
-  const res = await api.post("/api/auth/login", { email, password });
-  return res.data;
+  return apiFetch("/api/auth/login", {
+    method: "POST",
+    data: { email, password },
+  });
 }
 
 export async function registerUser(
@@ -31,36 +33,37 @@ export async function registerUser(
   password: string,
   phone?: string,
 ): Promise<AuthResponse> {
-  const res = await api.post("/api/auth/register", {
-    name,
-    email,
-    password,
-    phone,
+  return apiFetch("/api/auth/register", {
+    method: "POST",
+    data: { name, email, password, phone },
   });
-  return res.data;
 }
 
 export async function logoutUser(): Promise<void> {
-  await api.post("/api/auth/logout");
+  await apiFetch("/api/auth/logout", { method: "POST" });
 }
 
 export async function getMe(): Promise<AuthResponse> {
-  const res = await api.get("/api/auth/me");
-  return res.data;
+  return apiFetch("/api/auth/me");
+}
+
+export async function refreshToken(): Promise<AuthResponse> {
+  return apiFetch("/api/auth/refresh", { method: "POST" });
 }
 
 export async function forgotPassword(email: string): Promise<AuthResponse> {
-  const res = await api.post("/api/auth/forgot-password", { email });
-  return res.data;
+  return apiFetch("/api/auth/forgot-password", {
+    method: "POST",
+    data: { email },
+  });
 }
 
 export async function resetPassword(
   token: string,
   newPassword: string,
 ): Promise<AuthResponse> {
-  const res = await api.post("/api/auth/reset-password", {
-    token,
-    newPassword,
+  return apiFetch("/api/auth/reset-password", {
+    method: "POST",
+    data: { token, newPassword },
   });
-  return res.data;
 }

@@ -23,11 +23,22 @@ import { OrderSummary } from "./OrderSummary";
 
 export function CartContent() {
   const [mounted, setMounted] = useState(false);
-  const { items, removeItem, increaseQty, decreaseQty, clearCart, getTotalItems } = useCartStore();
+  const {
+    items,
+    removeItem,
+    increaseQty,
+    decreaseQty,
+    clearCart,
+    getTotalItems,
+  } = useCartStore();
 
   const [orderType, setOrderType] = useState<OrderType>("dine-in");
 
   const totalItems = getTotalItems();
+  useEffect(() => {
+    setMounted(true);
+    useCartStore.getState().syncFromApi();
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -57,9 +68,12 @@ export function CartContent() {
           <div className="w-20 h-20 md:w-24 md:h-24 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
             <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-yellow-500" />
           </div>
-          <h2 className="text-xl md:text-2xl font-bold font-serif text-gray-900 mb-2 md:mb-3">Your cart is empty</h2>
+          <h2 className="text-xl md:text-2xl font-bold font-serif text-gray-900 mb-2 md:mb-3">
+            Your cart is empty
+          </h2>
           <p className="text-gray-500 text-sm md:text-base mb-6 md:mb-8 max-w-md mx-auto px-4">
-            Looks like you haven&apos;t added anything yet. Head back to the menu and explore our dishes.
+            Looks like you haven&apos;t added anything yet. Head back to the
+            menu and explore our dishes.
           </p>
           <Link
             href="/menu"
@@ -76,7 +90,12 @@ export function CartContent() {
   const orderTypes = [
     { type: "dine-in" as const, icon: MapPin, label: "Dine In" },
     { type: "takeout" as const, icon: Package, label: "Takeout" },
-    { type: "delivery" as const, icon: Clock, label: "Delivery", note: "+$3.99" },
+    {
+      type: "delivery" as const,
+      icon: Clock,
+      label: "Delivery",
+      note: "+$3.99",
+    },
   ];
 
   return (
@@ -87,7 +106,9 @@ export function CartContent() {
           <div className="flex-1 min-w-0">
             {/* Order Type Selection */}
             <div className="mb-6 md:mb-8">
-              <h2 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">Order Type</h2>
+              <h2 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">
+                Order Type
+              </h2>
               <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {orderTypes.map(({ type, icon: Icon, label, note }) => (
                   <button
@@ -101,7 +122,11 @@ export function CartContent() {
                   >
                     <Icon className="w-4 h-4" />
                     {label}
-                    {note && <span className="text-[10px] md:text-xs text-gray-400">{note}</span>}
+                    {note && (
+                      <span className="text-[10px] md:text-xs text-gray-400">
+                        {note}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -110,7 +135,8 @@ export function CartContent() {
             {/* Cart Header */}
             <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-base md:text-lg font-bold text-gray-900">
-                Cart Items <span className="text-yellow-500">({totalItems})</span>
+                Cart Items{" "}
+                <span className="text-yellow-500">({totalItems})</span>
               </h2>
               <button
                 onClick={clearCart}
@@ -124,7 +150,10 @@ export function CartContent() {
             {/* Cart Items List */}
             <div className="space-y-3 md:space-y-4">
               {items.map((item, idx) => (
-                <div key={item.id} className="bg-white rounded-xl shadow-lg border border-gray-200 p-3 md:p-4">
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl shadow-lg border border-gray-200 p-3 md:p-4"
+                >
                   <div className="flex gap-3 md:gap-4">
                     <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-xl overflow-hidden shrink-0 bg-gray-100">
                       <Image
@@ -142,10 +171,19 @@ export function CartContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between gap-2">
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">{item.name}</h3>
-                          <p className="text-gray-400 text-xs mt-0.5">{item.category}</p>
+                          <h3 className="font-bold text-gray-900 text-sm md:text-base truncate">
+                            {item.name}
+                          </h3>
+                          <p className="text-gray-400 text-xs mt-0.5">
+                            {item.category}
+                          </p>
                         </div>
-                        <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-600 shrink-0">
+                        <button
+                          onClick={() =>
+                            removeItem(item.id, item.menuItemId, item.variantId)
+                          }
+                          className="text-red-500 hover:text-red-600 shrink-0"
+                        >
                           <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                         </button>
                       </div>
@@ -167,7 +205,13 @@ export function CartContent() {
                       <div className="flex items-center justify-between mt-2 md:mt-3">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => decreaseQty(item.id)}
+                            onClick={() =>
+                              decreaseQty(
+                                item.id,
+                                item.menuItemId,
+                                item.variantId,
+                              )
+                            }
                             className="w-6 h-6 md:w-7 md:h-7 rounded-full border border-gray-200 hover:border-yellow-500 flex items-center justify-center transition"
                           >
                             <Minus className="w-3 h-3" />
@@ -176,7 +220,13 @@ export function CartContent() {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => increaseQty(item.id)}
+                            onClick={() =>
+                              increaseQty(
+                                item.id,
+                                item.menuItemId,
+                                item.variantId,
+                              )
+                            }
                             className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-yellow-500 hover:bg-yellow-400 text-black flex items-center justify-center transition"
                           >
                             <Plus className="w-3 h-3" />
@@ -184,10 +234,12 @@ export function CartContent() {
                         </div>
                         <div className="text-right">
                           <p className="font-black text-yellow-600 text-sm md:text-base">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ₦{(item.price * item.quantity).toLocaleString()}
                           </p>
                           {item.quantity > 1 && (
-                            <p className="text-xs text-gray-500">${item.price} each</p>
+                            <p className="text-xs text-gray-500">
+                              ₦{item.price.toLocaleString()} each
+                            </p>
                           )}
                         </div>
                       </div>
@@ -215,7 +267,6 @@ export function CartContent() {
           </div>
         </div>
       </div>
-
     </>
   );
 }

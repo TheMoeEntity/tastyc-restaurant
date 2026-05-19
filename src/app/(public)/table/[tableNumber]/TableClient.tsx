@@ -21,8 +21,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
+import apiFetch from "@/lib/api";
 
-const API = process.env.NEXT_PUBLIC_API_URL;
+//
 
 // ── Types matching GET /api/menu response ──
 interface MenuVariant {
@@ -62,7 +63,13 @@ interface PlacedOrder {
   items: { name: string; quantity: number }[];
 }
 
-type PageState = "validating" | "invalid" | "menu" | "placing" | "success" | "error";
+type PageState =
+  | "validating"
+  | "invalid"
+  | "menu"
+  | "placing"
+  | "success"
+  | "error";
 
 export default function TableClient() {
   const params = useParams();
@@ -91,23 +98,21 @@ export default function TableClient() {
       return;
     }
 
-    fetch(`${API}/api/qr/validate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    apiFetch<any>(`/api/qr/validate`, {
       body: JSON.stringify({ token }),
     })
-      .then(async (r) => {
-        const json = await r.json();
-        if (!json.success) throw new Error("invalid");
-        return fetch(`${API}/api/menu`);
+      .then((r) => {
+       
+        if (!r.success) throw new Error("invalid");
+        return apiFetch<any>(`/api/menu`);
       })
-      .then(async (r) => {
-        const json = await r.json();
+      .then((r) => {
         // Support both { data: MenuCategory[] } and { data: MenuItemAPI[] } shapes
-        const raw = json.data ?? json;
-        const cats: MenuCategory[] = Array.isArray(raw) && raw[0]?.items
-          ? raw
-          : buildCategories(Array.isArray(raw) ? raw : []);
+        const raw = r.data ?? r;
+        const cats: MenuCategory[] =
+          Array.isArray(raw) && raw[0]?.items
+            ? raw
+            : buildCategories(Array.isArray(raw) ? raw : []);
         setCategories(cats);
         setPageState("menu");
       })
@@ -140,14 +145,18 @@ export default function TableClient() {
   const displayedItems =
     activeCategory === "all"
       ? allItems
-      : categories.find((c) => c.id === activeCategory)?.items ?? [];
+      : (categories.find((c) => c.id === activeCategory)?.items ?? []);
 
-  const getQty = (id: string) => cart.find((e) => e.item.id === id)?.quantity ?? 0;
+  const getQty = (id: string) =>
+    cart.find((e) => e.item.id === id)?.quantity ?? 0;
 
   const addItem = (item: MenuItemAPI) => {
     setCart((prev) => {
       const existing = prev.find((e) => e.item.id === item.id);
-      if (existing) return prev.map((e) => e.item.id === item.id ? { ...e, quantity: e.quantity + 1 } : e);
+      if (existing)
+        return prev.map((e) =>
+          e.item.id === item.id ? { ...e, quantity: e.quantity + 1 } : e,
+        );
       return [...prev, { item, quantity: 1 }];
     });
     toast.success(`${item.name} added`);
@@ -156,8 +165,8 @@ export default function TableClient() {
   const decItem = (id: string) => {
     setCart((prev) =>
       prev
-        .map((e) => e.item.id === id ? { ...e, quantity: e.quantity - 1 } : e)
-        .filter((e) => e.quantity > 0)
+        .map((e) => (e.item.id === id ? { ...e, quantity: e.quantity - 1 } : e))
+        .filter((e) => e.quantity > 0),
     );
   };
 
@@ -169,9 +178,8 @@ export default function TableClient() {
     setPageState("placing");
 
     try {
-      const res = await fetch(`${API}/api/orders/qr`, {
+      const res = await apiFetch<any>(`api/orders/qr`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tableToken: token,
           idempotencyKey: crypto.randomUUID(),
@@ -184,14 +192,17 @@ export default function TableClient() {
         }),
       });
 
-      const json = await res.json();
-      if (!json.success) throw new Error(json.message ?? "Failed to place order");
+      if (!res.success) throw new Error(res.message ?? "Failed to place order");
 
-      setPlacedOrder(json.data);
+      setPlacedOrder(res.data);
       setCart([]);
       setPageState("success");
     } catch (err: unknown) {
-      setErrorMsg(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setErrorMsg(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
       setPageState("error");
     }
   };
@@ -205,8 +216,12 @@ export default function TableClient() {
           <div className="w-20 h-20 bg-yellow-50 border-4 border-yellow-200 rounded-full flex items-center justify-center mx-auto mb-5">
             <Loader2 className="w-9 h-9 text-yellow-500 animate-spin" />
           </div>
-          <h2 className="text-xl font-bold font-serif text-gray-900 mb-1">Verifying your table</h2>
-          <p className="text-gray-400 text-sm">Validating QR code for Table {tableNumber}…</p>
+          <h2 className="text-xl font-bold font-serif text-gray-900 mb-1">
+            Verifying your table
+          </h2>
+          <p className="text-gray-400 text-sm">
+            Validating QR code for Table {tableNumber}…
+          </p>
         </div>
       </div>
     );
@@ -219,7 +234,9 @@ export default function TableClient() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <ShieldX className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">QR Code Expired</h1>
+          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
+            QR Code Expired
+          </h1>
           <p className="text-gray-500 text-sm mb-6">
             This QR code has expired. Please ask staff to generate a new one.
           </p>
@@ -241,7 +258,9 @@ export default function TableClient() {
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <AlertCircle className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">Something went wrong</h1>
+          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-2">
+            Something went wrong
+          </h1>
           <p className="text-gray-500 text-sm mb-6">{errorMsg}</p>
           <button
             onClick={() => window.location.reload()}
@@ -261,16 +280,25 @@ export default function TableClient() {
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-1">Order Placed!</h1>
-          <p className="text-gray-500 text-sm mb-2">The kitchen has been notified.</p>
+          <h1 className="text-2xl font-bold font-serif text-gray-900 mb-1">
+            Order Placed!
+          </h1>
+          <p className="text-gray-500 text-sm mb-2">
+            The kitchen has been notified.
+          </p>
           <p className="text-yellow-600 font-bold mb-5">
             Order #{placedOrder.orderNumber ?? placedOrder.id}
           </p>
 
           <div className="bg-gray-50 rounded-xl p-4 text-left space-y-2 mb-6">
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">Items Ordered</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-1">
+              Items Ordered
+            </p>
             {(placedOrder.items ?? []).map((it, idx) => (
-              <div key={idx} className="flex justify-between text-sm text-gray-600">
+              <div
+                key={idx}
+                className="flex justify-between text-sm text-gray-600"
+              >
                 <span>{it.name}</span>
                 <span className="font-semibold">× {it.quantity}</span>
               </div>
@@ -298,7 +326,9 @@ export default function TableClient() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold font-serif text-white text-lg">Table {tableNumber}</span>
+                <span className="font-bold font-serif text-white text-lg">
+                  Table {tableNumber}
+                </span>
                 <ShieldCheck className="w-4 h-4 text-green-400" />
               </div>
               <p className="text-gray-400 text-xs">Dine-in · Scan & Order</p>
@@ -307,7 +337,11 @@ export default function TableClient() {
 
           {totalItems > 0 && (
             <button
-              onClick={() => document.getElementById("cart-bar")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() =>
+                document
+                  .getElementById("cart-bar")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
               className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-4 py-2.5 rounded-xl transition text-sm"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -376,10 +410,16 @@ export default function TableClient() {
 
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-bold text-gray-900 text-sm">{item.name}</h3>
-                    <span className="font-black text-yellow-600 text-sm shrink-0">${item.price.toFixed(2)}</span>
+                    <h3 className="font-bold text-gray-900 text-sm">
+                      {item.name}
+                    </h3>
+                    <span className="font-black text-yellow-600 text-sm shrink-0">
+                      ${item.price.toFixed(2)}
+                    </span>
                   </div>
-                  <p className="text-gray-400 text-xs line-clamp-2 mb-3 leading-relaxed">{item.description}</p>
+                  <p className="text-gray-400 text-xs line-clamp-2 mb-3 leading-relaxed">
+                    {item.description}
+                  </p>
 
                   {qty === 0 ? (
                     <button
@@ -397,7 +437,9 @@ export default function TableClient() {
                         >
                           <Minus className="w-3.5 h-3.5" />
                         </button>
-                        <span className="font-black text-gray-900 w-6 text-center">{qty}</span>
+                        <span className="font-black text-gray-900 w-6 text-center">
+                          {qty}
+                        </span>
                         <button
                           onClick={() => addItem(item)}
                           className="w-8 h-8 rounded-full bg-yellow-500 hover:bg-yellow-400 text-black flex items-center justify-center transition"
@@ -405,7 +447,9 @@ export default function TableClient() {
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <span className="font-bold text-yellow-600 text-sm">${(item.price * qty).toFixed(2)}</span>
+                      <span className="font-bold text-yellow-600 text-sm">
+                        ${(item.price * qty).toFixed(2)}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -417,19 +461,33 @@ export default function TableClient() {
 
       {/* Sticky cart / checkout bar */}
       {totalItems > 0 && (
-        <div id="cart-bar" className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl p-4">
+        <div
+          id="cart-bar"
+          className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 shadow-2xl p-4"
+        >
           <div className="max-w-4xl mx-auto space-y-3">
             {/* Cart summary */}
             <div className="space-y-1 max-h-32 overflow-y-auto">
               {cart.map((entry) => (
-                <div key={entry.item.id} className="flex items-center justify-between text-sm text-gray-600">
+                <div
+                  key={entry.item.id}
+                  className="flex items-center justify-between text-sm text-gray-600"
+                >
                   <span className="truncate flex-1">{entry.item.name}</span>
                   <div className="flex items-center gap-2 ml-4 shrink-0">
-                    <button onClick={() => decItem(entry.item.id)} className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center">
+                    <button
+                      onClick={() => decItem(entry.item.id)}
+                      className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center"
+                    >
                       <Minus className="w-2.5 h-2.5" />
                     </button>
-                    <span className="font-bold w-4 text-center">{entry.quantity}</span>
-                    <button onClick={() => addItem(entry.item)} className="w-5 h-5 rounded-full bg-yellow-500 text-black flex items-center justify-center">
+                    <span className="font-bold w-4 text-center">
+                      {entry.quantity}
+                    </span>
+                    <button
+                      onClick={() => addItem(entry.item)}
+                      className="w-5 h-5 rounded-full bg-yellow-500 text-black flex items-center justify-center"
+                    >
                       <Plus className="w-2.5 h-2.5" />
                     </button>
                     <span className="text-yellow-600 font-bold w-14 text-right">
@@ -452,8 +510,16 @@ export default function TableClient() {
             {/* Place order */}
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <p className="text-xs text-gray-400">{totalItems} {totalItems === 1 ? "item" : "items"} · Table {tableNumber}</p>
-                <p className="font-black text-gray-900">${subtotal.toFixed(2)} <span className="text-xs font-normal text-gray-400">+ tax</span></p>
+                <p className="text-xs text-gray-400">
+                  {totalItems} {totalItems === 1 ? "item" : "items"} · Table{" "}
+                  {tableNumber}
+                </p>
+                <p className="font-black text-gray-900">
+                  ${subtotal.toFixed(2)}{" "}
+                  <span className="text-xs font-normal text-gray-400">
+                    + tax
+                  </span>
+                </p>
               </div>
               <button
                 onClick={handlePlaceOrder}
@@ -461,9 +527,13 @@ export default function TableClient() {
                 className="flex items-center gap-2 px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition shadow-lg disabled:opacity-50"
               >
                 {pageState === "placing" ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Placing…</>
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Placing…
+                  </>
                 ) : (
-                  <>Place Order <ArrowRight className="w-4 h-4" /></>
+                  <>
+                    Place Order <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
               </button>
             </div>
