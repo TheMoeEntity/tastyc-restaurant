@@ -24,10 +24,15 @@ export default function RegisterClient() {
       if (!res.success || !res.data) {
         throw new Error(res.message || "Registration failed");
       }
-
-      toast.success("Account created successfully! Login to continue");
-
-      push("/auth/login");
+      const { role } = res.data.user;
+      toast.success("Account created successfully!");
+      if (role === "CUSTOMER") {
+        push("/dashboard/user");
+      } else if (role === "KITCHEN") {
+        push("/dashboard/kitchen");
+      } else {
+        push("/dashboard/admin");
+      }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";

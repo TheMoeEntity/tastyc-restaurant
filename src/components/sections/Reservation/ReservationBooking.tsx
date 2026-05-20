@@ -1,38 +1,127 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, Users, CheckCircle, Phone } from "lucide-react";
+import {
+  Clock,
+  MapPin,
+  Users,
+  CheckCircle,
+  Phone,
+  Loader2,
+} from "lucide-react";
 import { fadeUp, stagger } from "@/lib/data/aboutData";
 import apiFetch from "@/lib/api";
-const TIME_SLOTS = [
-  "10:00",
-  "10:30",
-  "11:00",
-  "11:30",
-  "12:00",
-  "12:30",
-  "13:00",
-  "13:30",
-  "14:00",
-  "14:30",
-  "15:00",
-  "15:30",
-  "16:00",
-  "16:30",
-  "17:00",
-  "17:30",
-  "18:00",
-  "18:30",
-  "19:00",
-  "19:30",
-  "20:00",
-  "20:30",
-  "21:00",
-  "21:30",
-];
+
+// ── Slot type from API ────────────────────────────────────────
+interface SlotData {
+  time: string;
+  available: boolean;
+  blocked: boolean;
+  seatsRemaining: number;
+  bookedGuests: number;
+}
+
+// ── Visual slot picker ────────────────────────────────────────
+function SlotPicker({
+  slots,
+  selected,
+  onSelect,
+  loading,
+}: {
+  slots: SlotData[];
+  selected: string;
+  onSelect: (time: string) => void;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <Loader2 className="w-5 h-5 text-yellow-500 animate-spin" />
+        <span className="ml-2 text-gray-500 text-sm">
+          Checking availability...
+        </span>
+      </div>
+    );
+  }
+
+  if (slots.length === 0) {
+    return (
+      <p className="text-gray-400 text-sm py-4 text-center">
+        Select a date to see available times
+      </p>
+    );
+  }
+
+  const allUnavailable = slots.every((s) => !s.available);
+
+  if (allUnavailable) {
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-center">
+        <p className="text-red-600 text-sm font-semibold">
+          No availability on this date
+        </p>
+        <p className="text-red-400 text-xs mt-1">
+          Please select a different date
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      {slots.map((slot) => {
+        const isSelected = selected === slot.time;
+        const unavailable = !slot.available;
+
+        return (
+          <button
+            key={slot.time}
+            type="button"
+            disabled={unavailable}
+            onClick={() => onSelect(slot.time)}
+            title={
+              slot.blocked
+                ? "This slot is unavailable"
+                : unavailable
+                  ? `Only ${slot.seatsRemaining} seats remaining`
+                  : `${slot.seatsRemaining} seats available`
+            }
+            className={`
+              relative py-2.5 px-2 rounded-xl border text-sm font-semibold transition-all
+              ${
+                isSelected
+                  ? "bg-yellow-500 border-yellow-500 text-black shadow-lg shadow-yellow-200"
+                  : unavailable
+                    ? "bg-gray-100 border-gray-200 text-gray-300 cursor-not-allowed"
+                    : "bg-white border-gray-200 text-gray-700 hover:border-yellow-400 hover:bg-yellow-50"
+              }
+            `}
+          >
+            {slot.time}
+            {!unavailable && !isSelected && slot.seatsRemaining <= 10 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-orange-400 text-white text-[9px] font-bold px-1 rounded-full">
+                {slot.seatsRemaining}
+              </span>
+            )}
+            {slot.blocked && (
+              <span className="block text-[9px] font-normal text-gray-400 mt-0.5">
+                Unavailable
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────
 export function ReservationBooking() {
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [apiError, setApiError] = useState("");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,19 +132,38 @@ export function ReservationBooking() {
     requests: "",
   });
 
+  // Availability state
+  const [slots, setSlots] = useState<SlotData[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+
+  // Fetch availability when date or guests change
+  useEffect(() => {
+    if (!formData.date) {
+      setSlots([]);
+      return;
+    }
+
+    // Reset selected time when date changes
+    setFormData((prev) => ({ ...prev, time: "" }));
+    setSlotsLoading(true);
+
+    apiFetch<any>(
+      `/api/availability?date=${formData.date}&partySize=${formData.guests}`,
+    )
+      .then((r) => {
+        if (r.success) setSlots(r.data.slots);
+      })
+      .catch(() => setSlots([]))
+      .finally(() => setSlotsLoading(false));
+  }, [formData.date, formData.guests]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >,
   ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  const [submitting, setSubmitting] = useState(false);
-  const [apiError, setApiError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -156,7 +264,7 @@ export function ReservationBooking() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Left Side - Information */}
+          {/* Left — info panel unchanged */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -205,7 +313,7 @@ export function ReservationBooking() {
             <div className="bg-yellow-500 rounded-2xl p-6 text-white">
               <h4 className="font-bold text-lg mb-2">Need Help?</h4>
               <p className="text-white/90 text-base mb-4">
-                Call us directly for immediate assistance with your reservation
+                Call us directly for immediate assistance
               </p>
               <div className="flex items-center gap-3">
                 <Phone className="w-5 h-5" />
@@ -214,7 +322,7 @@ export function ReservationBooking() {
             </div>
           </motion.div>
 
-          {/* Right Side - Form */}
+          {/* Right — form */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -237,8 +345,8 @@ export function ReservationBooking() {
                     Reservation Confirmed! 🎉
                   </h3>
                   <p className="text-gray-600 text-base mb-4">
-                    Thank you for choosing Tastyc! We've sent a confirmation to
-                    your email.
+                    Thank you for choosing Tastyc! Check your email for the
+                    calendar invite.
                   </p>
                   <div className="bg-white rounded-lg p-4 mb-6 text-left">
                     <p className="text-sm text-gray-500">
@@ -266,6 +374,7 @@ export function ReservationBooking() {
                         time: "",
                         requests: "",
                       });
+                      setSlots([]);
                     }}
                     className="text-yellow-600 hover:text-yellow-700 font-semibold text-base"
                   >
@@ -318,7 +427,6 @@ export function ReservationBooking() {
                           required
                         />
                       </div>
-
                       <div>
                         <label className="block text-base font-semibold text-gray-700 mb-2">
                           Phone Number
@@ -327,7 +435,7 @@ export function ReservationBooking() {
                           name="phone"
                           value={formData.phone}
                           onChange={handleChange}
-                          placeholder="+1 (555) 000-0000"
+                          placeholder="+234 801 234 5678"
                           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition text-base"
                         />
                       </div>
@@ -352,7 +460,6 @@ export function ReservationBooking() {
                           ))}
                         </select>
                       </div>
-
                       <div>
                         <label className="block text-base font-semibold text-gray-700 mb-2">
                           Date *
@@ -369,24 +476,32 @@ export function ReservationBooking() {
                       </div>
                     </div>
 
+                    {/* Visual slot picker — replaces time select */}
                     <div>
                       <label className="block text-base font-semibold text-gray-700 mb-2">
                         Preferred Time *
+                        {formData.date && !slotsLoading && slots.length > 0 && (
+                          <span className="ml-2 text-xs font-normal text-gray-400">
+                            {slots.filter((s) => s.available).length} slots
+                            available
+                          </span>
+                        )}
                       </label>
-                      <select
+                      <SlotPicker
+                        slots={slots}
+                        selected={formData.time}
+                        onSelect={(time) =>
+                          setFormData((p) => ({ ...p, time }))
+                        }
+                        loading={slotsLoading}
+                      />
+                      {/* Hidden input for form validation */}
+                      <input
+                        type="hidden"
                         name="time"
                         value={formData.time}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition text-base"
                         required
-                      >
-                        <option value="">Select a time</option>
-                        {TIME_SLOTS.map((slot) => (
-                          <option key={slot} value={slot}>
-                            {slot}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div>
@@ -402,6 +517,7 @@ export function ReservationBooking() {
                         className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/20 transition resize-none text-base"
                       />
                     </div>
+
                     {apiError && (
                       <p className="text-red-500 text-sm flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
                         {apiError}
@@ -410,7 +526,7 @@ export function ReservationBooking() {
 
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || !formData.time}
                       className="w-full py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                     >
                       {submitting ? "Booking..." : "Confirm Reservation"}
@@ -418,7 +534,7 @@ export function ReservationBooking() {
 
                     <p className="text-sm text-gray-400 text-center">
                       By confirming, you agree to our reservation policy. You'll
-                      receive a confirmation email shortly.
+                      receive a calendar invite by email.
                     </p>
                   </div>
                 </motion.form>

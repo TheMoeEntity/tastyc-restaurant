@@ -19,6 +19,7 @@ import {
   User,
   Truck,
   Mail,
+  CalendarX,
 } from "lucide-react";
 import { SidebarContent } from "./SidebarContent";
 import { useLogout } from "@/hooks/useLogout";
@@ -51,6 +52,11 @@ const adminLinks: NavLink[] = [
   },
   { label: "Users", href: "/dashboard/admin/customers", icon: Users },
   { label: "Newsletter", href: "/dashboard/admin/newsletter", icon: Mail },
+  {
+    label: "Availability",
+    href: "/dashboard/admin/availability",
+    icon: CalendarX,
+  },
   { label: "Analytics", href: "/dashboard/admin/analytics", icon: BarChart2 },
   { label: "QR Codes", href: "/dashboard/admin/qr", icon: QrCode },
   { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },

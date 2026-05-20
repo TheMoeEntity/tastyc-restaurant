@@ -384,7 +384,7 @@ export default function AdminOrdersTable({
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-white/40">Time</span>
-                <span className="text-white/80">
+                <span className="text-white/80" suppressHydrationWarning>
                   {new Date(selectedOrder.createdAt).toLocaleString()}
                 </span>
               </div>

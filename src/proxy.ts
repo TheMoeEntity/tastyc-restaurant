@@ -32,7 +32,7 @@ function getRequiredRoles(pathname: string): string[] | null {
   if (pathname.startsWith("/dashboard/admin"))
     return ["MANAGER", "SUPERADMIN", "STAFF"];
   if (pathname.startsWith("/dashboard/kitchen"))
-    return ["KITCHEN", "MANAGER", "SUPERADMIN", "STAFF"];
+    return ["KITCHEN", "MANAGER", "SUPERADMIN"];
   if (pathname.startsWith("/dashboard/user"))
     return ["CUSTOMER", "MANAGER", "SUPERADMIN"];
   return null; // any authenticated role passes
@@ -140,8 +140,8 @@ export default async function proxy(request: NextRequest) {
     // No valid session at all → login
     if (!effectiveToken) {
       const loginUrl = new URL("/auth/login", request.url);
+      loginUrl.searchParams.set("reason", "required");
       loginUrl.searchParams.set("redirect", pathname);
-      loginUrl.searchParams.set("unauthenticated", "true");
       return NextResponse.redirect(loginUrl);
     }
 

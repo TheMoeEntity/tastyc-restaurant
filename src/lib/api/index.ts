@@ -86,10 +86,14 @@ async function apiFetch<T>(
     }
 
     if (typeof window !== "undefined") {
-      window.location.href = "/auth/login?unauthenticated=true";
+      const currentPath = encodeURIComponent(window.location.pathname);
+      const hadSession = document.cookie.includes("tastyc_user_id=");
+      const reason = hadSession ? "expired" : "required";
+
+      window.location.href = `/auth/login?reason=${reason}&redirect=${currentPath}`;
     }
 
-    throw new Error("Session expired. Please log in again.");
+    throw new Error("Please log in to continue");
   }
 
   const json = await res.json();

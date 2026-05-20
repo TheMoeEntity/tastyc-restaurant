@@ -5,28 +5,28 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import LoginForm from "@/components/sections/Auth/LoginForm";
 import { loginUser } from "@/lib/api/auth";
+import { getRoleDefaultPath } from "@/lib/Helper";
 
 export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [redirectPath, setRedirectPath] = useState<string | null>(
-    "/dashboard/user",
-  );
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    const unauthenticated = params.get("unauthenticated");
+    const reason = params.get("reason");
     const redirect = params.get("redirect");
 
     if (redirect) {
       setRedirectPath(redirect);
     }
 
-    if (unauthenticated) {
-      setError("Your session has expired. Please login");
-      // toast.error("You're not authenticated to access this page. Please login");
+    if (reason === "expired") {
+      setError("Your session has expired. Please log in again.");
+    } else if (reason === "required") {
+      setError("Please log in to continue.");
     }
   }, [searchParams]);
 
@@ -42,19 +42,22 @@ export default function LoginClient() {
       }
 
       const { role } = res.data.user;
+      const defaultPath = getRoleDefaultPath(role);
 
       toast.success("Login successful");
 
-      // Backend sets httpOnly cookies automatically
-      // We only use the role from the response to redirect
-      if (role === "CUSTOMER") {
-        router.push(decodeURIComponent(redirectPath || "/dashboard/user"));
-      } else if (role === "KITCHEN") {
-        router.push(decodeURIComponent(redirectPath || "/dashboard/kitchen"));
-      } else {
-        // MANAGER, SUPERADMIN, STAFF
-        router.push(decodeURIComponent(redirectPath || "/dashboard/admin"));
-      }
+      const safePath = (() => {
+        if (!redirectPath) return defaultPath;
+        if (
+          role === "KITCHEN" &&
+          !redirectPath.startsWith("/dashboard/kitchen")
+        )
+          return defaultPath;
+        if (role === "CUSTOMER" && redirectPath.startsWith("/dashboard/admin"))
+          return defaultPath;
+        return redirectPath;
+      })();
+      router.push(decodeURIComponent(safePath));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Invalid email or password";
