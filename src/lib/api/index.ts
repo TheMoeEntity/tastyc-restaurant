@@ -87,14 +87,12 @@ async function apiFetch<T>(
     }
 
     if (typeof window !== "undefined") {
-      const currentPath = encodeURIComponent(window.location.pathname);
-      // Don't redirect if already on auth pages — prevents loops
-      if (currentPath.startsWith("/auth/")) {
+      const rawPath = window.location.pathname;
+      if (rawPath.startsWith("/auth/")) {
         throw new Error("Session expired. Please log in again.");
       }
-      const hadSession = document.cookie.includes("tastyc_user_id=");
-      const reason = hadSession ? "expired" : "required";
-
+      const currentPath = encodeURIComponent(rawPath);
+      const reason = document.cookie.includes("tastyc_user_id=") ? "expired" : "required";
       window.location.href = `/auth/login?reason=${reason}&redirect=${currentPath}`;
     }
 

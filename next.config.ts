@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     "172.29.192.1",
     "192.168.1.113"
   ], //replace with your own network ip
+  output: "standalone",
   images: {
     remotePatterns: [
       {
