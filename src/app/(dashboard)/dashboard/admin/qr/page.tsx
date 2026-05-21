@@ -23,18 +23,18 @@ export default function AdminQRPage() {
   useEffect(() => {
     apiFetch<any>(`/api/qr/active-sessions`)
       .then((r) => {
-        if (r.success) setActiveSessions(r.data?.count ?? r.data ?? 0);
+        if (r.success) setActiveSessions(r.data?.session ?? r.data.count ?? 0);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const generate = async () => {
     setGenerating(true);
     setError("");
     try {
-      const r = await apiFetch<any>(`api/qr/generate-all`, {
+      const r = await apiFetch<any>(`/api/qr/generate-all`, {
         method: "POST",
-        body: JSON.stringify({ tableCount }),
+        data: { tableCount },
       });
       if (!r.success) throw new Error(r.message ?? "Generation failed");
       setQrCodes(r.data ?? []);

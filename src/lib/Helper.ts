@@ -15,5 +15,6 @@ export class Helper {
 export const getRoleDefaultPath = (role: string) => {
   if (role === "KITCHEN") return "/dashboard/kitchen";
   if (role === "CUSTOMER") return "/dashboard/user";
+  if (role === "STAFF") return "/dashboard/admin/orders";
   return "/dashboard/admin";
 };

@@ -50,6 +50,7 @@ const NO_REFRESH_PATHS = [
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/refresh",
+  // "/api/auth/me"
 ];
 
 async function apiFetch<T>(
@@ -87,6 +88,10 @@ async function apiFetch<T>(
 
     if (typeof window !== "undefined") {
       const currentPath = encodeURIComponent(window.location.pathname);
+      // Don't redirect if already on auth pages — prevents loops
+      if (currentPath.startsWith("/auth/")) {
+        throw new Error("Session expired. Please log in again.");
+      }
       const hadSession = document.cookie.includes("tastyc_user_id=");
       const reason = hadSession ? "expired" : "required";
 

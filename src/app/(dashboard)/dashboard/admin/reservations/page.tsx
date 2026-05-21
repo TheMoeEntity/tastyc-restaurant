@@ -6,7 +6,7 @@ import apiFetch from "@/lib/api";
 
 //
 
-type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
+type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
 
 interface Reservation {
   id: string;
@@ -27,6 +27,8 @@ const STATUS_COLORS: Record<ReservationStatus, string> = {
   CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
   CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
   COMPLETED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+  NO_SHOW: "text-gray-400 bg-gray-500/10 border-gray-500/30",
+
 };
 
 export default function AdminReservationsPage() {
@@ -58,9 +60,9 @@ export default function AdminReservationsPage() {
   const updateStatus = async (id: string, status: ReservationStatus) => {
     setUpdatingId(id);
     try {
-      const r = await apiFetch<any>(`api/reservations/${id}`, {
+      const r = await apiFetch<any>(`/api/reservations/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        data: { status },
       });
       if (!r.success) throw new Error(r.message);
       setReservations((prev) =>
@@ -76,9 +78,9 @@ export default function AdminReservationsPage() {
     if (!tableNumber) return;
     setUpdatingId(id);
     try {
-      const r = await apiFetch<any>(`api/reservations/${id}`, {
+      const r = await apiFetch<any>(`/api/reservations/${id}`, {
         method: "PATCH",
-        body: JSON.stringify({ tableNumber }),
+        data: { tableNumber },
       });
       if (!r.success) throw new Error(r.message);
       setReservations((prev) =>
@@ -218,28 +220,37 @@ export default function AdminReservationsPage() {
                         )}
                         {(rv.status === "PENDING" ||
                           rv.status === "CONFIRMED") && (
-                          <>
-                            <button
-                              onClick={() => updateStatus(rv.id, "COMPLETED")}
-                              disabled={updatingId === rv.id}
-                              className="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition disabled:opacity-50"
-                            >
-                              Complete
-                            </button>
-                            <button
-                              onClick={() => updateStatus(rv.id, "CANCELLED")}
-                              disabled={updatingId === rv.id}
-                              className="text-[10px] px-2 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50"
-                            >
-                              Cancel
-                            </button>
-                          </>
-                        )}
+                            <>
+                              <button
+                                onClick={() => updateStatus(rv.id, "COMPLETED")}
+                                disabled={updatingId === rv.id}
+                                className="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition disabled:opacity-50"
+                              >
+                                Complete
+                              </button>
+                              <button
+                                onClick={() => updateStatus(rv.id, "CANCELLED")}
+                                disabled={updatingId === rv.id}
+                                className="text-[10px] px-2 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50"
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          )}
                         {updatingId === rv.id && (
                           <Loader2
                             size={12}
                             className="text-yellow-400 animate-spin"
                           />
+                        )}
+                        {rv.status === "CONFIRMED" && (
+                          <button
+                            onClick={() => updateStatus(rv.id, "NO_SHOW")}
+                            disabled={updatingId === rv.id}
+                            className="text-[10px] px-2 py-1 bg-gray-500/20 text-gray-400 rounded-lg hover:bg-gray-500/30 transition disabled:opacity-50"
+                          >
+                            No Show
+                          </button>
                         )}
                       </div>
                     </td>

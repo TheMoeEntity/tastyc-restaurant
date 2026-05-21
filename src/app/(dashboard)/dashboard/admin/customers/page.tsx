@@ -129,11 +129,10 @@ function UserActions({
                     key={role}
                     onClick={() => handleRoleChange(role)}
                     disabled={user.role === role}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${
-                      user.role === role
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.role === role
                         ? "text-white/20 cursor-not-allowed"
                         : "text-white/60 hover:text-white hover:bg-white/5"
-                    }`}
+                      }`}
                   >
                     <Shield size={10} />
                     {role}
@@ -151,11 +150,10 @@ function UserActions({
             <div className="p-2">
               <button
                 onClick={handleStatusChange}
-                className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${
-                  user.isActive
+                className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.isActive
                     ? "text-red-400 hover:bg-red-500/10"
                     : "text-green-400 hover:bg-green-500/10"
-                }`}
+                  }`}
               >
                 {user.isActive ? (
                   <>
@@ -197,7 +195,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     apiFetch<any>("/api/auth/me")
       .then((r) => setCurrentUserRole(r.data?.user?.role ?? "MANAGER"))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const fetchUsers = useCallback(() => {
@@ -400,6 +398,7 @@ export default function AdminUsersPage() {
                               alt={user.name}
                               width={32}
                               height={32}
+                              sizes={"100vw"}
                               className="object-cover"
                             />
                           ) : (
@@ -427,11 +426,10 @@ export default function AdminUsersPage() {
                     {/* Status */}
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
-                          user.isActive
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${user.isActive
                             ? "text-green-400 bg-green-500/10 border-green-500/30"
                             : "text-red-400 bg-red-500/10 border-red-500/30"
-                        }`}
+                          }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${user.isActive ? "bg-green-400" : "bg-red-400"}`}

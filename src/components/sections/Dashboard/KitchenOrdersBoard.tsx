@@ -131,15 +131,13 @@ function OrderCard({
 
   return (
     <div
-      className={`rounded-2xl p-4 space-y-3 border transition-all duration-500 ${
-        flash ? "ring-2 ring-yellow-400 border-yellow-400/60" : ""
-      } ${
-        order.status === "CONFIRMED"
+      className={`rounded-2xl p-4 space-y-3 border transition-all duration-500 ${flash ? "ring-2 ring-yellow-400 border-yellow-400/60" : ""
+        } ${order.status === "CONFIRMED"
           ? "border-yellow-500/40 bg-yellow-500/5"
           : order.status === "PREPARING"
             ? "border-orange-500/40 bg-orange-500/5"
             : "border-green-500/40 bg-green-500/5"
-      }`}
+        }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div>
@@ -189,11 +187,10 @@ function OrderCard({
         <button
           onClick={handleAction}
           disabled={updating}
-          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50 ${
-            order.status === "CONFIRMED"
+          className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50 ${order.status === "CONFIRMED"
               ? "bg-orange-500 hover:bg-orange-400 text-white"
               : "bg-green-500 hover:bg-green-400 text-white"
-          }`}
+            }`}
         >
           {updating ? (
             <Loader2 size={14} className="animate-spin" />
@@ -278,7 +275,7 @@ export default function KitchenOrdersBoard() {
   const updateStatus = async (orderId: string, status: OrderStatus) => {
     const r = await apiFetch<any>(`/api/orders/${orderId}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status }),
+      data: { status },
     });
     if (r.success) {
       if (status === "READY") {

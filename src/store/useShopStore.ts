@@ -50,7 +50,7 @@ interface ShopStore {
 export const useShopStore = create<ShopStore>()(
   persist(
     (set, get) => ({
-      // wishlist 
+      // wishlist — initialize with empty array, hydration handled by persist middleware
 
       wishlist: [],
 
@@ -157,6 +157,7 @@ export const useShopStore = create<ShopStore>()(
     }),
     {
       name: "tastyc-shop",
+      skipHydration: false,
       // only persist wishlist, promo and deals — not UI filters
       partialize: (state) => ({
         wishlist: state.wishlist,

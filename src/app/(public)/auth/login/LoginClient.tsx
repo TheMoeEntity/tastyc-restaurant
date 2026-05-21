@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import LoginForm from "@/components/sections/Auth/LoginForm";
 import { loginUser } from "@/lib/api/auth";
 import { getRoleDefaultPath } from "@/lib/Helper";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginClient() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const { refresh } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -45,7 +47,7 @@ export default function LoginClient() {
       const defaultPath = getRoleDefaultPath(role);
 
       toast.success("Login successful");
-
+      await refresh()
       const safePath = (() => {
         if (!redirectPath) return defaultPath;
         if (

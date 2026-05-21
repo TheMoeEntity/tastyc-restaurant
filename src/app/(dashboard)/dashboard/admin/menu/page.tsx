@@ -91,8 +91,8 @@ export default function AdminMenuPage() {
         console.log(raw);
         const flat: MenuItem[] = Array.isArray(raw.items)
           ? raw.items.flatMap((c: { menuItems?: MenuItem[] } | MenuItem) =>
-              "menuItems" in c && c.menuItems ? c.menuItems : [c as MenuItem],
-            )
+            "menuItems" in c && c.menuItems ? c.menuItems : [c as MenuItem],
+          )
           : [];
         setItems(flat);
       })
@@ -160,9 +160,9 @@ export default function AdminMenuPage() {
         setUploading(true);
         const fd = new FormData();
         fd.append("image", imageFile);
-        const up = await apiFetch<any>(`api/upload/menu`, {
+        const up = await apiFetch<any>(`/api/upload/menu`, {
           method: "POST",
-          body: fd,
+          data: fd,
         });
         const upJson = up;
         if (!upJson.success) throw new Error(upJson.message ?? "Upload failed");
@@ -180,18 +180,18 @@ export default function AdminMenuPage() {
           : undefined,
         tags: form.tags
           ? form.tags
-              .split(",")
-              .map((t) => t.trim())
-              .filter(Boolean)
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
           : [],
         image: imageUrl || undefined,
       };
 
-      const url = modal.item ? `api/menu/${modal.item.id}` : `api/menu`;
+      const url = modal.item ? `/api/menu/${modal.item.id}` : `/api/menu`;
       const method = modal.item ? "PATCH" : "POST";
       const r = await apiFetch<any>(url, {
         method,
-        body: JSON.stringify(payload),
+        data: payload,
       });
       if (!r.success) throw new Error(r.message);
       setModal({ open: false, item: null });
@@ -214,7 +214,7 @@ export default function AdminMenuPage() {
     if (!ok) return;
     setDeleteId(id);
     try {
-      const r = await apiFetch<any>(`api/menu/${id}`, {
+      const r = await apiFetch<any>(`/api/menu/${id}`, {
         method: "DELETE",
       });
       if (!r.success) throw new Error(r.message);
@@ -229,7 +229,7 @@ export default function AdminMenuPage() {
   const toggleAvailability = async (item: MenuItem) => {
     setTogglingId(item.id);
     try {
-      const r = await apiFetch<any>(`api/menu/${item.id}/availability`, {
+      const r = await apiFetch<any>(`/api/menu/${item.id}/availability`, {
         method: "PATCH",
       });
       if (!r.success) throw new Error(r.message);
@@ -247,13 +247,13 @@ export default function AdminMenuPage() {
     if (!catForm.name) return;
     setSavingCat(true);
     try {
-      const r = await apiFetch<any>(`api/menu/categories`, {
+      const r = await apiFetch<any>(`/api/menu/categories`, {
         method: "POST",
-        body: JSON.stringify({
+        data: {
           name: catForm.name,
           description: catForm.description || undefined,
           sortOrder: catForm.sortOrder ? Number(catForm.sortOrder) : undefined,
-        }),
+        },
       });
       if (!r.success) throw new Error(r.message);
       setCatForm({ name: "", description: "", sortOrder: "" });
@@ -277,7 +277,7 @@ export default function AdminMenuPage() {
     if (!ok) return;
     setDeletingCatId(id);
     try {
-      const r = await apiFetch<any>(`api/menu/categories/${id}`, {
+      const r = await apiFetch<any>(`/api/menu/categories/${id}`, {
         method: "DELETE",
       });
       if (!r.success) throw new Error(r.message);
@@ -316,11 +316,10 @@ export default function AdminMenuPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-lg text-sm font-semibold capitalize transition ${
-                tab === t
-                  ? "bg-yellow-500 text-black"
-                  : "text-white/40 hover:text-white"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-sm font-semibold capitalize transition ${tab === t
+                ? "bg-yellow-500 text-black"
+                : "text-white/40 hover:text-white"
+                }`}
             >
               {t === "items" ? "Menu Items" : "Categories"}
             </button>
@@ -370,11 +369,10 @@ export default function AdminMenuPage() {
                         <button
                           onClick={() => toggleAvailability(item)}
                           disabled={togglingId === item.id}
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${
-                            item.isAvailable
-                              ? "bg-green-500/20 border-green-500/30 text-green-400"
-                              : "bg-red-500/20 border-red-500/30 text-red-400"
-                          }`}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition ${item.isAvailable
+                            ? "bg-green-500/20 border-green-500/30 text-green-400"
+                            : "bg-red-500/20 border-red-500/30 text-red-400"
+                            }`}
                         >
                           {togglingId === item.id ? (
                             <Loader2 size={10} className="animate-spin" />

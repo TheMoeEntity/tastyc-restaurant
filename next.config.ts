@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     process.env.NETWORK_IP_ADDRESS || "192.168.1.41",
     "172.29.192.1",
+    "192.168.1.113"
   ], //replace with your own network ip
   images: {
     remotePatterns: [

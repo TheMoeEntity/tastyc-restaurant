@@ -127,7 +127,7 @@ export default function AdminOrdersTable({
     try {
       const r = await apiFetch<any>(`/api/orders/${orderId}/status`, {
         method: "PATCH",
-        body: JSON.stringify({ status }),
+        data: { status },
       });
       if (!r.success) throw new Error(r.message);
       setOrders((prev) =>
@@ -162,11 +162,10 @@ export default function AdminOrdersTable({
                   setStatusFilter(s);
                   setPage(1);
                 }}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition border ${
-                  statusFilter === s
+                className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition border ${statusFilter === s
                     ? "bg-yellow-500 text-black border-yellow-500"
                     : "border-white/10 text-white/40 hover:text-white hover:border-white/20"
-                }`}
+                  }`}
               >
                 {s.toLowerCase()}
               </button>

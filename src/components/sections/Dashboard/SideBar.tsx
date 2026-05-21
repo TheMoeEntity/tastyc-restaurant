@@ -20,6 +20,7 @@ import {
   Truck,
   Mail,
   CalendarX,
+  MessageSquare,
 } from "lucide-react";
 import { SidebarContent } from "./SidebarContent";
 import { useLogout } from "@/hooks/useLogout";
@@ -50,6 +51,7 @@ const adminLinks: NavLink[] = [
     href: "/dashboard/admin/reservations",
     icon: Calendar,
   },
+  { label: "Reviews", href: "/dashboard/admin/reviews", icon: MessageSquare },
   { label: "Users", href: "/dashboard/admin/customers", icon: Users },
   { label: "Newsletter", href: "/dashboard/admin/newsletter", icon: Mail },
   {
@@ -87,7 +89,7 @@ const staffLinks: NavLink[] = [
     href: "/dashboard/admin/reservations",
     icon: Calendar,
   },
-  { label: "Deliveries", href: "/dashboard/admin/orders", icon: Truck },
+  // { label: "Deliveries", href: "/dashboard/admin/orders", icon: Truck },
 ];
 
 // ── Sections per role ─────────────────────────────────────────

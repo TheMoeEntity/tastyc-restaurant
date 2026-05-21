@@ -6,6 +6,7 @@ import Image from "next/image";
 import MotionWrapper from "@/components/MotionWrapper";
 import { useCartStore } from "@/store/useCartStore";
 import type { MenuItem } from "@/types/menu.types";
+import Link from "next/link";
 
 interface MenuCardProps {
   item: MenuItem;
@@ -73,9 +74,11 @@ export function MenuCard({ item, index }: MenuCardProps) {
 
         <div className="p-5">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="font-bold text-lg text-gray-900 group-hover:text-yellow-600 transition-colors">
-              {item.name}
-            </h3>
+            <Link href={`/menu/${item.slug}`}>
+              <h3 className="font-bold text-lg text-gray-900 group-hover:text-yellow-600 transition-colors">
+                {item.name}
+              </h3>
+            </Link>
             <div className="text-right">
               <span className="font-black text-yellow-600 text-lg">
                 ₦{displayPrice.toLocaleString("en-NG")}

@@ -99,10 +99,11 @@ export default function TableClient() {
     }
 
     apiFetch<any>(`/api/qr/validate`, {
-      body: JSON.stringify({ token }),
+      data: { token },
+      method: "POST"
     })
       .then((r) => {
-       
+
         if (!r.success) throw new Error("invalid");
         return apiFetch<any>(`/api/menu`);
       })
@@ -178,9 +179,9 @@ export default function TableClient() {
     setPageState("placing");
 
     try {
-      const res = await apiFetch<any>(`api/orders/qr`, {
+      const res = await apiFetch<any>(`/api/orders/qr`, {
         method: "POST",
-        body: JSON.stringify({
+        data: {
           tableToken: token,
           idempotencyKey: crypto.randomUUID(),
           items: cart.map((e) => ({
@@ -189,7 +190,7 @@ export default function TableClient() {
             quantity: e.quantity,
           })),
           notes: notes.trim() || undefined,
-        }),
+        },
       });
 
       if (!res.success) throw new Error(res.message ?? "Failed to place order");
@@ -345,7 +346,7 @@ export default function TableClient() {
               className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-4 py-2.5 rounded-xl transition text-sm"
             >
               <ShoppingCart className="w-4 h-4" />
-              {totalItems} · ${subtotal.toFixed(2)}
+              {totalItems} · ${subtotal.toLocaleString()}
             </button>
           )}
         </div>
@@ -414,7 +415,7 @@ export default function TableClient() {
                       {item.name}
                     </h3>
                     <span className="font-black text-yellow-600 text-sm shrink-0">
-                      ${item.price.toFixed(2)}
+                      ${item.price.toLocaleString()}
                     </span>
                   </div>
                   <p className="text-gray-400 text-xs line-clamp-2 mb-3 leading-relaxed">
@@ -448,7 +449,7 @@ export default function TableClient() {
                         </button>
                       </div>
                       <span className="font-bold text-yellow-600 text-sm">
-                        ${(item.price * qty).toFixed(2)}
+                        ${(item.price * qty).toLocaleString()}
                       </span>
                     </div>
                   )}
@@ -491,7 +492,7 @@ export default function TableClient() {
                       <Plus className="w-2.5 h-2.5" />
                     </button>
                     <span className="text-yellow-600 font-bold w-14 text-right">
-                      ${(entry.item.price * entry.quantity).toFixed(2)}
+                      ${(entry.item.price * entry.quantity).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -515,7 +516,7 @@ export default function TableClient() {
                   {tableNumber}
                 </p>
                 <p className="font-black text-gray-900">
-                  ${subtotal.toFixed(2)}{" "}
+                  ${subtotal.toLocaleString()}{" "}
                   <span className="text-xs font-normal text-gray-400">
                     + tax
                   </span>
