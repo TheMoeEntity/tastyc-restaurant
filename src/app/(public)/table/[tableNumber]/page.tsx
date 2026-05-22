@@ -1,4 +1,7 @@
+import { Suspense } from "react";
 import TableClient from "./TableClient";
+
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: "Scan & Order | Tastyc",
@@ -9,7 +12,10 @@ export default async function TablePage({
 }: {
   params: Promise<{ tableNumber: string }>;
 }) {
-  // params resolved server-side so the client component gets a clean prop
   const { tableNumber } = await params;
-  return <TableClient key={tableNumber} />;
+  return (
+    <Suspense fallback={null}>
+      <TableClient key={tableNumber} />
+    </Suspense>
+  );
 }
