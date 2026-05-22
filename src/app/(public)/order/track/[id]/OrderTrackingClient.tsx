@@ -33,6 +33,8 @@ type OrderStatus =
 type OrderType = "DELIVERY" | "PICKUP";
 
 interface OrderItem {
+  spicy: any;
+  veg: any;
   id: string;
   menuItem: { name: string; image?: string };
   quantity: number;
@@ -369,7 +371,7 @@ export default function OrderTrackingClient({ id }: { id: string }) {
                     {item.menuItem.name}
                   </p>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    {item.spicy && <Flame className="w-3 h-3 text-red-500" />}
+                    {item?.spicy && <Flame className="w-3 h-3 text-red-500" />}
                     {item.veg && <Leaf className="w-3 h-3 text-green-600" />}
                     <span className="text-xs text-gray-400">
                       × {item.quantity}
