@@ -131,48 +131,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // ── Fetch user from API ───────────────────────────────────
   // Redis-cached on the backend — fast after first call
 
-  const fetchUser = useCallback(
-    async (andScheduleRefresh = true) => {
-      if (isFetchingRef.current) return; // prevent concurrent fetches
-      if (typeof document === "undefined") return;
+  const fetchUser = useCallback(async (andScheduleRefresh = true) => {
+    if (isFetchingRef.current) return;
+    if (typeof document === "undefined") return;
 
-      // No session at all — skip API call entirely
-      if (!document.cookie.includes("tastyc_user_id=")) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+    if (!document.cookie.includes("tastyc_user_id=")) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
 
-      // On auth pages — skip to prevent loops
-      if (
-        typeof window !== "undefined" &&
-        window.location.pathname.startsWith("/auth/")
-      ) {
-        setLoading(false);
-        return;
-      }
+    if (window.location.pathname.startsWith("/auth/")) {
+      setLoading(false);
+      return;
+    }
 
-      isFetchingRef.current = true;
-
-      try {
-        const res = await apiFetch<any>("/api/auth/me");
-        if (res.success) {
-          setUser(res.data.user);
-          if (andScheduleRefresh) scheduleProactiveRefresh();
-        } else {
-          setUser(null);
-          clearRefreshTimer();
-        }
-      } catch {
+    isFetchingRef.current = true;
+    try {
+      const res = await apiFetch<any>("/api/auth/me");
+      if (res.success) {
+        setUser(res.data.user);
+        if (andScheduleRefresh) scheduleProactiveRefresh();
+      } else {
         setUser(null);
         clearRefreshTimer();
-      } finally {
-        setLoading(false);
-        isFetchingRef.current = false;
       }
-    },
-    [scheduleProactiveRefresh, clearRefreshTimer],
-  );
+    } catch (err: any) {
+      if (!(window as any).__tastyc_redirecting) {
+        setUser(null);
+        clearRefreshTimer();
+      }
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  }, [scheduleProactiveRefresh, clearRefreshTimer]);
 
   const clear = useCallback(() => {
     setUser(null);

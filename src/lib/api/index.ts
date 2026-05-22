@@ -93,6 +93,7 @@ async function apiFetch<T>(
       }
       const currentPath = encodeURIComponent(rawPath);
       const reason = document.cookie.includes("tastyc_user_id=") ? "expired" : "required";
+      (window as any).__tastyc_redirecting = true;
       window.location.href = `/auth/login?reason=${reason}&redirect=${currentPath}`;
     }
 

@@ -1,5 +1,5 @@
 "use client";
-
+import React from 'react'
 import { useState } from "react";
 import { Send, CheckCircle, Navigation, Mail } from "lucide-react";
 import Link from "next/link";
@@ -248,7 +248,7 @@ export function ContactFormSocial() {
             <MotionWrapper variant="fade-up" delay={200} duration={600}>
               <div className="relative rounded-3xl overflow-hidden h-full min-h-[480px]">
                 <Image
-                  src={homeImg3}
+                  src={"/assets/homeImg3.jpg"}
                   alt="Our restaurant location"
                   fill
                   className="object-cover"
@@ -294,7 +294,7 @@ export function ContactFormSocial() {
       <section className="relative py-16 md:py-24 px-6 md:px-16 lg:px-20 overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src={homeImg2}
+            src={"/assets/homeImg2.jpg"}
             alt="Newsletter background"
             fill
             className="object-cover"
@@ -320,7 +320,7 @@ export function ContactFormSocial() {
                   Follow us on social media for daily updates, behind-the-scenes
                   content, and special offers.
                 </p>
-                <div className="flex gap-4 justify-center lg:justify-start">
+                {/* <div className="flex gap-4 justify-center lg:justify-start">
                   {socialLinks.map((social, index) => (
                     <Link
                       key={index}
@@ -332,7 +332,7 @@ export function ContactFormSocial() {
                       <social.icon className="w-5 h-5 text-white group-hover:text-gray-900 transition" />
                     </Link>
                   ))}
-                </div>
+                </div> */}
               </div>
             </MotionWrapper>
 
