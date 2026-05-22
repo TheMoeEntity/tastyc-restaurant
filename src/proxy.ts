@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+
+console.log('API_URL:', process.env.API_URL)
+console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL)
 // ── JWT helpers ───────────────────────────────────────────────
 // Decode without verification — we only need expiry + role for routing.
 // Signature verification happens on the API for every protected request.
@@ -51,7 +54,7 @@ async function silentRefreshToken(
   request: NextRequest,
 ): Promise<{ response: NextResponse; accessToken: string } | null> {
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const apiUrl = process.env.API_URL || "http://localhost:4000";
     const cookieHeader = request.headers.get("cookie") || "";
 
     const refreshResponse = await fetch(`${apiUrl}/api/auth/refresh`, {
