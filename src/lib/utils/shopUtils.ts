@@ -94,6 +94,7 @@ export const addToCart = (product: Product): void => {
       image: product.image,
       description: product.description,
       category: product.category,
+      menuItemId: product.menuItemId
     });
   }
 

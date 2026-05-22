@@ -15,6 +15,7 @@ export interface Product {
   glutenFree?: boolean;
   image: string;
   rating: number;
+  menuItemId: string
   reviewCount: number;
   inStock: boolean;
   isNew?: boolean;

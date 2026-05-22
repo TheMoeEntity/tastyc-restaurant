@@ -92,6 +92,7 @@ export interface Product {
   image: string;
   rating: number;
   reviewCount: number;
+  menuItemId: string
   inStock: boolean;
   isNew?: boolean;
   discount?: number;
