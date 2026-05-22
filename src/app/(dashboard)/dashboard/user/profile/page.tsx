@@ -72,7 +72,6 @@ export default function UserProfilePage() {
         setError(err instanceof Error ? err.message : "Failed to load"),
       )
       .finally(() => {
-        console.log(profile);
         setLoading(false);
       });
   }, []);

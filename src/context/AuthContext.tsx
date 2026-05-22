@@ -98,12 +98,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const delay = Math.max(expiryMs - REFRESH_BUFFER_MS, 0);
 
-    console.log(
-      `[Auth] Proactive refresh scheduled in ${Math.round(delay / 1000)}s`,
-    );
 
     refreshTimerRef.current = setTimeout(async () => {
-      console.log("[Auth] Proactive refresh firing...");
+
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"}/api/auth/refresh`,
@@ -111,17 +108,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         );
 
         if (res.ok) {
-          console.log("[Auth] Proactive refresh succeeded");
+
           // Invalidate Redis cache so next /api/auth/me gets fresh data
           // Then re-fetch user to update context
           await fetchUser(false); // false = don't reschedule (scheduleProactiveRefresh handles it)
           scheduleProactiveRefresh(); // restart timer with new token's expiry
         } else {
-          console.log("[Auth] Proactive refresh failed — clearing session");
+
           clear();
         }
       } catch {
-        console.log("[Auth] Proactive refresh network error");
+
         // Don't clear — might be temporary network issue
         // apiFetch will handle it reactively when the next API call fires
       }

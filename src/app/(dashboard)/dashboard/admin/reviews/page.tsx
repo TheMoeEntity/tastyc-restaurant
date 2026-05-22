@@ -77,7 +77,7 @@ export default function AdminReviewsPage() {
         apiFetch<any>(endpoint)
             .then((r) => {
                 if (!r.success) throw new Error(r.message);
-                console.log(r.data)
+
                 setReviews(r.data.reviews);
                 setTotalPages(r.data.pagination.totalPages);
                 setTotal(r.data.pagination.total);

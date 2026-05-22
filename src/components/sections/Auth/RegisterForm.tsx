@@ -56,7 +56,6 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("sent over", name, email, password);
     onSubmit(name, email, password);
   };
 
@@ -167,15 +166,14 @@ export default function RegisterForm({ onSubmit, loading, error }: Props) {
                   )}
                 </button>
               </div>
-              
+
               <div className="mt-2 space-y-1.5">
                 <div className="flex gap-1 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
                   {[1, 2, 3, 4, 5].map((level) => (
                     <div
                       key={level}
-                      className={`h-full flex-1 transition-colors duration-300 ${
-                        password && strength.score >= level ? strength.color : "bg-transparent"
-                      }`}
+                      className={`h-full flex-1 transition-colors duration-300 ${password && strength.score >= level ? strength.color : "bg-transparent"
+                        }`}
                     />
                   ))}
                 </div>

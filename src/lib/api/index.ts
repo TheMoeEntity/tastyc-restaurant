@@ -30,9 +30,6 @@ async function silentRefresh(): Promise<boolean> {
       method: "POST",
       credentials: "include",
     });
-    console.log("Silent refresh status:", res.status);
-    const body = await res.json();
-    console.log("Silent refresh body:", body);
     const ok = res.ok;
     drainQueue(ok);
     return ok;

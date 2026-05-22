@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-
-console.log('API_URL:', process.env.API_URL)
-console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL)
 // ── JWT helpers ───────────────────────────────────────────────
 // Decode without verification — we only need expiry + role for routing.
 // Signature verification happens on the API for every protected request.

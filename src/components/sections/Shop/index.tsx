@@ -184,11 +184,10 @@ export function ProductCard({
           )}
           <button
             onClick={handleWishlist}
-            className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isWishlisted
+            className={`absolute bottom-2 right-2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${isWishlisted
                 ? "bg-red-500 text-white"
                 : "bg-white/90 text-gray-600 hover:bg-red-500 hover:text-white"
-            }`}
+              }`}
           >
             <Heart className={`w-4 h-4 ${isWishlisted ? "fill-white" : ""}`} />
           </button>
@@ -360,7 +359,7 @@ export function DealsSection({
         success = true;
       }
     } catch (err) {
-      console.log("Clipboard API failed, trying fallback...");
+
     }
 
     if (!success) {

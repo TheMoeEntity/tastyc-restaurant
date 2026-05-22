@@ -32,7 +32,7 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
   const post = blogPosts.find((p) => p.slug === slug);
-  console.log(slug);
+
   if (!post) {
     notFound();
   }

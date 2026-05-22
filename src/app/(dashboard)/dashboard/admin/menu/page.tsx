@@ -88,7 +88,6 @@ export default function AdminMenuPage() {
       .then(async (r) => {
         if (!r.success) throw new Error(r.message);
         const raw = r.data;
-        console.log(raw);
         const flat: MenuItem[] = Array.isArray(raw.items)
           ? raw.items.flatMap((c: { menuItems?: MenuItem[] } | MenuItem) =>
             "menuItems" in c && c.menuItems ? c.menuItems : [c as MenuItem],
