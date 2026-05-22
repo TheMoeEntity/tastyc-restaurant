@@ -38,7 +38,7 @@ interface MenuItemAPI {
   description: string;
   price: number;
   image?: string;
-  category?: string;
+  category?: { id: string; name: string } | string;
   spicy?: boolean;
   veg?: boolean;
   popular?: boolean;
@@ -123,9 +123,13 @@ export default function TableClient() {
   function buildCategories(flat: MenuItemAPI[]): MenuCategory[] {
     const map = new Map<string, MenuItemAPI[]>();
     for (const item of flat) {
-      const cat = item.category ?? "Other";
-      if (!map.has(cat)) map.set(cat, []);
-      map.get(cat)!.push(item);
+      // Handle category as either a string or an object with a name property
+      const catName = typeof item.category === 'object' && item.category !== null
+        ? (item.category as any).name
+        : (item.category as string) ?? "Other";
+
+      if (!map.has(catName)) map.set(catName, []);
+      map.get(catName)!.push(item);
     }
     return Array.from(map.entries()).map(([name, items]) => ({
       id: name.toLowerCase(),
