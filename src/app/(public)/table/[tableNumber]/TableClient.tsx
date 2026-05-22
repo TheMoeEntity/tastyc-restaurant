@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -73,14 +73,9 @@ type PageState =
 
 export default function TableClient() {
   const params = useParams();
+  const searchParams = useSearchParams()
   const tableNumber = params.tableNumber as string;
-
-  // Read token from URL (client-side only)
-  const [token, setToken] = useState("");
-  useEffect(() => {
-    const sp = new URLSearchParams(window.location.search);
-    setToken(sp.get("token") ?? "");
-  }, []);
+  const token = searchParams.get("token") ?? "";
 
   const [pageState, setPageState] = useState<PageState>("validating");
   const [categories, setCategories] = useState<MenuCategory[]>([]);
