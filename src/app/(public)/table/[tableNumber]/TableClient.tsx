@@ -108,12 +108,9 @@ export default function TableClient() {
         return apiFetch<any>(`/api/menu`);
       })
       .then((r) => {
-        // Support both { data: MenuCategory[] } and { data: MenuItemAPI[] } shapes
-        const raw = r.data ?? r;
-        const cats: MenuCategory[] =
-          Array.isArray(raw) && raw[0]?.items
-            ? raw
-            : buildCategories(Array.isArray(raw) ? raw : []);
+        // API returns { success: true, data: { items: [...], pagination: {...} } }
+        const items = r.data?.items ?? [];
+        const cats = buildCategories(items);
         setCategories(cats);
         setPageState("menu");
       })
