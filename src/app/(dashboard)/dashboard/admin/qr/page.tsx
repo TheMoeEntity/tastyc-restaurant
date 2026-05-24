@@ -126,11 +126,10 @@ export default function AdminQRPage() {
                 style={{ background: "rgba(255,255,255,0.03)" }}
               >
                 <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-white">
-                  <Image
+                  <img
                     src={qr.qrCodeDataUrl}
                     alt={`Table ${qr.tableNumber} QR`}
-                    fill
-                    className="object-contain p-1"
+                    className="w-full h-full object-contain p-1"
                   />
                 </div>
                 <p className="text-white font-semibold text-sm">
