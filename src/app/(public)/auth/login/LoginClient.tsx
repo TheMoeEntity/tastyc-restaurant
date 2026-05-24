@@ -47,7 +47,7 @@ export default function LoginClient() {
       const defaultPath = getRoleDefaultPath(role);
 
       toast.success("Login successful");
-      await refresh()
+
       const safePath = (() => {
         if (!redirectPath) return defaultPath;
         if (

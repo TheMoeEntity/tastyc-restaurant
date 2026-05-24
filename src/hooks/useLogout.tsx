@@ -4,10 +4,13 @@ import apiFetch from "@/lib/api";
 import { useConfirmModal } from "./useConfirmModal";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export const useLogout = (callback?: () => void) => {
   const { confirm, modal } = useConfirmModal();
   const { push } = useRouter();
+  const { clear } = useAuth()
+
   const handleLogout = async () => {
     const confirmed = await confirm({
       title: "Log out?",
@@ -21,9 +24,9 @@ export const useLogout = (callback?: () => void) => {
       await apiFetch("/api/auth/logout", { method: "POST" });
       toast.success("Logged out successfully");
     } catch {
-      // best-effort — clear UI regardless
       toast.error("Failed to logout, try again");
     }
+    clear()
     callback?.();
     push("/");
   };

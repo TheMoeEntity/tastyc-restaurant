@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
     "192.168.1.113"
   ], //replace with your own network ip
   output: "standalone",
+  experimental: {
+    serverSourceMaps: true,
+  },
+
   images: {
     remotePatterns: [
       {

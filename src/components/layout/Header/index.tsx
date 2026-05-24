@@ -22,6 +22,7 @@ import apiFetch from "@/lib/api";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { getRoleDefaultPath } from "@/lib/Helper";
 import { useAuth } from "@/context/AuthContext";
+import { useLogout } from "@/hooks/useLogout";
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const { user, isAuthenticated, clear } = useAuth();
@@ -32,10 +33,8 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [accountHovered, setAccountHovered] = useState(false);
-  const [cartVersion, setCartVersion] = useState(0);
-  const router = useRouter();
-  const { confirm, modal } = useConfirmModal();
-
+  const [_, setCartVersion] = useState(0);
+  const { handleLogout, modal } = useLogout(() => setMobileOpen(false));
   const { items, removeItem, getTotalItems, getSubtotal } = useCartStore();
   const cartItemCount = getTotalItems();
   const subtotal = getSubtotal();
@@ -43,23 +42,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   const headerRef = useRef<HTMLElement>(null);
   const isCartPage = usePathname() === "/cart";
 
-  const handleLogout = async () => {
-    const confirmed = await confirm({
-      title: "Log out?",
-      message: "You'll need to sign in again to access your account.",
-      confirmLabel: "Log out",
-      cancelLabel: "Stay",
-      danger: true,
-    });
-    if (!confirmed) return;
-    try {
-      await apiFetch("/api/auth/logout", { method: "POST" });
-    } catch {}
-    clear();
-    setAccountHovered(false);
-    setMobileOpen(false);
-    router.push("/");
-  };
 
   useEffect(() => {
     setMounted(true);

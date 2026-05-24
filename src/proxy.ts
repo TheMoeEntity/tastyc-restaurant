@@ -47,9 +47,7 @@ function getHomePath(role: string | null): string {
 }
 
 // ── Silent refresh ────────────────────────────────────────────
-async function silentRefreshToken(
-  request: NextRequest,
-): Promise<{ response: NextResponse; accessToken: string } | null> {
+async function silentRefreshToken(request: NextRequest) {
   try {
     const apiUrl = process.env.API_URL || "http://localhost:4000";
     const cookieHeader = request.headers.get("cookie") || "";
@@ -69,6 +67,10 @@ async function silentRefreshToken(
     const setCookieHeaders = refreshResponse.headers.getSetCookie();
     let newAccessToken = "";
 
+    response.cookies.delete({ name: 'tastyc_access_token', domain: '.mosesnwigberi.com', path: '/' });
+    response.cookies.delete({ name: 'tastyc_refresh_token', domain: '.mosesnwigberi.com', path: '/' });
+    response.cookies.delete({ name: 'tastyc_user_id', domain: '.mosesnwigberi.com', path: '/' });
+
     setCookieHeaders.forEach((cookieStr) => {
       const parts = cookieStr.split(";").map((p) => p.trim());
       const firstEq = parts[0].indexOf("=");
@@ -83,6 +85,7 @@ async function silentRefreshToken(
         sameSite?: "lax" | "strict" | "none";
         maxAge?: number;
         path?: string;
+        domain?: string;
       } = {};
 
       parts.slice(1).forEach((attr) => {
@@ -92,14 +95,13 @@ async function silentRefreshToken(
         } else if (lower === "secure") {
           attrs.secure = true;
         } else if (lower.startsWith("samesite=")) {
-          attrs.sameSite = attr.split("=")[1].trim().toLowerCase() as
-            | "lax"
-            | "strict"
-            | "none";
+          attrs.sameSite = attr.split("=")[1].trim().toLowerCase() as "lax" | "strict" | "none";
         } else if (lower.startsWith("max-age=")) {
           attrs.maxAge = parseInt(attr.split("=")[1].trim(), 10);
         } else if (lower.startsWith("path=")) {
           attrs.path = attr.split("=")[1].trim();
+        } else if (lower.startsWith("domain=")) {
+          attrs.domain = attr.split("=")[1].trim();
         }
       });
 
