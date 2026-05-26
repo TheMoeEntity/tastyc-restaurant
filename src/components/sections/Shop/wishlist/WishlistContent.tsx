@@ -29,7 +29,6 @@ export function WishlistContent() {
   // Force re-render when cart changes
   useEffect(() => {
     const handleCartUpdate = () => {
-      console.log("Wishlist received cart update");
       setForceUpdate(prev => prev + 1);
     };
     window.addEventListener("cartUpdated", handleCartUpdate);
@@ -62,15 +61,11 @@ export function WishlistContent() {
   };
 
   const handleAddToCart = (product: Product) => {
-    console.log("Adding to cart from wishlist:", product.name);
-    console.log("Current cart items before:", items.length);
-    
     // Add product to cart
     addProduct(product);
     
     // Force multiple events to ensure navbar updates
     setTimeout(() => {
-      console.log("Cart items after:", getTotalItems());
       window.dispatchEvent(new Event("cartUpdated"));
       window.dispatchEvent(new Event("storage"));
     }, 50);

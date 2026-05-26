@@ -80,7 +80,7 @@ export function DealsContent() {
         success = true;
       }
     } catch (err) {
-      console.log("Clipboard API failed");
+      // Clipboard API failed, fallback will be used
     }
 
     if (!success) {
