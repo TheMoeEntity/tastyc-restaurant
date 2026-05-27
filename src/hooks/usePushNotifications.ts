@@ -32,7 +32,6 @@ export function usePushNotifications() {
     }, []);
 
     async function subscribe() {
-        console.log("🔔 subscribe() called");
 
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
             console.warn("Push not supported");
@@ -42,27 +41,19 @@ export function usePushNotifications() {
         setIsLoading(true);
 
         try {
-            console.log("🔔 Registering service worker...");
             const registration = await navigator.serviceWorker.register("/sw.js");
-            console.log("🔔 SW registered:", registration);
-
-            console.log("🔔 Subscribing to push...");
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
             });
-            console.log("🔔 Subscription object:", JSON.stringify(subscription));
 
             const res = await apiFetch("/api/push/subscribe", {
                 method: "POST",
                 data: subscription,
             });
-            console.log("🔔 API response:", res);
 
             setIsSubscribed(true);
-            console.log("🔔 Subscribed successfully!");
         } catch (error) {
-            console.error("🔔 Push subscription failed:", error);
         } finally {
             setIsLoading(false);
         }

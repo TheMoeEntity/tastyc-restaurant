@@ -23,12 +23,10 @@ export function PushNotificationInit() {
     }, []);
     useEffect(() => {
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-            console.warn("🔔 Push not supported in this browser");
             return;
         }
 
         Notification.requestPermission().then((permission) => {
-            console.log("🔔 Permission:", permission);
             if (permission === "granted") {
                 subscribe();
             }
