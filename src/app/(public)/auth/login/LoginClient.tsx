@@ -107,7 +107,7 @@ export default function LoginClient() {
   return <>
     <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
     {isDemoMode && (
-      <div className="mt-6 bg-white p-5 space-y-3">
+      <div className="pt-6 bg-white px-5 space-y-3">
         <div className="flex items-center gap-3">
           <div className="h-px flex-1" />
           <span className=" text-xs font-medium">Try Demo</span>
@@ -119,7 +119,7 @@ export default function LoginClient() {
               key={account.label}
               type="button"
               onClick={() => handleDemoLogin(account.email, account.password)}
-              className="py-2.5 px-3 rounded-xl border border-white/10 text-white/50 hover:text-white hover:border-yellow-500/40 hover:bg-yellow-500/5 text-xs font-medium transition"
+              className="py-2.5 px-3 rounded-xl border bg-black text-white/50 text-sm font-medium transition"
             >
               {account.label}
             </button>
