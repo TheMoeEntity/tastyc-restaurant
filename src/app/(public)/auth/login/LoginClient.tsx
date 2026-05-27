@@ -107,7 +107,7 @@ export default function LoginClient() {
   return <>
     <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
     {isDemoMode && (
-      <div className="py-8 bg-white px-5 space-y-3">
+      <div className="py-8 bg-white px-5 space-y-3 max-w-md">
         <div className="flex items-center gap-3">
           <div className="h-px flex-1" />
           <span className=" text-xs font-medium">Try Demo</span>
