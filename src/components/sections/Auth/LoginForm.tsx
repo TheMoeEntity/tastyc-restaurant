@@ -21,7 +21,7 @@ export default function LoginForm({ onSubmit, loading, error }: Props) {
   };
 
   return (
-    <main className="min-h-screen flex">
+    <main className="min-h-[500px] md:min-h-screen flex">
       {/* Form */}
       <div className="w-full flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-md">

@@ -107,11 +107,11 @@ export default function LoginClient() {
   return <>
     <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
     {isDemoMode && (
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 bg-white p-5 space-y-3">
         <div className="flex items-center gap-3">
-          <div className="h-px flex-1 bg-white/10" />
-          <span className="text-white/30 text-xs font-medium">Try Demo</span>
-          <div className="h-px flex-1 bg-white/10" />
+          <div className="h-px flex-1" />
+          <span className=" text-xs font-medium">Try Demo</span>
+          <div className="h-px flex-1" />
         </div>
         <div className="grid grid-cols-3 gap-2">
           {DEMO_ACCOUNTS.map((account) => (
@@ -125,7 +125,7 @@ export default function LoginClient() {
             </button>
           ))}
         </div>
-        <p className="text-white/20 text-[10px] text-center">
+        <p className="text-[10px] text-center">
           Demo accounts have limited actions
         </p>
       </div>
