@@ -7,6 +7,13 @@ import LoginForm from "@/components/sections/Auth/LoginForm";
 import { loginUser } from "@/lib/api/auth";
 import { getRoleDefaultPath } from "@/lib/Helper";
 import { useAuth } from "@/context/AuthContext";
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
+const DEMO_ACCOUNTS = [
+  { label: "Customer", email: "demo.customer@tastyc.com", password: "Demo@123456" },
+  { label: "Kitchen", email: "demo.kitchen@tastyc.com", password: "Demo@123456" },
+  { label: "Admin", email: "demo.admin@tastyc.com", password: "Demo@123456" },
+];
 
 export default function LoginClient() {
   const router = useRouter();
@@ -74,6 +81,54 @@ export default function LoginClient() {
       setLoading(false);
     }
   };
+  const handleDemoLogin = async (email: string, password: string) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await loginUser(email, password);
+      if (!res.success || !res.data) throw new Error(res.message || "Login failed");
 
-  return <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
+      const { user, isOnboarded } = res.data;
+      toast.success(`Logged in as ${user.name}`);
+
+      if (["MANAGER", "SUPERADMIN"].includes(user.role)) {
+        router.push(isOnboarded ? "/dashboard/admin" : "/setup");
+      } else if (user.role === "KITCHEN") {
+        router.push("/dashboard/kitchen");
+      } else {
+        router.push("/dashboard/user");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Demo login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return <>
+    <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
+    {isDemoMode && (
+      <div className="mt-6 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-white/10" />
+          <span className="text-white/30 text-xs font-medium">Try Demo</span>
+          <div className="h-px flex-1 bg-white/10" />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {DEMO_ACCOUNTS.map((account) => (
+            <button
+              key={account.label}
+              type="button"
+              onClick={() => handleDemoLogin(account.email, account.password)}
+              className="py-2.5 px-3 rounded-xl border border-white/10 text-white/50 hover:text-white hover:border-yellow-500/40 hover:bg-yellow-500/5 text-xs font-medium transition"
+            >
+              {account.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-white/20 text-[10px] text-center">
+          Demo accounts have limited actions
+        </p>
+      </div>
+    )}
+  </>
 }
