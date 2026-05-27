@@ -104,31 +104,13 @@ export default function LoginClient() {
       setLoading(false);
     }
   };
-  return <>
-    <LoginForm onSubmit={handleSubmit} loading={loading} error={error} />;
-    {isDemoMode && (
-      <div className="py-8 bg-white px-5 space-y-3 max-w-md">
-        <div className="flex items-center gap-3">
-          <div className="h-px flex-1" />
-          <span className=" text-xs font-medium">Try Demo</span>
-          <div className="h-px flex-1" />
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {DEMO_ACCOUNTS.map((account) => (
-            <button
-              key={account.label}
-              type="button"
-              onClick={() => handleDemoLogin(account.email, account.password)}
-              className="py-2.5 px-3 rounded-xl border bg-[#f2a830] text-white/50 text-sm font-medium transition"
-            >
-              {account.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[10px] text-center">
-          Demo accounts have limited actions
-        </p>
-      </div>
-    )}
-  </>
+  return (
+    <LoginForm
+      onSubmit={handleSubmit}
+      loading={loading}
+      error={error}
+      demoAccounts={isDemoMode ? DEMO_ACCOUNTS : undefined}
+      onDemoLogin={isDemoMode ? handleDemoLogin : undefined}
+    />
+  );
 }

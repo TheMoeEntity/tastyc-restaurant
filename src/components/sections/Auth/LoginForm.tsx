@@ -2,15 +2,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { LogIn, Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { LogIn, Eye, EyeOff, Mail, Lock, Zap, ChefHat, ShoppingBag, Shield } from "lucide-react";
+
+export type DemoAccount = {
+  label: string;
+  email: string;
+  password: string;
+};
 
 type Props = {
   onSubmit: (email: string, password: string) => void;
   loading: boolean;
   error: string;
+  demoAccounts?: DemoAccount[];
+  onDemoLogin?: (email: string, password: string) => void;
 };
 
-export default function LoginForm({ onSubmit, loading, error }: Props) {
+const ROLE_META: Record<string, { icon: React.ReactNode; color: string; bg: string; border: string }> = {
+  Customer: {
+    icon: <ShoppingBag className="w-3.5 h-3.5" />,
+    color: "text-emerald-700",
+    bg: "bg-emerald-50 hover:bg-emerald-100",
+    border: "border-emerald-200 hover:border-emerald-300",
+  },
+  Kitchen: {
+    icon: <ChefHat className="w-3.5 h-3.5" />,
+    color: "text-orange-700",
+    bg: "bg-orange-50 hover:bg-orange-100",
+    border: "border-orange-200 hover:border-orange-300",
+  },
+  Admin: {
+    icon: <Shield className="w-3.5 h-3.5" />,
+    color: "text-violet-700",
+    bg: "bg-violet-50 hover:bg-violet-100",
+    border: "border-violet-200 hover:border-violet-300",
+  },
+};
+
+export default function LoginForm({ onSubmit, loading, error, demoAccounts, onDemoLogin }: Props) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -145,6 +174,55 @@ export default function LoginForm({ onSubmit, loading, error }: Props) {
               )}
             </button>
           </form>
+
+          {/* Demo Section */}
+          {demoAccounts && demoAccounts.length > 0 && onDemoLogin && (
+            <div className="mt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex-1 h-px bg-gray-100" />
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200">
+                  <Zap className="w-3 h-3 text-amber-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-600">Try Demo</span>
+                </div>
+                <div className="flex-1 h-px bg-gray-100" />
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm">
+                <p className="text-xs text-gray-500 mb-3 text-center">
+                  Explore the app instantly — no sign-up needed
+                </p>
+                <div className="flex flex-col gap-2">
+                  {demoAccounts.map((account) => {
+                    const meta = ROLE_META[account.label];
+                    return (
+                      <button
+                        key={account.label}
+                        type="button"
+                        onClick={() => onDemoLogin(account.email, account.password)}
+                        disabled={loading}
+                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          meta
+                            ? `${meta.bg} ${meta.border} ${meta.color}`
+                            : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
+                        }`}
+                      >
+                        <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-current/10">
+                          {meta?.icon}
+                        </span>
+                        <span className="flex-1 text-left">
+                          {account.label} View
+                        </span>
+                        <span className="text-[10px] opacity-60 font-normal">Click to enter →</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[10px] text-center text-gray-400 mt-3">
+                  ⚠️ Demo accounts have limited write access
+                </p>
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-3 my-5">
             <div className="flex-1 h-px bg-gray-100" />
