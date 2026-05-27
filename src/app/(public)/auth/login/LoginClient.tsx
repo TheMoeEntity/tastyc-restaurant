@@ -43,21 +43,26 @@ export default function LoginClient() {
         throw new Error(res.message || "Login failed");
       }
 
-      const { role } = res.data.user;
+      const { role, } = res.data.user;
+      const isOnboarded = res.data.isOnboarded
       const defaultPath = getRoleDefaultPath(role);
 
       toast.success("Login successful");
 
       const safePath = (() => {
-        if (!redirectPath) return defaultPath;
-        if (
-          role === "KITCHEN" &&
-          !redirectPath.startsWith("/dashboard/kitchen")
-        )
+        // Onboarding check runs first — before anything else
+        if (["MANAGER", "SUPERADMIN"].includes(role)) {
+          return isOnboarded ? "/dashboard/admin" : "/setup";
+        }
+        if (role === "KITCHEN") return "/dashboard/kitchen";
+        if (role === "CUSTOMER") {
+          // Honor redirect if it's a customer-safe path
+          if (redirectPath && !redirectPath.startsWith("/dashboard/admin")) {
+            return redirectPath;
+          }
           return defaultPath;
-        if (role === "CUSTOMER" && redirectPath.startsWith("/dashboard/admin"))
-          return defaultPath;
-        return redirectPath;
+        }
+        return defaultPath;
       })();
       router.push(decodeURIComponent(safePath));
     } catch (err: unknown) {

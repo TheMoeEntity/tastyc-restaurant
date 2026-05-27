@@ -13,6 +13,7 @@ export interface AuthResponse {
   success: boolean;
   message: string;
   data?: {
+    isOnboarded?: boolean
     user: AuthUser;
   };
 }
