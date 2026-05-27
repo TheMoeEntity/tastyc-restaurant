@@ -18,6 +18,7 @@ import {
 import Image from "next/image";
 import apiFetch from "@/lib/api";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -130,8 +131,8 @@ function UserActions({
                     onClick={() => handleRoleChange(role)}
                     disabled={user.role === role}
                     className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.role === role
-                        ? "text-white/20 cursor-not-allowed"
-                        : "text-white/60 hover:text-white hover:bg-white/5"
+                      ? "text-white/20 cursor-not-allowed"
+                      : "text-white/60 hover:text-white hover:bg-white/5"
                       }`}
                   >
                     <Shield size={10} />
@@ -151,8 +152,8 @@ function UserActions({
               <button
                 onClick={handleStatusChange}
                 className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.isActive
-                    ? "text-red-400 hover:bg-red-500/10"
-                    : "text-green-400 hover:bg-green-500/10"
+                  ? "text-red-400 hover:bg-red-500/10"
+                  : "text-green-400 hover:bg-green-500/10"
                   }`}
               >
                 {user.isActive ? (
@@ -190,11 +191,15 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<"" | "true" | "false">("");
   const [page, setPage] = useState(1);
   const [currentUserRole, setCurrentUserRole] = useState<Role>("MANAGER");
+  const [currentUserId, setCurrentUserID] = useState<string>("")
 
   // Get current user role from auth/me
   useEffect(() => {
     apiFetch<any>("/api/auth/me")
-      .then((r) => setCurrentUserRole(r.data?.user?.role ?? "MANAGER"))
+      .then((r) => {
+        setCurrentUserRole(r.data?.user?.role ?? "MANAGER");
+        setCurrentUserID(r.data?.user?.id ?? "")
+      })
       .catch(() => { });
   }, []);
 
@@ -409,7 +414,7 @@ export default function AdminUsersPage() {
                         </div>
                         <div>
                           <p className="text-white/80 text-xs font-semibold">
-                            {user.name}
+                            {user.name} {user.id === currentUserId && "(You)"}
                           </p>
                           <p className="text-white/30 text-[10px]">
                             {user.email}
@@ -427,8 +432,8 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${user.isActive
-                            ? "text-green-400 bg-green-500/10 border-green-500/30"
-                            : "text-red-400 bg-red-500/10 border-red-500/30"
+                          ? "text-green-400 bg-green-500/10 border-green-500/30"
+                          : "text-red-400 bg-red-500/10 border-red-500/30"
                           }`}
                       >
                         <span

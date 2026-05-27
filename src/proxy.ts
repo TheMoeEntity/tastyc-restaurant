@@ -169,9 +169,23 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(getHomePath(role), request.url));
   }
 
+  // ── Verify page — redirect already-verified users to their dashboard ──
+  if (
+    pathname.startsWith("/auth/verify") &&
+    accessToken &&
+    !isTokenExpired(accessToken)
+  ) {
+    const isVerified = request.cookies.get("tastyc_is_verified")?.value === "true";
+    if (isVerified) {
+      const role = getRoleFromToken(accessToken);
+      return NextResponse.redirect(new URL(getHomePath(role), request.url));
+    }
+  }
+
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/auth/login", "/auth/register"],
+  matcher: ["/dashboard/:path*", "/auth/login", "/auth/register", "/auth/verify"],
 };
