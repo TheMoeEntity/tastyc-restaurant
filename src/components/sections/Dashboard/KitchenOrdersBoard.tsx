@@ -188,8 +188,8 @@ function OrderCard({
           onClick={handleAction}
           disabled={updating}
           className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm transition disabled:opacity-50 ${order.status === "CONFIRMED"
-              ? "bg-orange-500 hover:bg-orange-400 text-white"
-              : "bg-green-500 hover:bg-green-400 text-white"
+            ? "bg-orange-500 hover:bg-orange-400 text-white"
+            : "bg-green-500 hover:bg-green-400 text-white"
             }`}
         >
           {updating ? (
@@ -215,17 +215,16 @@ export default function KitchenOrdersBoard() {
   useEffect(() => {
     const fetchActive = async () => {
       try {
-        const [r1, r2] = await Promise.all([
+        const [r1, r2, r3] = await Promise.all([
           apiFetch<any>(`/api/orders?status=CONFIRMED&limit=50`),
           apiFetch<any>(`/api/orders?status=PREPARING&limit=50`),
+          apiFetch<any>(`/api/orders?status=READY&limit=50`),
         ]);
-        const confirmed: KitchenOrder[] = r1.success
-          ? (r1.data.orders ?? [])
-          : [];
-        const preparing: KitchenOrder[] = r2.success
-          ? (r2.data.orders ?? [])
-          : [];
-        setOrders([...confirmed, ...preparing]);
+        const confirmed: KitchenOrder[] = r1.success ? (r1.data.orders ?? []) : [];
+        const preparing: KitchenOrder[] = r2.success ? (r2.data.orders ?? []) : [];
+        const ready: KitchenOrder[] = r3.success ? (r3.data.orders ?? []) : [];
+        setOrders([...confirmed, ...preparing, ...ready]);
+
       } finally {
         setLoading(false);
       }
@@ -237,16 +236,36 @@ export default function KitchenOrdersBoard() {
     const socket = io(API, { auth: { token }, transports: ["websocket"] });
     socketRef.current = socket;
 
-    socket.on("connect", () => setConnected(true));
+    socket.on("connect", () => {
+      setConnected(true);
+      socket.emit("join-kitchen");
+    });
     socket.on("disconnect", () => setConnected(false));
 
-    socket.emit("join-kitchen");
 
-    socket.on("new-order", (order: KitchenOrder) => {
+    socket.on("new-order", (payload: any) => {
       playNotification();
+
+      const order: KitchenOrder = {
+        id: payload.orderId,
+        orderNumber: payload.orderNumber,
+        type: payload.type,
+        status: "CONFIRMED",
+        tableNumber: payload.tableNumber ?? null,
+        notes: payload.notes ?? null,
+        createdAt: payload.receivedAt,
+        isNew: true,
+        items: payload.items.map((item: any, index: number) => ({
+          id: `${payload.orderId}-${index}`,
+          quantity: item.quantity,
+          menuItem: { name: item.name },
+          variant: item.variant ? { name: item.variant } : null,
+        })),
+      };
+
       setOrders((prev) => {
         if (prev.find((o) => o.id === order.id)) return prev;
-        return [{ ...order, isNew: true }, ...prev];
+        return [order, ...prev];
       });
     });
 
