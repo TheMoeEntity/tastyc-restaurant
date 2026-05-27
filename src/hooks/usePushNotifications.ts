@@ -32,36 +32,41 @@ export function usePushNotifications() {
     }, []);
 
     async function subscribe() {
+        console.log("🔔 subscribe() called");
+
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-            console.warn("Push notifications not supported in this browser");
+            console.warn("Push not supported");
             return;
         }
 
         setIsLoading(true);
 
         try {
-            // Register the service worker if not already registered
+            console.log("🔔 Registering service worker...");
             const registration = await navigator.serviceWorker.register("/sw.js");
+            console.log("🔔 SW registered:", registration);
 
-            // Request push permission — browser shows the native permission prompt
+            console.log("🔔 Subscribing to push...");
             const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true, // required — means every push will show a notification
+                userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
             });
+            console.log("🔔 Subscription object:", JSON.stringify(subscription));
 
-            await apiFetch("/api/push/subscribe", {
+            const res = await apiFetch("/api/push/subscribe", {
                 method: "POST",
                 data: subscription,
             });
+            console.log("🔔 API response:", res);
 
             setIsSubscribed(true);
+            console.log("🔔 Subscribed successfully!");
         } catch (error) {
-            console.error("Push subscription failed:", error);
+            console.error("🔔 Push subscription failed:", error);
         } finally {
             setIsLoading(false);
         }
     }
-
     async function unsubscribe() {
         setIsLoading(true);
         try {

@@ -3,6 +3,7 @@ import Sidebar from "@/components/sections/Dashboard/SideBar";
 import DashboardTopbar from "@/components/sections/Dashboard/TopBar";
 import { Toaster } from "sonner";
 import VerificationBanner from "@/components/sections/Dashboard/VerificationBanner";
+import { PushNotificationInit } from "@/components/sections/Dashboard/PushNotificationInit";
 
 function getRoleFromToken(token: string): string {
   try {
@@ -30,6 +31,7 @@ export default async function DashboardLayout({
       className="min-h-screen bg-[#0f0f0f]"
       style={{ fontFamily: "'DM Sans', sans-serif" }}
     >
+      <PushNotificationInit />
       <Sidebar role={role} />
       <Toaster />
       {/* On mobile: no left margin. On desktop: push right of sidebar */}
