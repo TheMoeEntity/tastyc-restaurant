@@ -6,6 +6,7 @@ import { ShieldCheck, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import apiFetch from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { getRoleDefaultPath } from "@/lib/Helper";
 
 export default function VerifyClient() {
     const router = useRouter();
@@ -78,8 +79,8 @@ export default function VerifyClient() {
             });
 
             toast.success("Email verified! Welcome to Tastyc 🎉");
-            await refresh(); // refresh user state so isVerified updates
-            router.push("/dashboard/user");
+            await refresh();
+            router.push(getRoleDefaultPath(user?.role ?? "CUSTOMER"));
         } catch (err) {
             const message = err instanceof Error ? err.message : "Invalid code";
             setError(message);
