@@ -190,18 +190,9 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState<Role | "">("");
   const [statusFilter, setStatusFilter] = useState<"" | "true" | "false">("");
   const [page, setPage] = useState(1);
-  const [currentUserRole, setCurrentUserRole] = useState<Role>("MANAGER");
-  const [currentUserId, setCurrentUserID] = useState<string>("")
-
-  // Get current user role from auth/me
-  useEffect(() => {
-    apiFetch<any>("/api/auth/me")
-      .then((r) => {
-        setCurrentUserRole(r.data?.user?.role ?? "MANAGER");
-        setCurrentUserID(r.data?.user?.id ?? "")
-      })
-      .catch(() => { });
-  }, []);
+  const { user } = useAuth();
+  const currentUserRole = (user?.role as Role) ?? "MANAGER";
+  const currentUserId = user?.id ?? "";
 
   const fetchUsers = useCallback(() => {
     setLoading(true);

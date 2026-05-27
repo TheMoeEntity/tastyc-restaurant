@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import apiFetch from "@/lib/api";
+import { toast } from "sonner";
 
 //
 const fmt = (n: number) => `₦${Number(n).toLocaleString("en-NG")}`;
@@ -135,6 +136,10 @@ export default function AdminOrdersTable({
       );
       if (selectedOrder?.id === orderId)
         setSelectedOrder((prev) => (prev ? { ...prev, status } : null));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update status");
+      // Reset the select back to current status by re-fetching isn't needed
+      // — the state didn't change so the select reverts automatically
     } finally {
       setUpdatingId(null);
     }
@@ -163,8 +168,8 @@ export default function AdminOrdersTable({
                   setPage(1);
                 }}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold capitalize transition border ${statusFilter === s
-                    ? "bg-yellow-500 text-black border-yellow-500"
-                    : "border-white/10 text-white/40 hover:text-white hover:border-white/20"
+                  ? "bg-yellow-500 text-black border-yellow-500"
+                  : "border-white/10 text-white/40 hover:text-white hover:border-white/20"
                   }`}
               >
                 {s.toLowerCase()}
