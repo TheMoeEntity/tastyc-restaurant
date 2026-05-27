@@ -4,47 +4,47 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
 
 // each slide has its own bg animation
-const slides = [
-  {
-    image: "/assets/homeImg1.jpg",
-    subtitle: "Hello, new friend",
-    mainTitle: "Welcome Back",
-    secondaryTitle: "to Tastyc",
-    description:
-      "Quaerat debitis, vel, sapiente dicta sequi labore porro pariatur harum expedita.",
-    btn1: { text: "Reservation", href: "/reservation" },
-    btn2: { text: "Open Menu", href: "/menu" },
-    animation: "zoom-in",
-  },
-  {
-    image: "/assets/homeImg2.jpg",
-    subtitle: "Hello, new friend",
-    mainTitle: "Reserve Your",
-    secondaryTitle: "Table Today",
-    description:
-      "Quaerat debitis, vel, sapiente dicta sequi labore porro pariatur harum expedita.",
-    btn1: { text: "Reservation", href: "/reservation" },
-    btn2: { text: "Online Shop", href: "/shop" },
-    animation: "zoom-out",
-  },
-  {
-    image: "/assets/homeImg3.jpg",
-    subtitle: "Hello, new friend",
-    mainTitle: "Visit to Our",
-    secondaryTitle: "Online Shop",
-    description:
-      "Quaerat debitis, vel, sapiente dicta sequi labore porro pariatur harum expedita.",
-    btn1: { text: "Go To Shop", href: "/shop" },
-    btn2: { text: "Open Menu", href: "/menu" },
-    animation: "fade-up",
-  },
-];
 
 export default function Hero() {
+  const { config } = useRestaurantConfig();
   const [activeSlide, setActiveSlide] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
+
+  // Slides now use config for dynamic content
+  const slides = [
+    {
+      image: "/assets/homeImg1.jpg",
+      subtitle: config.tagline ?? "Welcome, new friend",
+      mainTitle: "Welcome to",
+      secondaryTitle: config.name,
+      description: config.tagline ?? "Experience the finest dining crafted with passion.",
+      btn1: { text: "Reservation", href: "/reservation" },
+      btn2: { text: "Open Menu", href: "/menu" },
+      animation: "zoom-in",
+    },
+    {
+      image: "/assets/homeImg2.jpg",
+      subtitle: config.tagline ?? "Welcome, new friend",
+      mainTitle: "Reserve Your",
+      secondaryTitle: "Table Today",
+      description: "Book a table and enjoy an unforgettable dining experience.",
+      btn1: { text: "Reservation", href: "/reservation" },
+      btn2: { text: "Online Shop", href: "/shop" },
+      animation: "zoom-out",
+    },
+    {
+      image: "/assets/homeImg3.jpg",
+      subtitle: config.tagline ?? "Welcome, new friend",
+      mainTitle: "Visit Our",
+      secondaryTitle: "Online Shop",
+      description: "Browse our shop for exclusive products and gifts.",
+      btn1: { text: "Go To Shop", href: "/shop" },
+      btn2: { text: "Open Menu", href: "/menu" },
+      animation: "fade-up",
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,9 +91,8 @@ export default function Hero() {
         {slides.map((s, i) => (
           <div
             key={i}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              i === activeSlide ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 transition-opacity duration-1000 ${i === activeSlide ? "opacity-100" : "opacity-0"
+              }`}
           >
             <div
               key={`${i}-${activeSlide === i}`}
@@ -159,11 +158,10 @@ export default function Hero() {
                 <button
                   key={i}
                   onClick={() => setActiveSlide(i)}
-                  className={`rounded-full transition-all duration-300 border-2 border-white w-3.5 h-3.5 md:w-4 md:h-4 touch-manipulation ${
-                    i === activeSlide
-                      ? "border-yellow-500 scale-125"
-                      : "bg-transparent"
-                  }`}
+                  className={`rounded-full transition-all duration-300 border-2 border-white w-3.5 h-3.5 md:w-4 md:h-4 touch-manipulation ${i === activeSlide
+                    ? "border-yellow-500 scale-125"
+                    : "bg-transparent"
+                    }`}
                 />
               ))}
             </div>

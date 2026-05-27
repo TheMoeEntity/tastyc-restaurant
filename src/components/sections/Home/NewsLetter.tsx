@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Mail } from "lucide-react";
 import Image from "next/image";
+import apiFetch from "@/lib/api";
 
 const newsletters = [
   {
@@ -127,20 +128,34 @@ function NewsletterCard({ item }: any) {
   );
 }
 
-/* ───────────── SUBSCRIBE ───────────── */
 function SubscribeForm() {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+    try {
+      const res = await apiFetch<any>("/api/newsletter/subscribe", {
+        method: "POST",
+        data: { email, name: name || undefined },
+      });
+      if (!res.success) throw new Error(res.message);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="mt-16 rounded-2xl overflow-hidden relative">
-      {/* BACKGROUND */}
       <div
         className="absolute inset-0 bg-black/80"
         style={{
@@ -149,8 +164,6 @@ function SubscribeForm() {
           backgroundPosition: "center",
         }}
       />
-
-      {/* CONTENT */}
       <div className="relative z-10 text-center px-6 py-14">
         <div className="flex justify-center items-center gap-2 mb-3">
           <div className="h-0.5 w-6 bg-yellow-500" />
@@ -159,11 +172,9 @@ function SubscribeForm() {
           </p>
           <div className="h-0.5 w-6 bg-yellow-500" />
         </div>
-
         <h2 className="text-3xl sm:text-4xl font-bold text-white font-serif">
           Get Weekly Chef Tips
         </h2>
-
         <p className="text-xs sm:text-sm text-gray-300 max-w-md mx-auto mt-3">
           No spam — just recipes and real kitchen secrets.
         </p>
@@ -176,18 +187,28 @@ function SubscribeForm() {
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter email"
-              className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white text-xs sm:text-sm"
+              placeholder="Enter your email"
+              type="email"
+              required
+              className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white text-xs sm:text-sm outline-none focus:border-yellow-400/50"
             />
-            <button className="bg-yellow-500 text-black px-6 py-3 rounded-lg text-xs sm:text-sm font-bold">
-              Subscribe
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-yellow-500 text-black px-6 py-3 rounded-lg text-xs sm:text-sm font-bold disabled:opacity-50 transition"
+            >
+              {loading ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
         ) : (
           <div className="text-yellow-400 mt-6 text-sm flex flex-col items-center gap-2">
-            <Mail />
-            You&#39;re subscribed!
+            <Mail size={24} />
+            You're subscribed! Welcome to the community.
           </div>
+        )}
+
+        {error && (
+          <p className="text-red-400 text-xs mt-3">{error}</p>
         )}
       </div>
     </div>

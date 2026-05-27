@@ -1,9 +1,11 @@
 "use client";
 
+import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
 import Image from "next/image";
 import Link from "next/link";
 
 function AboutSection() {
+  const { config } = useRestaurantConfig();
   return (
     <section className="w-full px-6 md:px-16 lg:px-20">
       {/* OVERLAP CONTAINER */}
@@ -59,17 +61,16 @@ function AboutSection() {
 
             {/* MAIN HEADING */}
             <h1 className="text-3xl text-[#1A2F33] sm:text-4xl md:text-5xl lg:text-6xl font-bold font-serif leading-tight">
-              We invite you to <br />
-              visit our restaurant
+              Welcome to <br />
+              {config.name}
             </h1>
+
 
             {/* PARAGRAPH */}
             <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
-              Assumenda possimus eaque illo iste, autem. Porro eveniet, autem
-              ipsam vitae amet repellat repudiandae tenetur, quod corrupti
-              consectetur cum? Repudiandae dignissimos fugiat sit nam. Tempore
-              aspernatur quae repudiandae dolorem, beatae dolorum, praesentium
-              itaque et quam quaerat. Cumque, consequatur!
+              {config.tagline
+                ? `${config.tagline}. Come experience the finest dining crafted with passion and precision.`
+                : "Come experience the finest dining crafted with passion and precision. Every dish tells a story."}
             </p>
 
             {/* BUTTON */}
