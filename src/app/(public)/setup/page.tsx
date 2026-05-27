@@ -387,7 +387,13 @@ export default function SetupPage() {
             if (!res.success) throw new Error(res.message);
 
             // Update the onboarded cookie so middleware doesn't redirect back
-            document.cookie = "tastyc_is_onboarded=true; path=/; max-age=604800";
+            // Remove this:
+
+
+            // Replace with this:
+            const isProduction = window.location.hostname !== "localhost";
+            const domain = isProduction ? "; domain=.mosesnwigberi.com" : "";
+            document.cookie = `tastyc_is_onboarded=true; path=/${domain}; max-age=604800; SameSite=Lax${isProduction ? "; Secure" : ""}`;;
 
             toast.success("Setup complete! Welcome to Tastyc.");
             router.push("/dashboard/admin");
