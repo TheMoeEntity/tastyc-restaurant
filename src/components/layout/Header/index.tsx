@@ -23,6 +23,7 @@ import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { getRoleDefaultPath } from "@/lib/Helper";
 import { useAuth } from "@/context/AuthContext";
 import { useLogout } from "@/hooks/useLogout";
+import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
   const { user, isAuthenticated, clear } = useAuth();
@@ -79,7 +80,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
   }, []);
 
   const mainNavItems = navItems.filter((item) => item.name !== "Account");
-
+  const { config } = useRestaurantConfig();
   return (
     <>
       <header
@@ -95,7 +96,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
               <h1
                 className={`transition-all duration-200 ease ${isScrolled ? "text-xl md:text-2xl" : "text-2xl md:text-4xl"} font-bold text-black`}
               >
-                Tastyc
+                {config.name}
               </h1>
               <div className="flex items-center gap-1.5 md:gap-2">
                 <div className="flex flex-col gap-0.5">
@@ -103,7 +104,7 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
                   <span className="w-4 md:w-6 h-0.5 bg-yellow-500"></span>
                 </div>
                 <p className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest">
-                  Food & Drinks
+                  {config.tagline}
                 </p>
                 <div className="flex flex-col gap-0.5">
                   <span className="w-4 md:w-6 h-0.5 bg-yellow-500"></span>

@@ -200,11 +200,10 @@ export default function LoginForm({ onSubmit, loading, error, demoAccounts, onDe
                         type="button"
                         onClick={() => onDemoLogin(account.email, account.password)}
                         disabled={loading}
-                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${
-                          meta
+                        className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed ${meta
                             ? `${meta.bg} ${meta.border} ${meta.color}`
                             : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700"
-                        }`}
+                          }`}
                       >
                         <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-white shadow-sm border border-current/10">
                           {meta?.icon}
@@ -237,7 +236,7 @@ export default function LoginForm({ onSubmit, loading, error, demoAccounts, onDe
               href="/"
               className="hover:text-yellow-600 transition font-medium"
             >
-              ← Back to Tastyc
+              ← Back home
             </Link>
           </p>
         </div>

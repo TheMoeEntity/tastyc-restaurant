@@ -9,12 +9,13 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
+import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
 
 export default function Footer() {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
+  const { config } = useRestaurantConfig();
   return (
     <footer className="w-full text-white pt-24 pb-12 px-4 md:px-8 max-w-screen-xl mx-auto">
       {/* Top Section: Logo & Socials */}
@@ -23,7 +24,7 @@ export default function Footer() {
           href="/"
           className="flex flex-col leading-tight font-mono mb-6 md:mb-0"
         >
-          <h1 className="text-3xl md:text-5xl font-bold text-white">Tastyc</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-white">{config.name}</h1>
           <div className="flex items-center gap-1.5 md:gap-2">
             <div className="flex flex-col gap-0.5">
               <span className="w-4 md:w-6 h-0.5 bg-[#f2a830]"></span>
@@ -75,9 +76,7 @@ export default function Footer() {
         <div>
           <h3 className="text-2xl font-bold mb-8 font-serif">About us</h3>
           <p className="text-gray-400 leading-loose mb-8 text-sm">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Expedita
-            repudiandae neque illum aspernatur fugiat maiores id magni, modi,
-            quaerat vitae. Consectetur adipisicing elit.
+            {config.tagline}
           </p>
           <Link
             href="/about"
@@ -95,20 +94,20 @@ export default function Footer() {
               <span className="font-bold tracking-widest text-white uppercase text-xs mb-1 md:mb-0">
                 Call :
               </span>
-              <span>+76 (094) 754 43 71</span>
+              <span>{config.phone}</span>
             </li>
             <li className="flex md:flex-row flex-col md:justify-between border-b border-gray-800/50 pb-4">
               <span className="font-bold tracking-widest text-white uppercase text-xs mb-1 md:mb-0">
                 Write :
               </span>
-              <span>your.email.inbox@here.com</span>
+              <span>{config.email}</span>
             </li>
             <li className="flex md:flex-row flex-col md:justify-between pb-2">
               <span className="font-bold tracking-widest text-white uppercase text-xs mb-1 md:mb-0">
                 Find us :
               </span>
               <span className="md:text-right">
-                Canada, Toronto, Avenue 31B,
+                {config.address}
               </span>
             </li>
           </ul>
@@ -158,12 +157,12 @@ export default function Footer() {
             </div>
           </div>
           <div className="flex items-center justify-between">
-            <Link
+            {/* <Link
               href="/gallery"
               className="text-[#f2a830] font-bold uppercase tracking-widest text-xs hover:text-yellow-400 transition-colors"
             >
               See More
-            </Link>
+            </Link> */}
             <div className="flex gap-4">
               <button className="text-white hover:text-[#f2a830] transition-colors">
                 <MoveLeft size={16} />
