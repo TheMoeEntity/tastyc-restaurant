@@ -27,6 +27,10 @@ const josefinSans = Josefin_Sans({
 export const metadata: Metadata = {
   title: "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
   description: "Tastyc restaurant & cuisine | Premium Cuisine and eatery",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.svg",
+  },
 };
 
 export default function RootLayout({
