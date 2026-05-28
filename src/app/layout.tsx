@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Josefin_Sans } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
-import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
+import { getRestaurantConfig } from "@/lib/api/config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,18 +25,14 @@ const josefinSans = Josefin_Sans({
   preload: false,
 });
 
-const DEFAULT_NAME = "Tastyc Restaurant";
-const DEFAULT_TAGLINE = "Where every bite tells a story";
-
 export async function generateMetadata(): Promise<Metadata> {
-  const { config } = useRestaurantConfig();
-  const name = config?.name || DEFAULT_NAME;
-  const tagline = config?.tagline || DEFAULT_TAGLINE;
+  const config = await getRestaurantConfig();
+  const title = `${config.name} | ${config.tagline}`;
   return {
-    title: `${name} | ${tagline}`,
-    description: `${name} | ${tagline}`,
+    title,
+    description: title,
     icons: { icon: "/icon.svg", apple: "/apple-icon.svg" },
-  }
+  };
 }
 
 export default function RootLayout({

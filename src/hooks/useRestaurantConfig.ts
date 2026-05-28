@@ -1,36 +1,7 @@
 "use client"
 import { useEffect, useState } from "react";
 import apiFetch from "@/lib/api";
-
-interface RestaurantConfig {
-    name: string;
-    tagline: string | null;
-    logo: string | null;
-    coverImage: string | null;
-    address: string | null;
-    phone: string | null;
-    email: string | null;
-    acceptingOrders: boolean;
-    acceptingReservations: boolean;
-    deliveryEnabled: boolean;
-    pickupEnabled: boolean;
-    dineInEnabled: boolean;
-}
-
-const DEFAULT_CONFIG: RestaurantConfig = {
-    name: "Tastyc Restaurant",
-    tagline: "Where every bite tells a story",
-    logo: null,
-    coverImage: null,
-    address: null,
-    phone: null,
-    email: null,
-    acceptingOrders: true,
-    acceptingReservations: true,
-    deliveryEnabled: true,
-    pickupEnabled: true,
-    dineInEnabled: true,
-};
+import { type RestaurantConfig, DEFAULT_CONFIG } from "@/lib/api/config";
 
 // Module-level cache — fetched once per page load, shared across components
 let cachedConfig: RestaurantConfig | null = null;
