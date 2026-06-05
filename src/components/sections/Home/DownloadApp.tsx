@@ -2,7 +2,7 @@
 import { Smartphone, ChevronRight, Star, Download } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 
 const DownloadAppSection = () => {
   return (

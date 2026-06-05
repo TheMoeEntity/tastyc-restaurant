@@ -14,8 +14,7 @@ import {
 import { toast } from "sonner";
 import apiFetch from "@/lib/api";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
-
-//
+import type { ApiResponse } from "@/types/api.types";
 
 interface Address {
   id: string;
@@ -47,7 +46,7 @@ export default function UserAddressesPage() {
   const { confirm: confirmDel, modal } = useConfirmModal();
 
   const runFetch = () =>
-    apiFetch<any>(`/api/users/addresses`)
+    apiFetch<ApiResponse<{ addresses: Address[] }>>(`/api/users/addresses`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setAddresses(r.data?.addresses ?? []);
@@ -88,9 +87,9 @@ export default function UserAddressesPage() {
         ? `/api/users/addresses/${editingId}` // ← add leading slash
         : `/api/users/addresses`; // ← add leading slash
       const method = editingId ? "PATCH" : "POST";
-      const r = await apiFetch<any>(url, {
+      const r = await apiFetch<ApiResponse<{ addresses: Address[] }>>(url, {
         method,
-        data: form, // ← data not body
+        data: form,
       });
       if (!r.success) throw new Error(r.message);
       setShowForm(false);
@@ -115,8 +114,7 @@ export default function UserAddressesPage() {
     if (!ok) return;
     setDeletingId(id);
     try {
-      const r = await apiFetch<any>(`/api/users/addresses/${id}`, {
-        // ← add leading slash
+      const r = await apiFetch<ApiResponse<{ addresses: Address[] }>>(`/api/users/addresses/${id}`, {
         method: "DELETE",
       });
       if (!r.success) throw new Error(r.message);

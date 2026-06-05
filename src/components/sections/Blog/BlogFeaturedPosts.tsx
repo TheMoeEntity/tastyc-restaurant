@@ -1,6 +1,6 @@
 ﻿import Link from "next/link";
 import Image from "next/image";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { Calendar, Clock, Star } from "lucide-react";
 import { getRelativeTime, getReadTimeDisplay } from "@/lib/utils/blogUtils";
 import { BlogPost } from "@/types/blog.types";

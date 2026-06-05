@@ -1,5 +1,5 @@
 const FALLBACK_BASE_URL = "http://localhost:4000";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || FALLBACK_BASE_URL
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || FALLBACK_BASE_URL;
 interface FetchOptions extends RequestInit {
   data?: unknown;
 }
@@ -85,11 +85,32 @@ async function apiFetch<T>(
 
     if (typeof window !== "undefined") {
       const rawPath = window.location.pathname;
+
+      const PROTECTED_PATHS = [
+        "/dashboard",
+        "/setup",
+        "/order",
+        "/reservation",
+        "/checkout",
+      ];
+
+      const isProtectedPage = PROTECTED_PATHS.some(
+        (p) => rawPath === p || rawPath.startsWith(p + "/"),
+      );
+
       if (rawPath.startsWith("/auth/")) {
         throw new Error("Session expired. Please log in again.");
       }
+      if (!isProtectedPage) {
+        throw new Error("Session expired");
+      }
       const currentPath = encodeURIComponent(rawPath);
-      const reason = document.cookie.includes("tastyc_user_id=") ? "expired" : "required";
+      const reason = document.cookie.includes("tastyc_user_id=")
+        ? "expired"
+        : rawPath.startsWith("/checkout")
+          ? "checkout"
+          : "required";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).__tastyc_redirecting = true;
       window.location.href = `/auth/login?reason=${reason}&redirect=${currentPath}`;
     }

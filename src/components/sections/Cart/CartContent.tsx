@@ -16,7 +16,7 @@ import {
   Flame,
   Leaf,
 } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { OrderType } from "@/types";
 import { useCartStore } from "@/store/useCartStore";
 import { OrderSummary } from "./OrderSummary";

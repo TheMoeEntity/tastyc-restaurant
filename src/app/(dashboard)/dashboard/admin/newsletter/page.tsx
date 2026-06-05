@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import apiFetch from "@/lib/api";
 import { toast } from "sonner";
+import type { ApiResponse } from "@/types/api.types";
 import TiptapEditor from "@/components/ui/TipTapEditor";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 
@@ -153,10 +155,13 @@ function ComposeTab({ subscriberCount }: { subscriberCount: number }) {
 
     setSending(true);
     try {
-      const res = await apiFetch<any>("/api/newsletter/send", {
-        method: "POST",
-        data: { subject: subject.trim(), body },
-      });
+      const res = await apiFetch<ApiResponse>(
+        "/api/newsletter/send",
+        {
+          method: "POST",
+          data: { subject: subject.trim(), body },
+        },
+      );
       if (!res.success) throw new Error(res.message);
       toast.success(res.message);
       setSent(true);
@@ -256,7 +261,8 @@ function ComposeTab({ subscriberCount }: { subscriberCount: number }) {
             {/* Unsubscribe footer */}
             <div className="border-t border-gray-200 mt-6 pt-4 text-center">
               <p className="text-gray-400 text-xs">
-                You're receiving this because you subscribed to Tastyc updates.{" "}
+                {`You're`} receiving this because you subscribed to Tastyc
+                updates.{" "}
                 <span className="text-gray-400 underline cursor-default">
                   Unsubscribe
                 </span>
@@ -315,7 +321,7 @@ function CampaignsTab() {
 
   const fetchCampaigns = useCallback(() => {
     setLoading(true);
-    apiFetch<any>(`/api/newsletter/campaigns?page=${page}&limit=10`)
+    apiFetch<ApiResponse<{ campaigns: Campaign[]; pagination: Stats }>>(`/api/newsletter/campaigns?page=${page}&limit=10`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setCampaigns(r.data.campaigns);
@@ -448,7 +454,7 @@ function SubscribersTab() {
 
   const fetchSubscribers = useCallback(() => {
     setLoading(true);
-    apiFetch<any>(`/api/newsletter/subscribers?page=${page}&limit=20`)
+    apiFetch<ApiResponse<{ subscribers: Subscriber[]; pagination: Stats }>>(`/api/newsletter/subscribers?page=${page}&limit=20`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setSubscribers(r.data.subscribers);
@@ -564,7 +570,7 @@ export default function AdminNewsletterPage() {
 
   // Fetch subscriber count for compose tab warning
   useEffect(() => {
-    apiFetch<any>("/api/newsletter/subscribers?page=1&limit=1")
+    apiFetch<ApiResponse<{ subscribers: Subscriber[]; pagination: Stats }>>("/api/newsletter/subscribers?page=1&limit=1")
       .then((r) => {
         if (r.success) setSubscriberCount(r.data.pagination.total);
       })

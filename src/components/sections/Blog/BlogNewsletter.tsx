@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Mail, CheckCircle } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 
 export function BlogNewsletter() {
   const [isSubmitted, setIsSubmitted] = useState(false);

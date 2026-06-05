@@ -14,7 +14,7 @@ import {
   Star,
   ArrowLeft,
 } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { allProducts, categories } from "@/lib/data/shopData";
 import { Product } from "@/types/shop.types";
 

@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const refreshing = new Map<
+  string,
+  Promise<{ response: NextResponse; accessToken: string } | null>
+>();
+
 function decodeToken(token: string): { exp?: number; role?: string } | null {
   try {
     const parts = token.split(".");
@@ -39,6 +44,23 @@ function getHomePath(role: string | null): string {
 }
 
 async function silentRefreshToken(request: NextRequest) {
+  const userId = request.cookies.get("tastyc_user_id")?.value ?? "anonymous";
+
+  // If a refresh is already running for this user, return the same promise
+  // All concurrent requests share one refresh attempt
+  if (refreshing.has(userId)) {
+    return refreshing.get(userId)!;
+  }
+
+  const promise = _doRefresh(request).finally(() => {
+    refreshing.delete(userId);
+  });
+
+  refreshing.set(userId, promise);
+  return promise;
+}
+
+async function _doRefresh(request: NextRequest) {
   try {
     const apiUrl = process.env.API_URL || "http://localhost:4000";
     const cookieHeader = request.headers.get("cookie") || "";
@@ -58,9 +80,21 @@ async function silentRefreshToken(request: NextRequest) {
     const setCookieHeaders = refreshResponse.headers.getSetCookie();
     let newAccessToken = "";
 
-    response.cookies.delete({ name: "tastyc_access_token", domain: ".mosesnwigberi.com", path: "/" });
-    response.cookies.delete({ name: "tastyc_refresh_token", domain: ".mosesnwigberi.com", path: "/" });
-    response.cookies.delete({ name: "tastyc_user_id", domain: ".mosesnwigberi.com", path: "/" });
+    response.cookies.delete({
+      name: "tastyc_access_token",
+      domain: ".mosesnwigberi.com",
+      path: "/",
+    });
+    response.cookies.delete({
+      name: "tastyc_refresh_token",
+      domain: ".mosesnwigberi.com",
+      path: "/",
+    });
+    response.cookies.delete({
+      name: "tastyc_user_id",
+      domain: ".mosesnwigberi.com",
+      path: "/",
+    });
 
     setCookieHeaders.forEach((cookieStr) => {
       const parts = cookieStr.split(";").map((p) => p.trim());
@@ -84,7 +118,10 @@ async function silentRefreshToken(request: NextRequest) {
         if (lower === "httponly") attrs.httpOnly = true;
         else if (lower === "secure") attrs.secure = true;
         else if (lower.startsWith("samesite="))
-          attrs.sameSite = attr.split("=")[1].trim().toLowerCase() as "lax" | "strict" | "none";
+          attrs.sameSite = attr.split("=")[1].trim().toLowerCase() as
+            | "lax"
+            | "strict"
+            | "none";
         else if (lower.startsWith("max-age="))
           attrs.maxAge = parseInt(attr.split("=")[1].trim(), 10);
         else if (lower.startsWith("path="))
@@ -185,6 +222,8 @@ export default async function proxy(request: NextRequest) {
     (pathname.startsWith("/auth/login") ||
       pathname.startsWith("/auth/register"))
   ) {
+    const force = request.nextUrl.searchParams.get("force");
+    if (force === "true") return NextResponse.next();
     const role = getRoleFromToken(accessToken);
     return NextResponse.redirect(new URL(getHomePath(role), request.url));
   }

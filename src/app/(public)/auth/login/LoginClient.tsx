@@ -6,12 +6,19 @@ import { toast } from "sonner";
 import LoginForm from "@/components/sections/Auth/LoginForm";
 import { loginUser } from "@/lib/api/auth";
 import { getRoleDefaultPath } from "@/lib/Helper";
-import { useAuth } from "@/context/AuthContext";
 const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
 
 const DEMO_ACCOUNTS = [
-  { label: "Customer", email: "demo.customer@tastyc.com", password: "Demo@123456" },
-  { label: "Kitchen", email: "demo.kitchen@tastyc.com", password: "Demo@123456" },
+  {
+    label: "Customer",
+    email: "demo.customer@tastyc.com",
+    password: "Demo@123456",
+  },
+  {
+    label: "Kitchen",
+    email: "demo.kitchen@tastyc.com",
+    password: "Demo@123456",
+  },
   { label: "Admin", email: "demo.admin@tastyc.com", password: "Demo@123456" },
 ];
 
@@ -21,22 +28,28 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
-  const { refresh } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
     const reason = params.get("reason");
     const redirect = params.get("redirect");
+    const reasonMessage =
+      {
+        checkout: "Please log in to complete your order",
+        expired: "Your session expired. Please log in again",
+        required: "Please log in to continue",
+      }[reason ?? "required"] ?? "Please log in to continue";
 
     if (redirect) {
       setRedirectPath(redirect);
     }
 
-    if (reason === "expired") {
-      setError("Your session has expired. Please log in again.");
-    } else if (reason === "required") {
-      setError("Please log in to continue.");
-    }
+    // if (reason === "expired") {
+    //   setError("Your session has expired. Please log in again.");
+    // } else if (reason === "required") {
+    //   setError("Please log in to continue.");
+    // }
+    setError(reasonMessage);
   }, [searchParams]);
 
   const handleSubmit = async (email: string, password: string) => {
@@ -50,24 +63,31 @@ export default function LoginClient() {
         throw new Error(res.message || "Login failed");
       }
 
-      const { role, } = res.data.user;
-      const isOnboarded = res.data.isOnboarded
+      const { role } = res.data.user;
+      const isOnboarded = res.data.isOnboarded;
       const defaultPath = getRoleDefaultPath(role);
 
       toast.success("Login successful");
 
       const safePath = (() => {
-        // Onboarding check runs first — before anything else
-        if (["MANAGER", "SUPERADMIN"].includes(role)) {
-          return isOnboarded ? "/dashboard/admin" : "/setup";
+        if (["MANAGER", "SUPERADMIN"].includes(role) && !isOnboarded) {
+          return "/setup";
         }
-        if (role === "KITCHEN") return "/dashboard/kitchen";
-        if (role === "CUSTOMER") {
-          // Honor redirect if it's a customer-safe path
-          if (redirectPath && !redirectPath.startsWith("/dashboard/admin")) {
-            return redirectPath;
+        if (redirectPath) {
+          if (
+            role === "CUSTOMER" &&
+            redirectPath.startsWith("/dashboard/admin")
+          ) {
+            return defaultPath;
           }
-          return defaultPath;
+          if (
+            role === "KITCHEN" &&
+            (redirectPath.startsWith("/dashboard/admin") ||
+              redirectPath.startsWith("/dashboard/user"))
+          ) {
+            return defaultPath;
+          }
+          return redirectPath;
         }
         return defaultPath;
       })();
@@ -86,7 +106,8 @@ export default function LoginClient() {
     setError("");
     try {
       const res = await loginUser(email, password);
-      if (!res.success || !res.data) throw new Error(res.message || "Login failed");
+      if (!res.success || !res.data)
+        throw new Error(res.message || "Login failed");
 
       const { user, isOnboarded } = res.data;
       toast.success(`Logged in as ${user.name}`);

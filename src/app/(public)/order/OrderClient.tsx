@@ -10,7 +10,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { Order, OrderStatus, OrderType } from "@/types";
 import { OrderCard, OrderDetailModal } from "@/components/sections/Order";
 import { useOrderStore } from "@/store/useOrderStore";

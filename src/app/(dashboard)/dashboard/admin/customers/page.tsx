@@ -6,173 +6,21 @@ import {
   AlertCircle,
   RefreshCw,
   Search,
-  Shield,
-  UserCheck,
-  UserX,
   ChevronLeft,
   ChevronRight,
-  Filter,
-  MoreVertical,
   X,
 } from "lucide-react";
 import Image from "next/image";
 import apiFetch from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-
-// ── Types ─────────────────────────────────────────────────────
-
-type Role = "CUSTOMER" | "STAFF" | "KITCHEN" | "MANAGER" | "SUPERADMIN";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  role: Role;
-  avatar?: string;
-  isActive: boolean;
-  isVerified: boolean;
-  loyaltyPoints: number;
-  createdAt: string;
-  _count: { orders: number; reservations: number };
-}
-
-interface Pagination {
-  total: number;
-  page: number;
-  totalPages: number;
-}
-
-// ── Constants ─────────────────────────────────────────────────
-
-const ROLES: Role[] = ["CUSTOMER", "STAFF", "KITCHEN", "MANAGER", "SUPERADMIN"];
-
-const ROLE_COLORS: Record<Role, string> = {
-  CUSTOMER: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  STAFF: "text-purple-400 bg-purple-500/10 border-purple-500/30",
-  KITCHEN: "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  MANAGER: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  SUPERADMIN: "text-red-400 bg-red-500/10 border-red-500/30",
-};
-
-// ── Role badge ────────────────────────────────────────────────
-
-function RoleBadge({ role }: { role: Role }) {
-  return (
-    <span
-      className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold border ${ROLE_COLORS[role]}`}
-    >
-      {role}
-    </span>
-  );
-}
-
-// ── User actions dropdown ─────────────────────────────────────
-
-function UserActions({
-  user,
-  currentUserRole,
-  onRoleChange,
-  onStatusChange,
-}: {
-  user: User;
-  currentUserRole: Role;
-  onRoleChange: (userId: string, role: Role) => Promise<void>;
-  onStatusChange: (userId: string, isActive: boolean) => Promise<void>;
-}) {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleRoleChange = async (role: Role) => {
-    setLoading(true);
-    setOpen(false);
-    await onRoleChange(user.id, role);
-    setLoading(false);
-  };
-
-  const handleStatusChange = async () => {
-    setLoading(true);
-    setOpen(false);
-    await onStatusChange(user.id, !user.isActive);
-    setLoading(false);
-  };
-
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((o) => !o)}
-        disabled={loading}
-        className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition disabled:opacity-30"
-      >
-        {loading ? (
-          <Loader2 size={12} className="animate-spin" />
-        ) : (
-          <MoreVertical size={12} />
-        )}
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div
-            className="absolute right-0 top-8 z-20 w-48 rounded-xl border border-white/10 shadow-xl overflow-hidden"
-            style={{ background: "rgba(20,20,20,0.98)" }}
-          >
-            {/* Role assignment — SUPERADMIN only */}
-            {currentUserRole === "SUPERADMIN" && (
-              <div className="p-2 border-b border-white/10">
-                <p className="text-white/30 text-[10px] font-semibold uppercase px-2 mb-1">
-                  Assign Role
-                </p>
-                {ROLES.map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => handleRoleChange(role)}
-                    disabled={user.role === role}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.role === role
-                      ? "text-white/20 cursor-not-allowed"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
-                      }`}
-                  >
-                    <Shield size={10} />
-                    {role}
-                    {user.role === role && (
-                      <span className="ml-auto text-[10px] text-white/20">
-                        current
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Activate / Deactivate */}
-            <div className="p-2">
-              <button
-                onClick={handleStatusChange}
-                className={`w-full text-left px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-2 ${user.isActive
-                  ? "text-red-400 hover:bg-red-500/10"
-                  : "text-green-400 hover:bg-green-500/10"
-                  }`}
-              >
-                {user.isActive ? (
-                  <>
-                    <UserX size={10} /> Deactivate Account
-                  </>
-                ) : (
-                  <>
-                    <UserCheck size={10} /> Activate Account
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
+import type { ApiResponse, PaginationMeta } from "@/types/api.types";
+import {
+  type AdminUser as User,
+  type UserRole as Role,
+} from "@/types/user.types";
+import RoleBadge from "@/components/ui/RoleBadge";
+import UserActions from "@/components/ui/UserActions";
 
 // ── Main page ─────────────────────────────────────────────────
 
@@ -203,7 +51,7 @@ export default function AdminUsersPage() {
     if (roleFilter) params.set("role", roleFilter);
     if (statusFilter !== "") params.set("isActive", statusFilter);
 
-    apiFetch<any>(`/api/admin/users?${params}`)
+    apiFetch<ApiResponse<{ users: User[]; pagination: PaginationMeta }>>(`/api/admin/users?${params}`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setUsers(r.data.users);
@@ -220,6 +68,7 @@ export default function AdminUsersPage() {
   }, [page, search, roleFilter, statusFilter]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers();
   }, [fetchUsers]);
 
@@ -422,10 +271,11 @@ export default function AdminUsersPage() {
                     {/* Status */}
                     <td className="px-4 py-3">
                       <span
-                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${user.isActive
-                          ? "text-green-400 bg-green-500/10 border-green-500/30"
-                          : "text-red-400 bg-red-500/10 border-red-500/30"
-                          }`}
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                          user.isActive
+                            ? "text-green-400 bg-green-500/10 border-green-500/30"
+                            : "text-red-400 bg-red-500/10 border-red-500/30"
+                        }`}
                       >
                         <span
                           className={`w-1.5 h-1.5 rounded-full ${user.isActive ? "bg-green-400" : "bg-red-400"}`}

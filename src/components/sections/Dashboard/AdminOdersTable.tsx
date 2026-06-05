@@ -13,63 +13,16 @@ import {
 import Link from "next/link";
 import apiFetch from "@/lib/api";
 import { toast } from "sonner";
-
-//
-const fmt = (n: number) => `₦${Number(n).toLocaleString("en-NG")}`;
-
-type BackendStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED"
-  | "CANCELLED";
-type BackendType = "DELIVERY" | "PICKUP" | "DINE_IN";
-
-export interface BackendOrder {
-  id: string;
-  orderNumber: string;
-  type: BackendType;
-  status: BackendStatus;
-  total: number;
-  subtotal: number;
-  deliveryFee: number;
-  discount: number;
-  createdAt: string;
-  updatedAt: string;
-  tableNumber?: string | null;
-  notes?: string | null;
-  items: Array<{
-    id: string;
-    menuItemId: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    menuItem: { id: string; name: string; image?: string };
-    variant?: { name: string } | null;
-  }>;
-  user?: { id: string; name: string; email: string; phone?: string } | null;
-  payment?: { status: string; amount: number } | null;
-}
-
-const STATUS_COLORS: Record<BackendStatus, string> = {
-  PENDING: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  PREPARING: "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  READY: "text-green-400 bg-green-500/10 border-green-500/30",
-  DELIVERED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
-};
-
-const ALL_STATUSES: BackendStatus[] = [
-  "PENDING",
-  "CONFIRMED",
-  "PREPARING",
-  "READY",
-  "DELIVERED",
-  "CANCELLED",
-];
-const ALL_TYPES: BackendType[] = ["DELIVERY", "PICKUP", "DINE_IN"];
+import { fmt } from "@/lib/Helper";
+import type { ApiResponse, PaginationMeta } from "@/types/api.types";
+import {
+  type BackendOrder,
+  type BackendOrderStatus,
+  type BackendOrderType,
+  ORDER_STATUS_COLORS as STATUS_COLORS,
+  ALL_ORDER_STATUSES as ALL_STATUSES,
+  ALL_ORDER_TYPES as ALL_TYPES,
+} from "@/types/order.types";
 
 interface Props {
   limit?: number;
@@ -90,10 +43,10 @@ export default function AdminOrdersTable({
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [statusFilter, setStatusFilter] = useState<BackendStatus | "ALL">(
+  const [statusFilter, setStatusFilter] = useState<BackendOrderStatus | "ALL">(
     "ALL",
   );
-  const [typeFilter, setTypeFilter] = useState<BackendType | "ALL">("ALL");
+  const [typeFilter, setTypeFilter] = useState<BackendOrderType | "ALL">("ALL");
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<BackendOrder | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -108,7 +61,7 @@ export default function AdminOrdersTable({
       });
       if (statusFilter !== "ALL") params.set("status", statusFilter);
       if (typeFilter !== "ALL") params.set("type", typeFilter);
-      const r = await apiFetch<any>(`/api/orders?${params}`);
+      const r = await apiFetch<ApiResponse<{ orders: BackendOrder[]; pagination: PaginationMeta }>>(`/api/orders?${params}`);
       if (!r.success) throw new Error(r.message ?? "Failed to load");
       setOrders(r.data.orders ?? []);
       setPagination(r.data.pagination ?? { total: 0, page: 1, totalPages: 1 });
@@ -123,10 +76,10 @@ export default function AdminOrdersTable({
     fetchOrders();
   }, [fetchOrders]);
 
-  const updateStatus = async (orderId: string, status: BackendStatus) => {
+  const updateStatus = async (orderId: string, status: BackendOrderStatus) => {
     setUpdatingId(orderId);
     try {
-      const r = await apiFetch<any>(`/api/orders/${orderId}/status`, {
+      const r = await apiFetch<ApiResponse<{ order: BackendOrder }>>(`/api/orders/${orderId}/status`, {
         method: "PATCH",
         data: { status },
       });
@@ -179,7 +132,7 @@ export default function AdminOrdersTable({
           <select
             value={typeFilter}
             onChange={(e) => {
-              setTypeFilter(e.target.value as BackendType | "ALL");
+              setTypeFilter(e.target.value as BackendOrderType | "ALL");
               setPage(1);
             }}
             className="ml-auto text-xs bg-white/5 border border-white/10 text-white/60 rounded-lg px-3 py-1.5 outline-none"
@@ -281,7 +234,7 @@ export default function AdminOrdersTable({
                     <select
                       value={order.status}
                       onChange={(e) =>
-                        updateStatus(order.id, e.target.value as BackendStatus)
+                        updateStatus(order.id, e.target.value as BackendOrderStatus)
                       }
                       disabled={
                         !!updatingId ||

@@ -22,15 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import apiFetch from "@/lib/api";
-
-//
-
-// ── Types matching GET /api/menu response ──
-interface MenuVariant {
-  id: string;
-  name: string;
-  price: number;
-}
+import type { ApiResponse } from "@/types/api.types";
 
 interface MenuItemAPI {
   id: string;
@@ -42,7 +34,7 @@ interface MenuItemAPI {
   spicy?: boolean;
   veg?: boolean;
   popular?: boolean;
-  variants?: MenuVariant[];
+  variants?: Array<{ id: string; name: string; price: number }>;
 }
 
 interface MenuCategory {
@@ -73,7 +65,7 @@ type PageState =
 
 export default function TableClient() {
   const params = useParams();
-  const searchParams = useSearchParams()
+  const searchParams = useSearchParams();
   const tableNumber = params.tableNumber as string;
   const token = searchParams.get("token") ?? "";
 
@@ -93,14 +85,13 @@ export default function TableClient() {
       return;
     }
 
-    apiFetch<any>(`/api/qr/validate`, {
+    apiFetch<ApiResponse>(`/api/qr/validate`, {
       data: { token },
-      method: "POST"
+      method: "POST",
     })
       .then((r) => {
-
         if (!r.success) throw new Error("invalid");
-        return apiFetch<any>(`/api/menu`);
+        return apiFetch<ApiResponse<{ items: MenuItemAPI[] }>>(`/api/menu`);
       })
       .then((r) => {
         // API returns { success: true, data: { items: [...], pagination: {...} } }
@@ -124,9 +115,10 @@ export default function TableClient() {
     const map = new Map<string, MenuItemAPI[]>();
     for (const item of flat) {
       // Handle category as either a string or an object with a name property
-      const catName = typeof item.category === 'object' && item.category !== null
-        ? (item.category as any).name
-        : (item.category as string) ?? "Other";
+      const catName =
+        typeof item.category === "object" && item.category !== null
+          ? (item.category as { id: string; name: string }).name
+          : (item.category as string) ?? "Other";
 
       if (!map.has(catName)) map.set(catName, []);
       map.get(catName)!.push(item);
@@ -142,7 +134,7 @@ export default function TableClient() {
   const displayedItems =
     activeCategory === "all"
       ? allItems
-      : (categories.find((c) => c.id === activeCategory)?.items ?? []);
+      : categories.find((c) => c.id === activeCategory)?.items ?? [];
 
   const getQty = (id: string) =>
     cart.find((e) => e.item.id === id)?.quantity ?? 0;
@@ -175,7 +167,7 @@ export default function TableClient() {
     setPageState("placing");
 
     try {
-      const res = await apiFetch<any>(`/api/orders/qr`, {
+      const res = await apiFetch<ApiResponse<PlacedOrder>>(`/api/orders/qr`, {
         method: "POST",
         data: {
           tableToken: token,
@@ -191,7 +183,17 @@ export default function TableClient() {
 
       if (!res.success) throw new Error(res.message ?? "Failed to place order");
 
-      setPlacedOrder(res.data);
+      // Normalize the response to match what the success screen expects
+      const order = res.data;
+      setPlacedOrder({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        items: (order.items ?? []).map((item: any) => ({
+          name: item.menuItem?.name ?? item.name ?? "Item",
+          quantity: item.quantity,
+        })),
+      });
+
       setCart([]);
       setPageState("success");
     } catch (err: unknown) {

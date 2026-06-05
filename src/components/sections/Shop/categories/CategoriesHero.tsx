@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 
 export function CategoriesHero() {
   return (

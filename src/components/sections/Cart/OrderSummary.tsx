@@ -13,15 +13,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { useCartStore } from "@/store/useCartStore";
 import { useShopStore } from "@/store/useShopStore";
 
 interface OrderSummaryProps {
-  orderType: "dine-in" | "takeout" | "delivery";
+  type: "dine-in" | "takeout" | "delivery";
 }
 
-export function OrderSummary({ orderType }: OrderSummaryProps) {
+export function OrderSummary({ type }: OrderSummaryProps) {
   const router = useRouter();
   const { getTotalItems, getSubtotal } = useCartStore();
   const { activePromo, applyPromo, clearPromo } = useShopStore();
@@ -33,7 +33,7 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
   const subtotal = getSubtotal();
   const discountPercent = activePromo ? activePromo.discount : 0;
   const discount = (subtotal * discountPercent) / 100;
-  const deliveryFee = orderType === "delivery" ? 1000 : 0;
+  const deliveryFee = type === "delivery" ? 1000 : 0;
   // const tax = (subtotal - discount) * 0.075;
   const total = subtotal - discount + deliveryFee;
 
@@ -121,7 +121,7 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
               <span>-₦{discount.toLocaleString()}</span>
             </div>
           )}
-          {orderType === "delivery" && (
+          {type === "delivery" && (
             <div className="flex justify-between text-gray-600">
               <span>Delivery Fee</span>
               <span>₦{deliveryFee.toLocaleString()}</span>
@@ -138,7 +138,7 @@ export function OrderSummary({ orderType }: OrderSummaryProps) {
         </div>
 
         <button
-          onClick={() => router.push(`/checkout?type=${orderType}`)}
+          onClick={() => router.push(`/checkout?type=${type}`)}
           className="w-full mt-4 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-2 text-sm"
         >
           <CreditCard className="w-4 h-4" />

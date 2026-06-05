@@ -7,7 +7,6 @@ import {
   RefreshCw,
   Star,
   TrendingUp,
-  TrendingDown,
   ShoppingBag,
   Users,
   Calendar,
@@ -16,165 +15,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import apiFetch from "@/lib/api";
-
-const fmt = (n: number) => `₦${Math.round(n).toLocaleString("en-NG")}`;
-
-// ── Types ─────────────────────────────────────────────────────
-
-interface Overview {
-  today: { revenue: number; orders: number };
-  thisMonth: {
-    revenue: number;
-    orders: number;
-    newCustomers: number;
-    averageOrderValue: number;
-  };
-  changes: { revenue: number; orders: number };
-  totals: { customers: number; pendingOrders: number };
-}
-
-interface SalesTrendPoint { date: string; revenue: number; orders: number }
-interface OrderByType { type: string; count: number }
-interface BestSeller {
-  menuItem: { name: string; image?: string };
-  totalQuantitySold: number;
-  totalOrders: number;
-}
-interface TopRated {
-  menuItem: { name: string };
-  averageRating: number;
-  totalReviews: number;
-}
-interface TopCustomer {
-  name: string;
-  email: string;
-  totalOrders: number;
-  loyaltyPoints: number;
-}
-interface RecentOrder {
-  id: string;
-  orderNumber: string;
-  status: string;
-  total: number;
-  createdAt: string;
-  user: { name: string };
-  items: { quantity: number; menuItem: { name: string } }[];
-  payment: { status: string };
-}
-interface RecentReservation {
-  id: string;
-  date: string;
-  time: string;
-  partySize: number;
-  status: string;
-  user: { name: string };
-}
-
-interface Analytics {
-  overview: Overview;
-  salesTrend: { trend: SalesTrendPoint[]; ordersByType: OrderByType[] };
-  menuPerformance: { bestSellers: BestSeller[]; topRated: TopRated[] };
-  customerInsights: { topCustomers: TopCustomer[]; activeCustomersThisMonth: number };
-  reservationInsights: {
-    thisMonth: { total: number; noShowRate: number; byStatus: { status: string; count: number }[] };
-    todayReservations: RecentReservation[];
-  };
-  recentActivity: { recentOrders: RecentOrder[]; recentReservations: RecentReservation[] };
-}
-
-// ── Line chart ────────────────────────────────────────────────
-
-function LineChart({ data }: { data: SalesTrendPoint[] }) {
-  if (data.length < 2)
-    return <div className="text-white/30 text-xs text-center py-8">Not enough data</div>;
-
-  const revenues = data.map((d) => d.revenue);
-  const min = Math.min(...revenues);
-  const max = Math.max(...revenues);
-  const range = max - min || 1;
-  const W = 1000; const H = 180; const pad = 10;
-
-  const points = data.map((d, i) => {
-    const x = pad + (i / (data.length - 1)) * (W - pad * 2);
-    const y = H - pad - ((d.revenue - min) / range) * (H - pad * 2);
-    return `${x},${y}`;
-  });
-  const area = [`${pad},${H - pad}`, ...points, `${W - pad},${H - pad}`].join(" ");
-
-  return (
-    <div className="w-full overflow-hidden">
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#eab308" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#eab308" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={area} fill="url(#chartGrad)" />
-        <polyline points={points.join(" ")} fill="none" stroke="#eab308" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-        {data.map((d, i) => {
-          const x = pad + (i / (data.length - 1)) * (W - pad * 2);
-          const y = H - pad - ((d.revenue - min) / range) * (H - pad * 2);
-          return <circle key={i} cx={x} cy={y} r="3.5" fill="#eab308" />;
-        })}
-      </svg>
-      <div className="flex justify-between text-[10px] text-white/20 mt-1 px-1">
-        <span>{data[0]?.date?.slice(5)}</span>
-        <span>{data[Math.floor(data.length / 2)]?.date?.slice(5)}</span>
-        <span>{data[data.length - 1]?.date?.slice(5)}</span>
-      </div>
-    </div>
-  );
-}
-
-// ── Stat card ─────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  sub,
-  change,
-  icon: Icon,
-  color = "yellow",
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  change?: number;
-  icon: typeof ShoppingBag;
-  color?: "yellow" | "blue" | "green" | "purple";
-}) {
-  const colors = {
-    yellow: "text-yellow-400 bg-yellow-500/10",
-    blue: "text-blue-400 bg-blue-500/10",
-    green: "text-green-400 bg-green-500/10",
-    purple: "text-purple-400 bg-purple-500/10",
-  };
-
-  return (
-    <div
-      className="rounded-2xl border border-white/5 p-5"
-      style={{ background: "rgba(255,255,255,0.03)" }}
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-white/40 text-xs mb-1">{label}</p>
-          <p className="text-white font-bold text-2xl">{value}</p>
-          {sub && <p className="text-white/30 text-xs mt-1">{sub}</p>}
-        </div>
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colors[color]}`}>
-          <Icon size={18} />
-        </div>
-      </div>
-      {change !== undefined && (
-        <div className={`flex items-center gap-1 mt-3 text-xs font-semibold ${change >= 0 ? "text-green-400" : "text-red-400"}`}>
-          {change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-          {Math.abs(change)}% vs last month
-        </div>
-      )}
-    </div>
-  );
-}
+import { fmt } from "@/lib/Helper";
+import type { ApiResponse } from "@/types/api.types";
+import type { Analytics } from "@/types/analytics.types";
+import LineChart from "@/components/ui/LineChart";
+import StatCard from "@/components/ui/StatCard";
 
 // ── Status badge ──────────────────────────────────────────────
 
@@ -198,15 +43,21 @@ export default function AdminAnalyticsPage() {
   const [error, setError] = useState("");
   const today = new Date().toISOString().split("T")[0];
   const thirtyDaysAgo = new Date(new Date().setDate(new Date().getDate() - 29))
-    .toISOString().split("T")[0];
+    .toISOString()
+    .split("T")[0];
 
   const [startDate, setStartDate] = useState(thirtyDaysAgo);
   const [endDate, setEndDate] = useState(today);
-  const [dateApplied, setDateApplied] = useState({ start: thirtyDaysAgo, end: today });
+  const [dateApplied, setDateApplied] = useState({
+    start: thirtyDaysAgo,
+    end: today,
+  });
 
   const runFetch = () => {
     setLoading(true);
-    apiFetch<any>(`/api/dashboard?startDate=${dateApplied.start}&endDate=${dateApplied.end}`)
+    apiFetch<ApiResponse<Analytics>>(
+      `/api/dashboard?startDate=${dateApplied.start}&endDate=${dateApplied.end}`,
+    )
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setData(r.data);
@@ -218,7 +69,10 @@ export default function AdminAnalyticsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { runFetch(); }, [dateApplied]);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    runFetch();
+  }, [dateApplied]);
 
   if (loading) {
     return (
@@ -233,16 +87,30 @@ export default function AdminAnalyticsPage() {
       <div className="flex flex-col items-center gap-3 py-16 text-center">
         <AlertCircle size={24} className="text-red-400" />
         <p className="text-white/40 text-sm">{error}</p>
-        <button onClick={runFetch} className="flex items-center gap-1.5 text-xs text-yellow-400">
+        <button
+          onClick={runFetch}
+          className="flex items-center gap-1.5 text-xs text-yellow-400"
+        >
           <RefreshCw size={12} /> Retry
         </button>
       </div>
     );
   }
 
-  const { overview, salesTrend, menuPerformance, customerInsights, reservationInsights, recentActivity } = data;
-  const totalByType = salesTrend.ordersByType.reduce((s, o) => s + o.count, 0) || 1;
-  const maxSold = Math.max(...(menuPerformance.bestSellers.map((b) => b.totalQuantitySold) || [1]), 1);
+  const {
+    overview,
+    salesTrend,
+    menuPerformance,
+    customerInsights,
+    reservationInsights,
+    recentActivity,
+  } = data;
+  const totalByType =
+    salesTrend.ordersByType.reduce((s, o) => s + o.count, 0) || 1;
+  const maxSold = Math.max(
+    ...(menuPerformance.bestSellers.map((b) => b.totalQuantitySold) || [1]),
+    1,
+  );
 
   return (
     <div className="space-y-6">
@@ -263,16 +131,23 @@ export default function AdminAnalyticsPage() {
               key={label}
               onClick={() => {
                 const end = new Date().toISOString().split("T")[0];
-                const start = new Date(new Date().setDate(new Date().getDate() - (days - 1)))
-                  .toISOString().split("T")[0];
+                const start = new Date(
+                  new Date().setDate(new Date().getDate() - (days - 1)),
+                )
+                  .toISOString()
+                  .split("T")[0];
                 setStartDate(start);
                 setEndDate(end);
                 setDateApplied({ start, end });
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${dateApplied.start === new Date(new Date().setDate(new Date().getDate() - (days - 1))).toISOString().split("T")[0]
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition border ${
+                dateApplied.start ===
+                new Date(new Date().setDate(new Date().getDate() - (days - 1)))
+                  .toISOString()
+                  .split("T")[0]
                   ? "bg-yellow-500 text-black border-yellow-500"
                   : "bg-white/5 border-white/10 text-white/40 hover:text-white"
-                }`}
+              }`}
             >
               {label}
             </button>
@@ -376,16 +251,25 @@ export default function AdminAnalyticsPage() {
           className="rounded-2xl border border-white/5 p-5"
           style={{ background: "rgba(255,255,255,0.03)" }}
         >
-          <h2 className="text-white font-semibold text-sm mb-4">Orders by Type</h2>
+          <h2 className="text-white font-semibold text-sm mb-4">
+            Orders by Type
+          </h2>
           <div className="space-y-3">
             {salesTrend.ordersByType.map(({ type, count }) => (
               <div key={type}>
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-white/60">{type.replace("_", " ")}</span>
-                  <span className="text-white/40">{count} ({Math.round((count / totalByType) * 100)}%)</span>
+                  <span className="text-white/60">
+                    {type.replace("_", " ")}
+                  </span>
+                  <span className="text-white/40">
+                    {count} ({Math.round((count / totalByType) * 100)}%)
+                  </span>
                 </div>
                 <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${(count / totalByType) * 100}%` }} />
+                  <div
+                    className="h-full bg-yellow-500 rounded-full"
+                    style={{ width: `${(count / totalByType) * 100}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -397,14 +281,20 @@ export default function AdminAnalyticsPage() {
           className="rounded-2xl border border-white/5 p-5"
           style={{ background: "rgba(255,255,255,0.03)" }}
         >
-          <h2 className="text-white font-semibold text-sm mb-4">Reservation Insights</h2>
+          <h2 className="text-white font-semibold text-sm mb-4">
+            Reservation Insights
+          </h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="text-center p-3 rounded-xl bg-white/5">
-              <p className="text-white font-bold text-2xl">{reservationInsights.thisMonth.total}</p>
+              <p className="text-white font-bold text-2xl">
+                {reservationInsights.thisMonth.total}
+              </p>
               <p className="text-white/30 text-xs mt-1">This month</p>
             </div>
             <div className="text-center p-3 rounded-xl bg-white/5">
-              <p className={`font-bold text-2xl ${reservationInsights.thisMonth.noShowRate > 20 ? "text-red-400" : "text-green-400"}`}>
+              <p
+                className={`font-bold text-2xl ${reservationInsights.thisMonth.noShowRate > 20 ? "text-red-400" : "text-green-400"}`}
+              >
                 {reservationInsights.thisMonth.noShowRate}%
               </p>
               <p className="text-white/30 text-xs mt-1">No-show rate</p>
@@ -412,8 +302,13 @@ export default function AdminAnalyticsPage() {
           </div>
           <div className="space-y-2">
             {reservationInsights.thisMonth.byStatus.map(({ status, count }) => (
-              <div key={status} className="flex items-center justify-between text-xs">
-                <span className="text-white/50">{status.replace("_", " ")}</span>
+              <div
+                key={status}
+                className="flex items-center justify-between text-xs"
+              >
+                <span className="text-white/50">
+                  {status.replace("_", " ")}
+                </span>
                 <span className="text-white/70 font-semibold">{count}</span>
               </div>
             ))}
@@ -425,19 +320,30 @@ export default function AdminAnalyticsPage() {
           className="rounded-2xl border border-white/5 p-5"
           style={{ background: "rgba(255,255,255,0.03)" }}
         >
-          <h2 className="text-white font-semibold text-sm mb-4">Best Sellers</h2>
+          <h2 className="text-white font-semibold text-sm mb-4">
+            Best Sellers
+          </h2>
           <div className="space-y-3">
-            {menuPerformance.bestSellers.slice(0, 8).map(({ menuItem, totalQuantitySold }, i) => (
-              <div key={i}>
-                <div className="flex justify-between text-xs mb-1">
-                  <span className="text-white/70">{menuItem.name}</span>
-                  <span className="text-white/40">{totalQuantitySold} sold</span>
+            {menuPerformance.bestSellers
+              .slice(0, 8)
+              .map(({ menuItem, totalQuantitySold }, i) => (
+                <div key={i}>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className="text-white/70">{menuItem.name}</span>
+                    <span className="text-white/40">
+                      {totalQuantitySold} sold
+                    </span>
+                  </div>
+                  <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-orange-400 rounded-full"
+                      style={{
+                        width: `${(totalQuantitySold / maxSold) * 100}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-400 rounded-full" style={{ width: `${(totalQuantitySold / maxSold) * 100}%` }} />
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
@@ -448,19 +354,31 @@ export default function AdminAnalyticsPage() {
         >
           <h2 className="text-white font-semibold text-sm mb-4">Top Rated</h2>
           <div className="space-y-3">
-            {menuPerformance.topRated.slice(0, 6).map(({ menuItem, averageRating, totalReviews }, i) => (
-              <div key={i} className="flex items-center justify-between">
-                <span className="text-white/70 text-xs">{menuItem.name}</span>
-                <div className="flex items-center gap-2">
-                  <div className="flex">
-                    {Array.from({ length: 5 }).map((_, s) => (
-                      <Star key={s} size={10} className={s < Math.round(averageRating) ? "text-yellow-400 fill-yellow-400" : "text-white/10"} />
-                    ))}
+            {menuPerformance.topRated
+              .slice(0, 6)
+              .map(({ menuItem, averageRating, totalReviews }, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <span className="text-white/70 text-xs">{menuItem.name}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex">
+                      {Array.from({ length: 5 }).map((_, s) => (
+                        <Star
+                          key={s}
+                          size={10}
+                          className={
+                            s < Math.round(averageRating)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-white/10"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <span className="text-white/30 text-[10px]">
+                      {totalReviews}
+                    </span>
                   </div>
-                  <span className="text-white/30 text-[10px]">{totalReviews}</span>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>
@@ -474,23 +392,35 @@ export default function AdminAnalyticsPage() {
         >
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-semibold text-sm">Recent Orders</h2>
-            <Link href="/dashboard/admin/orders" className="text-yellow-400 text-xs flex items-center gap-1 hover:text-yellow-300 transition">
+            <Link
+              href="/dashboard/admin/orders"
+              className="text-yellow-400 text-xs flex items-center gap-1 hover:text-yellow-300 transition"
+            >
               View all <ArrowRight size={10} />
             </Link>
           </div>
           <div className="space-y-3">
             {recentActivity.recentOrders.slice(0, 5).map((order) => (
-              <div key={order.id} className="flex items-center justify-between gap-3">
+              <div
+                key={order.id}
+                className="flex items-center justify-between gap-3"
+              >
                 <div className="flex-1 min-w-0">
-                  <p className="text-white/80 text-xs font-semibold">{order.orderNumber}</p>
+                  <p className="text-white/80 text-xs font-semibold">
+                    {order.orderNumber}
+                  </p>
                   <p className="text-white/30 text-[10px] truncate">
                     {order.user.name} · {order.items[0]?.menuItem.name}
                     {order.items.length > 1 && ` +${order.items.length - 1}`}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-yellow-400 text-xs font-bold">{fmt(order.total)}</p>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${STATUS_COLORS[order.status] ?? "text-white/40 bg-white/5"}`}>
+                  <p className="text-yellow-400 text-xs font-bold">
+                    {fmt(order.total)}
+                  </p>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${STATUS_COLORS[order.status] ?? "text-white/40 bg-white/5"}`}
+                  >
                     {order.status}
                   </span>
                 </div>
@@ -505,21 +435,34 @@ export default function AdminAnalyticsPage() {
           style={{ background: "rgba(255,255,255,0.03)" }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-white font-semibold text-sm">Recent Reservations</h2>
-            <Link href="/dashboard/admin/reservations" className="text-yellow-400 text-xs flex items-center gap-1 hover:text-yellow-300 transition">
+            <h2 className="text-white font-semibold text-sm">
+              Recent Reservations
+            </h2>
+            <Link
+              href="/dashboard/admin/reservations"
+              className="text-yellow-400 text-xs flex items-center gap-1 hover:text-yellow-300 transition"
+            >
               View all <ArrowRight size={10} />
             </Link>
           </div>
           <div className="space-y-3">
             {recentActivity.recentReservations.slice(0, 5).map((res) => (
-              <div key={res.id} className="flex items-center justify-between gap-3">
+              <div
+                key={res.id}
+                className="flex items-center justify-between gap-3"
+              >
                 <div className="flex-1 min-w-0">
-                  <p className="text-white/80 text-xs font-semibold">{res.user.name}</p>
+                  <p className="text-white/80 text-xs font-semibold">
+                    {res.user.name}
+                  </p>
                   <p className="text-white/30 text-[10px]">
-                    {res.date.slice(0, 10)} at {res.time} · {res.partySize} guests
+                    {res.date.slice(0, 10)} at {res.time} · {res.partySize}{" "}
+                    guests
                   </p>
                 </div>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${STATUS_COLORS[res.status] ?? "text-white/40 bg-white/5"}`}>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${STATUS_COLORS[res.status] ?? "text-white/40 bg-white/5"}`}
+                >
                   {res.status}
                 </span>
               </div>
@@ -536,17 +479,24 @@ export default function AdminAnalyticsPage() {
         <h2 className="text-white font-semibold text-sm mb-4">Top Customers</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {customerInsights.topCustomers.slice(0, 6).map((c, i) => (
-            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5">
+            <div
+              key={i}
+              className="flex items-center gap-3 p-3 rounded-xl bg-white/5"
+            >
               <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400 text-xs font-bold shrink-0">
                 {i + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white/80 text-xs font-semibold truncate">{c.name}</p>
+                <p className="text-white/80 text-xs font-semibold truncate">
+                  {c.name}
+                </p>
                 <p className="text-white/30 text-[10px] truncate">{c.email}</p>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-white/60 text-xs">{c.totalOrders} orders</p>
-                <p className="text-yellow-400/60 text-[10px]">{c.loyaltyPoints} pts</p>
+                <p className="text-yellow-400/60 text-[10px]">
+                  {c.loyaltyPoints} pts
+                </p>
               </div>
             </div>
           ))}

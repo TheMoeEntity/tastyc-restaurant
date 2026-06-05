@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { faqs } from "@/lib/utils/contactUtils";
 
 function SectionHeader({ label, title, subtitle }: { label: string; title: string; subtitle?: string }) {

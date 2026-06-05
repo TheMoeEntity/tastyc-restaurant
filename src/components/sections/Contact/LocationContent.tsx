@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Clock, Navigation, ChevronRight } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { SectionHeader } from "./SectionHeader";
 import { locations, locationStats } from "@/lib/utils/contactUtils";
 import { Location, StatItem } from "@/types/contact.types";

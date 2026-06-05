@@ -1,22 +1,22 @@
 "use client";
 
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import Image from "next/image";
 
 export default function FeaturesAdvisoryStyle() {
   const features = [
     {
-      img: "/assets/featuresImg.png",
+      img: "/assets/FeaturesImg.png",
       title: "Menu for every taste",
       desc: "Experience meals crafted with precision, passion, and a touch of culinary artistry.",
     },
     {
-      img: "/assets/featuresImg1.png",
+      img: "/assets/FeaturesImg1.png",
       title: "Always fresh ingredients",
       desc: "We source only the freshest ingredients to ensure every dish delivers quality and flavor.",
     },
     {
-      img: "/assets/featureImg2.png",
+      img: "/assets/FeatureImg2.png",
       title: "Experienced Chef",
       desc: "Explore a variety of international dishes prepared with authentic techniques.",
     },

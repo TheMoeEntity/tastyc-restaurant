@@ -11,7 +11,7 @@ import {
   Star,
   Check,
 } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { allProducts } from "@/lib/data/shopData";
 import { Product, WishlistItem } from "@/types/shop.types";
 import { useCartStore } from "@/store/useCartStore";

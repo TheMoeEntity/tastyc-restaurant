@@ -11,6 +11,7 @@ export interface RestaurantConfig {
   deliveryEnabled: boolean;
   pickupEnabled: boolean;
   dineInEnabled: boolean;
+  deliveryFee: number;
 }
 
 export const DEFAULT_CONFIG: RestaurantConfig = {
@@ -26,6 +27,7 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
   deliveryEnabled: true,
   pickupEnabled: true,
   dineInEnabled: true,
+  deliveryFee: 1000,
 };
 
 export async function getRestaurantConfig(): Promise<RestaurantConfig> {

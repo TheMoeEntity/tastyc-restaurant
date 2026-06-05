@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { Calendar, Clock, Search, MessageCircle, ChevronRight, Star, ArrowLeft, Quote, Briefcase, ChefHat, CheckCircle } from "lucide-react";
 import { BlogPost, BlogAuthor } from "@/types/blog.types";
 import { getReadTimeDisplay, getRelativeTime, paginatePosts, getTotalPages } from "@/lib/utils/blogUtils";

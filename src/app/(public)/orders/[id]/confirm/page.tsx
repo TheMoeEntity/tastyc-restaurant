@@ -16,6 +16,8 @@ import {
   RefreshCw,
 } from "lucide-react";
 import apiFetch from "@/lib/api";
+import { useCartStore } from "@/store/useCartStore";
+import type { ApiResponse } from "@/types/api.types";
 
 //
 
@@ -29,6 +31,7 @@ interface VerifyData {
 }
 
 function ConfirmContent() {
+  const clearCart = useCartStore((state) => state.clearCart);
   const params = useParams();
   const searchParams = useSearchParams();
   const reference =
@@ -40,17 +43,22 @@ function ConfirmContent() {
   );
   const [data, setData] = useState<VerifyData | null>(null);
   const [errorMsg, setErrorMsg] = useState(
-    reference ? "" : "No payment reference found in the URL.",
+    reference
+      ? ""
+      : "Your payment was cancelled. Your cart has been saved — you can try again whenever you're ready.",
   );
 
   useEffect(() => {
     if (!reference) return;
 
-    apiFetch<any>(`/api/payments/verify/${reference}`)
+    apiFetch<ApiResponse<VerifyData>>(
+      `/api/payments/verify/${reference}`,
+    )
       .then((r) => {
         if (!r.success) throw new Error(r.message ?? "Verification failed");
         setData(r.data);
         setState("success");
+        clearCart();
       })
       .catch((err: unknown) => {
         setErrorMsg(

@@ -12,7 +12,7 @@ import {
   Check,
 } from "lucide-react";
 import Image from "next/image";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { Product } from "@/types/shop.types";
 import { useCartStore } from "@/store/useCartStore";
 import { useShopStore } from "@/store/useShopStore";

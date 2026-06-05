@@ -1,6 +1,8 @@
 "use client";
 import apiFetch from "@/lib/api";
 import { useEffect, useState, useRef } from "react";
+import type { ApiResponse } from "@/types/api.types";
+import type { UserUserProfile } from "@/types/user.types";
 import {
   Loader2,
   AlertCircle,
@@ -13,23 +15,11 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { AnimatePresence, motion } from "framer-motion";
 
-//
-
-interface Profile {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  avatar?: string;
-  role: string;
-}
-
 export default function UserProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Profile form
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
@@ -58,11 +48,11 @@ export default function UserProfilePage() {
   }, []);
 
   useEffect(() => {
-    apiFetch<any>(`/api/users/profile`)
+    apiFetch<ApiResponse<{ user: UserProfile }>>(`/api/users/profile`)
       .then(async (r) => {
         const json = await r;
         if (!json.success) throw new Error(json.message);
-        const p: Profile = json.data.user;
+        const p: UserProfile = json.data.user;
         setProfile(p);
         setName(p.name);
         setPhone(p.phone ?? "");
@@ -84,7 +74,7 @@ export default function UserProfilePage() {
       const fd = new FormData();
       fd.append("image", file); // match upload.single("avatar")
 
-      const json = await apiFetch<any>(`/api/upload/avatar`, {
+      const json = await apiFetch<ApiResponse<{ user: UserProfile; url: string }>>(`/api/upload/avatar`, {
         method: "POST",
         data: fd, // use data, not body — so apiFetch can detect FormData
       });
@@ -104,7 +94,7 @@ export default function UserProfilePage() {
     setSavingProfile(true);
     setProfileMsg("");
     try {
-      const json = await apiFetch<any>(`/api/users/profile`, {
+      const json = await apiFetch<ApiResponse<{ user: UserProfile }>>(`/api/users/profile`, {
         method: "PATCH",
         data: {
           name: name || undefined,
@@ -134,7 +124,7 @@ export default function UserProfilePage() {
     }
     setSavingPassword(true);
     try {
-      const json = await apiFetch<any>(`/api/users/profile/password`, {
+      const json = await apiFetch<ApiResponse>(`/api/users/profile/password`, {
         method: "PATCH",
         data: {
           currentPassword,
@@ -175,7 +165,7 @@ export default function UserProfilePage() {
   return (
     <div className="space-y-6 max-w-lg">
       <div>
-        <h1 className="text-white font-bold text-xl mb-1">Profile</h1>
+        <h1 className="text-white font-bold text-xl mb-1">UserProfile</h1>
         <p className="text-white/40 text-sm">Manage your account details</p>
       </div>
 
@@ -238,7 +228,7 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Profile form */}
+      {/* UserProfile form */}
       <div
         className="rounded-2xl border border-white/5 p-5 space-y-4"
         style={{ background: "rgba(255,255,255,0.03)" }}
@@ -376,7 +366,7 @@ export default function UserProfilePage() {
               <div className="relative w-72 h-72 rounded-2xl overflow-hidden ring-1 ring-white/10 shadow-2xl">
                 <Image
                   src={avatarPreview}
-                  alt="Profile photo"
+                  alt="UserProfile photo"
                   fill
                   className="object-cover"
                   sizes="288px"

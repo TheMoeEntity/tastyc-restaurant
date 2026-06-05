@@ -14,40 +14,9 @@ import {
 import { toast } from "sonner";
 import apiFetch from "@/lib/api";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
-
-// ── Types ─────────────────────────────────────────────────────
-
-interface BlockedSlot {
-  id: string;
-  date: string;
-  time: string | null;
-  reason: string | null;
-  createdAt: string;
-}
-
-interface SlotData {
-  time: string;
-  available: boolean;
-  blocked: boolean;
-  seatsRemaining: number;
-  bookedGuests: number;
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-
-function getMonthDays(year: number, month: number): Date[] {
-  const days: Date[] = [];
-  const date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    days.push(new Date(date));
-    date.setDate(date.getDate() + 1);
-  }
-  return days;
-}
-
-function formatDate(date: Date): string {
-  return date.toISOString().split("T")[0];
-}
+import type { ApiResponse } from "@/types/api.types";
+import type { BlockedSlot, AdminSlotData as SlotData } from "@/types/availability.types";
+import { getMonthDays, formatDate } from "@/lib/Helper";
 
 function formatDisplayDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString("en-NG", {
@@ -85,7 +54,9 @@ export default function AdminAvailabilityPage() {
   const fetchBlockedSlots = useCallback(() => {
     setBlockedLoading(true);
     const month = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
-    apiFetch<any>(`/api/availability/blocked?month=${month}`)
+    apiFetch<ApiResponse<{ slots: BlockedSlot[] }>>(
+      `/api/availability/blocked?month=${month}`,
+    )
       .then((r) => {
         if (r.success) setBlockedSlots(r.data.slots);
       })
@@ -104,7 +75,7 @@ export default function AdminAvailabilityPage() {
       return;
     }
     setSlotsLoading(true);
-    apiFetch<any>(`/api/availability?date=${selectedDate}`)
+    apiFetch<ApiResponse<{ slots: SlotData[] }>>(`/api/availability?date=${selectedDate}`)
       .then((r) => {
         if (r.success) setSlots(r.data.slots);
       })
@@ -130,14 +101,17 @@ export default function AdminAvailabilityPage() {
 
     setBlocking(true);
     try {
-      const res = await apiFetch<any>("/api/availability/block", {
-        method: "POST",
-        data: {
-          date: selectedDate,
-          time: blockTime || undefined,
-          reason: blockReason.trim() || undefined,
+      const res = await apiFetch<ApiResponse>(
+        "/api/availability/block",
+        {
+          method: "POST",
+          data: {
+            date: selectedDate,
+            time: blockTime || undefined,
+            reason: blockReason.trim() || undefined,
+          },
         },
-      });
+      );
       if (!res.success) throw new Error(res.message);
       toast.success(res.message);
       setBlockReason("");
@@ -145,7 +119,9 @@ export default function AdminAvailabilityPage() {
       fetchBlockedSlots();
       // Refresh slots for this date
       setSlotsLoading(true);
-      apiFetch<any>(`/api/availability?date=${selectedDate}`)
+      apiFetch<ApiResponse<{ slots: SlotData[] }>>(
+        `/api/availability?date=${selectedDate}`,
+      )
         .then((r) => {
           if (r.success) setSlots(r.data.slots);
         })
@@ -176,7 +152,9 @@ export default function AdminAvailabilityPage() {
       fetchBlockedSlots();
       if (selectedDate === slot.date) {
         setSlotsLoading(true);
-        apiFetch<any>(`/api/availability?date=${selectedDate}`)
+        apiFetch<ApiResponse<{ slots: SlotData[] }>>(
+          `/api/availability?date=${selectedDate}`,
+        )
           .then((r) => {
             if (r.success) setSlots(r.data.slots);
           })

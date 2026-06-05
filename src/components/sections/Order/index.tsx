@@ -1,4 +1,5 @@
-import MotionWrapper from "@/components/MotionWrapper";
+/* eslint-disable react-hooks/set-state-in-effect */
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
 import { orderTypeConfig, statusConfig } from "@/lib/utils/orderUtils";
 import { Order } from "@/types";

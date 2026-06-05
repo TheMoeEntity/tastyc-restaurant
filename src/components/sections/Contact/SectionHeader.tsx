@@ -1,5 +1,5 @@
 import React from "react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 
 export function SectionHeader({
   label,

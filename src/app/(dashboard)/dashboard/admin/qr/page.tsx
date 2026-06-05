@@ -2,13 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { QrCode, Download, Loader2, AlertCircle, Wifi } from "lucide-react";
-import Image from "next/image";
 import apiFetch from "@/lib/api";
-
-//
+import type { ApiResponse } from "@/types/api.types";
 
 interface QRCode {
-  tableNumber: number;
+  tableNumber: string;
   qrCodeDataUrl: string;
   tableUrl: string;
 }
@@ -21,23 +19,25 @@ export default function AdminQRPage() {
   const [activeSessions, setActiveSessions] = useState<number | null>(null);
 
   useEffect(() => {
-    apiFetch<any>(`/api/qr/active-sessions`)
+    apiFetch<ApiResponse<{ session: number; count: number }>>(`/api/qr/active-sessions`)
       .then((r) => {
         if (r.success) setActiveSessions(r.data?.session ?? r.data.count ?? 0);
       })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   const generate = async () => {
     setGenerating(true);
     setError("");
     try {
-      const r = await apiFetch<any>(`/api/qr/generate-all`, {
+      const r = await apiFetch<ApiResponse<{ tables: QRCode[] }>>(`/api/qr/generate-all`, {
         method: "POST",
         data: { tableCount },
       });
       if (!r.success) throw new Error(r.message ?? "Generation failed");
-      setQrCodes(r.data ?? []);
+
+      // Data is nested under "tables" not at the root
+      setQrCodes(r.data?.tables ?? []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Generation failed");
     } finally {
@@ -126,6 +126,7 @@ export default function AdminQRPage() {
                 style={{ background: "rgba(255,255,255,0.03)" }}
               >
                 <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={qr.qrCodeDataUrl}
                     alt={`Table ${qr.tableNumber} QR`}

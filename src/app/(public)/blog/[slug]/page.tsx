@@ -14,7 +14,7 @@ import {
   // Twitter,
   // Linkedin,
 } from "lucide-react";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { blogPosts } from "@/lib/data/blogData";
 import { formatDate, getReadTimeDisplay } from "@/lib/utils/blogUtils";
 import { BlogPost } from "@/types/blog.types";

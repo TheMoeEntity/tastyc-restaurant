@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Send, CheckCircle, Navigation, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { socialLinks } from "@/lib/utils/contactUtils";
 import homeImg3 from "@/../public/assets/homeImg3.jpg";
 import homeImg2 from "@/../public/assets/homeImg2.jpg";
 import apiFetch from "@/lib/api";
+import type { ApiResponse } from "@/types/api.types";
 
 export function ContactFormSocial() {
   const [formData, setFormData] = useState({
@@ -29,7 +30,7 @@ export function ContactFormSocial() {
     e.preventDefault();
     setNewsletterLoading(true);
     try {
-      const res = await apiFetch<any>("/api/newsletter/subscribe", {
+      const res = await apiFetch<ApiResponse>("/api/newsletter/subscribe", {
         method: "POST",
         data: { email: newsletterEmail },
       });
@@ -58,7 +59,7 @@ export function ContactFormSocial() {
     setError("");
 
     try {
-      const res = await apiFetch<any>("/api/contact", {
+      const res = await apiFetch<ApiResponse>("/api/contact", {
         method: "POST",
         data: {
           name: formData.name,

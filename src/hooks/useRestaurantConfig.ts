@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import apiFetch from "@/lib/api";
 import { type RestaurantConfig, DEFAULT_CONFIG } from "@/lib/api/config";
+import type { ApiResponse } from "@/types/api.types";
 
 // Module-level cache — fetched once per page load, shared across components
 let cachedConfig: RestaurantConfig | null = null;
@@ -11,7 +12,7 @@ async function fetchConfig(): Promise<RestaurantConfig> {
     if (cachedConfig) return cachedConfig;
     if (fetchPromise) return fetchPromise;
 
-    fetchPromise = apiFetch<any>("/api/config")
+    fetchPromise = apiFetch<ApiResponse<{ config: RestaurantConfig }>>("/api/config")
         .then((r) => {
             const config = r.success ? { ...DEFAULT_CONFIG, ...r.data.config } : DEFAULT_CONFIG;
             cachedConfig = config;

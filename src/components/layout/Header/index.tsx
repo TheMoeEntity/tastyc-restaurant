@@ -26,7 +26,7 @@ import { useLogout } from "@/hooks/useLogout";
 import { useRestaurantConfig } from "@/hooks/useRestaurantConfig";
 
 export default function Header({ cartCount = 0 }: HeaderProps) {
-  const { user, isAuthenticated, clear } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<number | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<number | null>(null);
@@ -42,7 +42,6 @@ export default function Header({ cartCount = 0 }: HeaderProps) {
 
   const headerRef = useRef<HTMLElement>(null);
   const isCartPage = usePathname() === "/cart";
-
 
   useEffect(() => {
     setMounted(true);

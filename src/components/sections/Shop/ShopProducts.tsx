@@ -10,7 +10,7 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { allProducts, categories } from "@/lib/data/shopData";
 import { ProductCard } from "./ProductCard";
 import { DealsSection, WishlistSidebar } from ".";

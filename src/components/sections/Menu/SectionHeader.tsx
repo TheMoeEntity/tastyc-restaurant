@@ -1,6 +1,6 @@
 "use client";
 
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 
 interface SectionHeaderProps {
   label: string;

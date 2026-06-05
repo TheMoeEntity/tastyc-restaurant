@@ -21,43 +21,12 @@ import {
   Loader2,
 } from "lucide-react";
 import apiFetch from "@/lib/api";
-
-//
-
-type OrderStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED";
-type OrderType = "DELIVERY" | "PICKUP";
-
-interface OrderItem {
-  spicy: any;
-  veg: any;
-  id: string;
-  menuItem: { name: string; image?: string };
-  quantity: number;
-  unitPrice: number; // ← matches Prisma field name
-  totalPrice: number;
-  notes?: string;
-}
-
-interface OrderData {
-  id: string;
-  orderNumber: string;
-  type: OrderType;
-  status: OrderStatus;
-  items: OrderItem[];
-  subtotal: number;
-  deliveryFee?: number;
-  tax?: number;
-  total: number;
-  estimatedTime?: string;
-  address?: { street: string; city: string; state: string };
-  notes?: string;
-  createdAt: string;
-}
+import type { ApiResponse } from "@/types/api.types";
+import type {
+  TrackingOrderData as OrderData,
+  TrackingOrderStatus as OrderStatus,
+} from "@/types/order.types";
+import { getCookieToken } from "@/lib/Helper";
 
 const STEPS: { key: OrderStatus; label: string; icon: typeof Clock }[] = [
   { key: "PENDING", label: "Order Placed", icon: Receipt },
@@ -128,16 +97,6 @@ const STATUS_META: Record<
   },
 };
 
-function getCookieToken(): string {
-  if (typeof document === "undefined") return "";
-  return (
-    document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("tastyc_access_token="))
-      ?.split("=")[1] ?? ""
-  );
-}
-
 export default function OrderTrackingClient({ id }: { id: string }) {
   const [order, setOrder] = useState<OrderData | null>(null);
   const [fetchState, setFetchState] = useState<"loading" | "ok" | "error">(
@@ -149,7 +108,9 @@ export default function OrderTrackingClient({ id }: { id: string }) {
 
   // Fetch initial order data
   useEffect(() => {
-    apiFetch<any>(`/api/orders/${id}`)
+    apiFetch<ApiResponse<{ order: OrderData }>>(
+      `/api/orders/${id}`,
+    )
       .then((r) => {
         if (!r.success) throw new Error(r.message ?? "Order not found");
         setOrder(r.data.order);

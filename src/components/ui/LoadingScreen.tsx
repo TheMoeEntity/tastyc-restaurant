@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function LoadingScreen() {
+export default function LoadingScreen<T extends string>({
+  siteName,
+}: {
+  siteName?: T;
+}) {
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
 
@@ -146,7 +150,7 @@ export default function LoadingScreen() {
               className="particle"
               style={{
                 left: `${30 + i * 8}%`,
-                bottom: '35%',
+                bottom: "35%",
                 animationDelay: `${i * 0.4}s`,
                 width: `${3 + (i % 3)}px`,
                 height: `${3 + (i % 3)}px`,
@@ -155,7 +159,14 @@ export default function LoadingScreen() {
           ))}
 
           {/* Spinning rings */}
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div
+            style={{
+              position: "relative",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <motion.div
               className="utensil-ring-outer"
               initial={{ opacity: 0, scale: 0.5 }}
@@ -179,15 +190,38 @@ export default function LoadingScreen() {
             <motion.div
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.5, type: "spring", stiffness: 200 }}
-              style={{ position: 'absolute', display: 'flex', gap: '6px' }}
+              transition={{
+                duration: 0.5,
+                delay: 0.5,
+                type: "spring",
+                stiffness: 200,
+              }}
+              style={{ position: "absolute", display: "flex", gap: "6px" }}
             >
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(234,179,8,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(234,179,8,0.8)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 {/* Fork */}
                 <path d="M3 2v7c0 1.1.9 2 2 2h2a2 2 0 002-2V2" />
                 <line x1="6" y1="2" x2="6" y2="22" />
               </svg>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(234,179,8,0.8)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(234,179,8,0.8)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 {/* Knife */}
                 <path d="M18 2C18 2 20 6 20 10c0 2-2 3-2 3v9" />
               </svg>
@@ -199,46 +233,51 @@ export default function LoadingScreen() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.6 }}
-            style={{ marginTop: '36px', textAlign: 'center' }}
+            style={{ marginTop: "36px", textAlign: "center" }}
           >
             <h1
               style={{
-                fontSize: '36px',
+                fontSize: "36px",
                 fontWeight: 800,
-                color: '#fff',
-                letterSpacing: '2px',
+                color: "#fff",
+                letterSpacing: "2px",
                 margin: 0,
                 lineHeight: 1,
               }}
             >
-              Tastyc
+              {siteName || "Tastyc"}
             </h1>
 
             {/* Yellow bars + tagline */}
             <div
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                marginTop: '6px',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                marginTop: "6px",
               }}
             >
               <motion.span
                 initial={{ width: 0 }}
                 animate={{ width: 20 }}
                 transition={{ duration: 0.6, delay: 0.9 }}
-                style={{ height: '2px', background: '#eab308', display: 'block', borderRadius: '2px' }}
+                style={{
+                  height: "2px",
+                  background: "#eab308",
+                  display: "block",
+                  borderRadius: "2px",
+                }}
               />
               <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 1 }}
                 style={{
-                  fontSize: '9px',
-                  color: 'rgba(255,255,255,0.45)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '3px',
+                  fontSize: "9px",
+                  color: "rgba(255,255,255,0.45)",
+                  textTransform: "uppercase",
+                  letterSpacing: "3px",
                 }}
               >
                 Food &amp; Drinks
@@ -247,7 +286,12 @@ export default function LoadingScreen() {
                 initial={{ width: 0 }}
                 animate={{ width: 20 }}
                 transition={{ duration: 0.6, delay: 0.9 }}
-                style={{ height: '2px', background: '#eab308', display: 'block', borderRadius: '2px' }}
+                style={{
+                  height: "2px",
+                  background: "#eab308",
+                  display: "block",
+                  borderRadius: "2px",
+                }}
               />
             </div>
           </motion.div>
@@ -268,11 +312,11 @@ export default function LoadingScreen() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
             style={{
-              marginTop: '14px',
-              fontSize: '11px',
-              color: 'rgba(255,255,255,0.25)',
-              letterSpacing: '4px',
-              fontFamily: 'monospace',
+              marginTop: "14px",
+              fontSize: "11px",
+              color: "rgba(255,255,255,0.25)",
+              letterSpacing: "4px",
+              fontFamily: "monospace",
             }}
           >
             {progress}%

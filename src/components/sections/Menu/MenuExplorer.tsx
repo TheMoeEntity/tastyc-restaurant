@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Filter, Loader2 } from "lucide-react";
 import { useMenuStore } from "@/store/useMenuStore";
 import { MenuCard } from "./MenuCard";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { getMenuItems, getCategories } from "@/lib/api/menu";
 
 import {

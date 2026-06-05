@@ -3,33 +3,12 @@
 import { useEffect, useState } from "react";
 import { Loader2, AlertCircle, RefreshCw, Calendar } from "lucide-react";
 import apiFetch from "@/lib/api";
-
-//
-
-type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
-
-interface Reservation {
-  id: string;
-  customerName?: string;
-  customerEmail?: string;
-  customerPhone?: string;
-  date: string;
-  time: string;
-  partySize: number;
-  status: ReservationStatus;
-  tableNumber?: string | null;
-  notes?: string | null;
-  user?: { id: string; name: string; email: string } | null;
-}
-
-const STATUS_COLORS: Record<ReservationStatus, string> = {
-  PENDING: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
-  COMPLETED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  NO_SHOW: "text-gray-400 bg-gray-500/10 border-gray-500/30",
-
-};
+import type { ApiResponse } from "@/types/api.types";
+import {
+  type Reservation,
+  type ReservationStatus,
+  RESERVATION_STATUS_COLORS as STATUS_COLORS,
+} from "@/types/reservation.types";
 
 export default function AdminReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -42,10 +21,10 @@ export default function AdminReservationsPage() {
   const fetchReservations = (d: string) => {
     setLoading(true);
     setError("");
-    apiFetch<any>(`/api/reservations?date=${d}`)
+    apiFetch<ApiResponse<{ reservations: Reservation[] }>>(`/api/reservations?date=${d}`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
-        setReservations(r.data?.reservations ?? r.data ?? []);
+        setReservations(r.data?.reservations ?? []);
       })
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "Failed to load"),
@@ -60,7 +39,7 @@ export default function AdminReservationsPage() {
   const updateStatus = async (id: string, status: ReservationStatus) => {
     setUpdatingId(id);
     try {
-      const r = await apiFetch<any>(`/api/reservations/${id}`, {
+      const r = await apiFetch<ApiResponse<{ reservation: Reservation }>>(`/api/reservations/${id}`, {
         method: "PATCH",
         data: { status },
       });
@@ -78,7 +57,7 @@ export default function AdminReservationsPage() {
     if (!tableNumber) return;
     setUpdatingId(id);
     try {
-      const r = await apiFetch<any>(`/api/reservations/${id}`, {
+      const r = await apiFetch<ApiResponse<{ reservation: Reservation }>>(`/api/reservations/${id}`, {
         method: "PATCH",
         data: { tableNumber },
       });
@@ -220,23 +199,23 @@ export default function AdminReservationsPage() {
                         )}
                         {(rv.status === "PENDING" ||
                           rv.status === "CONFIRMED") && (
-                            <>
-                              <button
-                                onClick={() => updateStatus(rv.id, "COMPLETED")}
-                                disabled={updatingId === rv.id}
-                                className="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition disabled:opacity-50"
-                              >
-                                Complete
-                              </button>
-                              <button
-                                onClick={() => updateStatus(rv.id, "CANCELLED")}
-                                disabled={updatingId === rv.id}
-                                className="text-[10px] px-2 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50"
-                              >
-                                Cancel
-                              </button>
-                            </>
-                          )}
+                          <>
+                            <button
+                              onClick={() => updateStatus(rv.id, "COMPLETED")}
+                              disabled={updatingId === rv.id}
+                              className="text-[10px] px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg hover:bg-emerald-500/30 transition disabled:opacity-50"
+                            >
+                              Complete
+                            </button>
+                            <button
+                              onClick={() => updateStatus(rv.id, "CANCELLED")}
+                              disabled={updatingId === rv.id}
+                              className="text-[10px] px-2 py-1 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        )}
                         {updatingId === rv.id && (
                           <Loader2
                             size={12}

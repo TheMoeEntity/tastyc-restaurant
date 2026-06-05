@@ -4,8 +4,8 @@ import apiFetch from "@/lib/api";
 import { Bell, House, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-//
+import type { ApiResponse } from "@/types/api.types";
+import type { AuthUser } from "@/types/user.types";
 
 interface Me {
   name: string;
@@ -16,7 +16,7 @@ export default function DashboardTopbar({ role }: { role: string }) {
   const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
-    apiFetch<any>(`/api/auth/me`)
+    apiFetch<ApiResponse<{ user: AuthUser }>>(`/api/auth/me`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setMe({ name: r.data.user.name, role: r.data.user.role });

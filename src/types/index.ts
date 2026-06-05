@@ -92,7 +92,7 @@ export interface Product {
   image: string;
   rating: number;
   reviewCount: number;
-  menuItemId: string
+  menuItemId: string;
   inStock: boolean;
   isNew?: boolean;
   discount?: number;
@@ -167,7 +167,7 @@ export interface Order {
   date: string;
   time: string;
   status: OrderStatus;
-  orderType: OrderType;
+  type: OrderType;
   items: CartItem[];
   subtotal: number;
   discount: number;

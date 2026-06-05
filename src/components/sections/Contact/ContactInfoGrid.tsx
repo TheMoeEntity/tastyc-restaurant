@@ -1,7 +1,7 @@
 "use client";
 
 import { contactInfo } from "@/lib/utils/contactUtils";
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { LucideIcon } from "lucide-react";
 
 function ContactInfoCard({ icon: Icon, title, details, delay }: { icon: LucideIcon; title: string; details: string[]; delay: number }) {

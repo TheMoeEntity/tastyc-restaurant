@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2, AlertCircle, RefreshCw, Star } from "lucide-react";
 import apiFetch from "@/lib/api";
-
-//
+import type { ApiResponse } from "@/types/api.types";
 
 type TxType = "EARN" | "REDEEM" | "EXPIRE";
 
@@ -36,7 +35,7 @@ export default function UserLoyaltyPage() {
   const [error, setError] = useState("");
 
   const runFetch = () =>
-    apiFetch<any>(`/api/users/loyalty`)
+    apiFetch<ApiResponse<LoyaltyData>>(`/api/users/loyalty`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setData(r.data);

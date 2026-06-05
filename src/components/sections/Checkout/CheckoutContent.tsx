@@ -25,14 +25,15 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/store/useCartStore";
 import apiFetch from "@/lib/api";
+import type { ApiResponse } from "@/types/api.types";
 
 //
 
 type OrderType = "DELIVERY" | "PICKUP";
 
-function CheckoutForm() {
+function CheckoutForm({ deliveryFee }: { deliveryFee: number }) {
   const router = useRouter();
-  const { items, clearCart, getTotalItems, getSubtotal } = useCartStore();
+  const { items, getTotalItems, getSubtotal } = useCartStore();
 
   const [mounted, setMounted] = useState(false);
   const [orderType, setOrderType] = useState<OrderType>("PICKUP");
@@ -52,8 +53,8 @@ function CheckoutForm() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const subtotal = getSubtotal();
-  const deliveryFee = orderType === "DELIVERY" ? 1000 : 0;
-  const total = subtotal + deliveryFee;
+  const fee = orderType === "DELIVERY" ? deliveryFee : 0;
+  const total = subtotal + fee;
   const totalItems = getTotalItems();
 
   useEffect(() => setMounted(true), []);
@@ -96,11 +97,12 @@ function CheckoutForm() {
           street: street.trim(),
           city: city.trim(),
           state: state.trim(),
+          label: "Delivery Address",
         };
       }
 
       // 1. Place order
-      const orderRes = await apiFetch<any>(`/api/orders`, {
+      const orderRes = await apiFetch<ApiResponse<{ order: { id: string } }>>(`/api/orders`, {
         method: "POST",
         data: payload,
       });
@@ -111,7 +113,7 @@ function CheckoutForm() {
       const orderId: string = orderRes.data.order.id;
 
       // 2. Initiate payment
-      const payRes = await apiFetch<any>(`/api/payments/initiate/${orderId}`, {
+      const payRes = await apiFetch<ApiResponse<{ authorizationUrl: string }>>(`/api/payments/initiate/${orderId}`, {
         method: "POST",
         data: payload,
       });
@@ -119,7 +121,7 @@ function CheckoutForm() {
       if (!payRes.success)
         throw new Error(payRes.message ?? "Failed to initiate payment");
 
-      clearCart();
+      // clearCart();
       window.location.href = payRes.data.authorizationUrl;
     } catch (err) {
       setError(
@@ -198,7 +200,7 @@ function CheckoutForm() {
                     type: "DELIVERY" as const,
                     icon: Truck,
                     label: "Delivery",
-                    sub: "+₦1000 delivery fee",
+                    sub: `+₦${deliveryFee} delivery fee`,
                   },
                 ] as const
               ).map(({ type, icon: Icon, label, sub }) => (
@@ -528,7 +530,7 @@ function CheckoutForm() {
   );
 }
 
-export function CheckoutContent() {
+export function CheckoutContent({ deliveryFee }: { deliveryFee: number }) {
   return (
     <Suspense
       fallback={
@@ -537,7 +539,7 @@ export function CheckoutContent() {
         </div>
       }
     >
-      <CheckoutForm />
+      <CheckoutForm deliveryFee={deliveryFee} />
     </Suspense>
   );
 }

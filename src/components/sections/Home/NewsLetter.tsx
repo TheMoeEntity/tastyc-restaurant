@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState } from "react";
@@ -6,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Mail } from "lucide-react";
 import Image from "next/image";
 import apiFetch from "@/lib/api";
+import type { ApiResponse } from "@/types/api.types";
 
 const newsletters = [
   {
@@ -141,7 +141,7 @@ function SubscribeForm() {
     setLoading(true);
     setError("");
     try {
-      const res = await apiFetch<any>("/api/newsletter/subscribe", {
+      const res = await apiFetch<ApiResponse>("/api/newsletter/subscribe", {
         method: "POST",
         data: { email, name: name || undefined },
       });

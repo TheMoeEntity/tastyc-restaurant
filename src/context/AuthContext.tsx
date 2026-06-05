@@ -10,15 +10,8 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import apiFetch from "@/lib/api";
-
-interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  avatar?: string;
-  loyaltyPoints: number;
-}
+import type { ApiResponse } from "@/types/api.types";
+import type { AuthUser } from "@/types/user.types";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -59,14 +52,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     isFetchingRef.current = true;
     try {
-      const res = await apiFetch<any>("/api/auth/me");
+      const res = await apiFetch<ApiResponse<{ user: AuthUser }>>("/api/auth/me");
       if (res.success) {
         setUser(res.data.user);
       } else {
         setUser(null);
       }
-    } catch (err: any) {
-      if (!(window as any).__tastyc_redirecting) {
+    } catch {
+      if (!(window as { __tastyc_redirecting?: boolean }).__tastyc_redirecting) {
         setUser(null);
       }
     } finally {

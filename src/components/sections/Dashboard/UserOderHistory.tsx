@@ -13,43 +13,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import apiFetch from "@/lib/api";
+import { fmt } from "@/lib/Helper";
+import type { ApiResponse, PaginationMeta } from "@/types/api.types";
+import {
+  type UserOrder as Order,
+  type BackendOrderStatus as Status,
+  ORDER_STATUS_COLORS as STATUS_COLORS,
+} from "@/types/order.types";
 
-//
-const fmt = (n: number) => `₦${Number(n).toLocaleString("en-NG")}`;
-
-type Status =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PREPARING"
-  | "READY"
-  | "DELIVERED"
-  | "CANCELLED";
 type TabFilter = "ALL" | "ACTIVE" | "DELIVERED" | "CANCELLED";
-
-interface OrderItem {
-  id: string;
-  quantity: number;
-  menuItem: { id: string; name: string; image?: string };
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  type: string;
-  status: Status;
-  total: number;
-  createdAt: string;
-  items: OrderItem[];
-}
-
-const STATUS_COLORS: Record<Status, string> = {
-  PENDING: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  PREPARING: "text-orange-400 bg-orange-500/10 border-orange-500/30",
-  READY: "text-green-400 bg-green-500/10 border-green-500/30",
-  DELIVERED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-  CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
-};
 
 const ACTIVE_STATUSES: Status[] = [
   "PENDING",
@@ -93,7 +65,7 @@ export default function UserOrderHistory() {
       params.set("status", "CANCELLED");
     }
 
-    apiFetch<any>(`/api/orders?${params}`)
+    apiFetch<ApiResponse<{ orders: Order[] } & PaginationMeta>>(`/api/orders?${params}`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
         setOrders(r.data.orders ?? []);

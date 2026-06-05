@@ -41,6 +41,7 @@ export type NavSection = {
 const adminLinks: NavLink[] = [
   { label: "Overview", href: "/dashboard/admin", icon: LayoutDashboard },
   { label: "Orders", href: "/dashboard/admin/orders", icon: ClipboardList },
+  { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
   {
     label: "Menu Management",
     href: "/dashboard/admin/menu",
@@ -61,11 +62,14 @@ const adminLinks: NavLink[] = [
   },
   { label: "Analytics", href: "/dashboard/admin/analytics", icon: BarChart2 },
   { label: "QR Codes", href: "/dashboard/admin/qr", icon: QrCode },
+  { href: "/dashboard/admin/staff", label: "Staff", icon: Users },
+  { label: "Profile", href: "/dashboard/user/profile", icon: User },
   { label: "Settings", href: "/dashboard/admin/settings", icon: Settings },
 ];
 
 const kitchenLinks: NavLink[] = [
   { label: "Kitchen Board", href: "/dashboard/kitchen", icon: ChefHat },
+  { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
   { label: "Settings", href: "/dashboard/kitchen/settings", icon: Settings },
 ];
 
@@ -89,6 +93,7 @@ const staffLinks: NavLink[] = [
     href: "/dashboard/admin/reservations",
     icon: Calendar,
   },
+  { href: "/dashboard/chat", label: "Chat", icon: MessageSquare },
   // { label: "Deliveries", href: "/dashboard/admin/orders", icon: Truck },
 ];
 
@@ -99,12 +104,12 @@ function getSections(role: string): NavSection[] {
     case "SUPERADMIN":
       return [
         { label: "Admin Panel", links: adminLinks },
-        { label: "Kitchen", links: kitchenLinks },
+        { label: "Kitchen", links: [kitchenLinks[0]] },
       ];
     case "MANAGER":
       return [
         { label: "Management", links: adminLinks },
-        { label: "Kitchen", links: kitchenLinks },
+        { label: "Kitchen", links: [kitchenLinks[0]] },
       ];
     case "STAFF":
       return [{ label: "Staff", links: staffLinks }];

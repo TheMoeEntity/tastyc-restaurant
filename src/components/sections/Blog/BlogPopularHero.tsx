@@ -1,4 +1,4 @@
-import MotionWrapper from "@/components/MotionWrapper";
+import MotionWrapper from "@/components/ui/MotionWrapper";
 import { TrendingUp } from "lucide-react";
 
 export function BlogPopularHero() {

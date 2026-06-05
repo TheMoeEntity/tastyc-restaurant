@@ -7,41 +7,14 @@ import {
   Clock,
   Users,
   TrendingUp,
-  TrendingDown,
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
 import apiFetch from "@/lib/api";
-
-//
-const fmt = (n: number) => `₦${Math.round(n).toLocaleString("en-NG")}`;
-
-interface Overview {
-  today: { revenue: number; orders: number };
-  thisMonth: {
-    revenue: number;
-    orders: number;
-    newCustomers: number;
-    averageOrderValue: number;
-  };
-  changes: { revenue: number; orders: number };
-  totals: { customers: number; pendingOrders: number };
-}
-
-function ChangeIndicator({ pct }: { pct: number }) {
-  if (pct === 0) return null;
-  const up = pct > 0;
-  return (
-    <span
-      className={`flex items-center gap-0.5 text-xs font-semibold ${
-        up ? "text-green-400" : "text-red-400"
-      }`}
-    >
-      {up ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-      {Math.abs(pct).toFixed(1)}%
-    </span>
-  );
-}
+import { fmt } from "@/lib/Helper";
+import type { ApiResponse } from "@/types/api.types";
+import type { AnalyticsOverview as Overview } from "@/types/analytics.types";
+import ChangeIndicator from "@/components/ui/ChangeIndicator";
 
 export default function AdminStatsBar() {
   const [data, setData] = useState<Overview | null>(null);
@@ -49,7 +22,7 @@ export default function AdminStatsBar() {
   const [error, setError] = useState("");
 
   const runFetch = () =>
-    apiFetch<any>(`/api/dashboard/overview`)
+    apiFetch<ApiResponse<Overview>>(`/api/dashboard/overview`)
       .then(async (r) => {
         if (!r.success) throw new Error(r.message ?? "Failed to load");
         setData(r.data);

@@ -6,27 +6,11 @@ import { toast } from "sonner";
 import apiFetch from "@/lib/api";
 import Link from "next/link";
 import { useConfirmModal } from "@/hooks/useConfirmModal";
-
-//
-
-type ReservationStatus = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED";
-
-interface Reservation {
-  id: string;
-  date: string;
-  time: string;
-  partySize: number;
-  status: ReservationStatus;
-  tableNumber?: string | null;
-  notes?: string | null;
-}
-
-const STATUS_COLORS: Record<ReservationStatus, string> = {
-  PENDING: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-  CONFIRMED: "text-blue-400 bg-blue-500/10 border-blue-500/30",
-  CANCELLED: "text-red-400 bg-red-500/10 border-red-500/30",
-  COMPLETED: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
-};
+import type { ApiResponse } from "@/types/api.types";
+import {
+  type UserReservation as Reservation,
+  RESERVATION_STATUS_COLORS as STATUS_COLORS,
+} from "@/types/reservation.types";
 
 export default function UserReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -35,10 +19,10 @@ export default function UserReservationsPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const { confirm, modal } = useConfirmModal();
   const runFetch = () =>
-    apiFetch<any>(`/api/reservations`)
+    apiFetch<ApiResponse<{ reservations?: Reservation[] }>>(`/api/reservations`)
       .then((r) => {
         if (!r.success) throw new Error(r.message);
-        setReservations(r.data?.reservations ?? r.data ?? []);
+        setReservations(r.data?.reservations ?? []);
         setError("");
       })
       .catch((err: unknown) =>
@@ -61,7 +45,7 @@ export default function UserReservationsPage() {
     if (!ok) return;
     setCancellingId(id);
     try {
-      const r = await apiFetch<any>(`api/reservations/${id}`, {
+      const r = await apiFetch<ApiResponse<{ reservation: Reservation }>>(`/api/reservations/${id}`, {
         method: "PATCH",
         data: { status: "CANCELLED" },
       });
